@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.SelfAssemblyHierarchy;
 import com.plotter.data.ModulePolygon;
 
@@ -31,7 +32,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 	private JScrollPane scrollPane;
 	
 	private List<DecompositionStage> decompStages;
-	private Map<Integer, List<Polygon>> hierarchy;
+	private Map<Integer, List<MultiPoly>> hierarchy;
 	
 	public AssemblyHierarchyPanel(PlotterWindow window, ModulePolygon modulePolygon) {
 		
@@ -53,9 +54,14 @@ public class AssemblyHierarchyPanel extends JPanel {
 		this.showStages();
 	}
 
-	public void addStageImage(Polygon shape, int stageNo) {
+	public void addStageImage(MultiPoly shape, int stageNo) {
 
-		Polygon shapeCopy = new Polygon(shape.xpoints, shape.ypoints, shape.npoints);
+		MultiPoly shapeCopy = null;
+		try {
+			shapeCopy = (MultiPoly) shape.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
 		
 		int imageDimensions = 80;
 		int drawDimensions = imageDimensions - 5;
@@ -65,14 +71,11 @@ public class AssemblyHierarchyPanel extends JPanel {
 		Graphics2D graphics = (Graphics2D) rawImage.getGraphics();
 		
 		graphics.setColor(Color.green);
-		
-		double polyWidth = shapeCopy.getBounds2D().getWidth();
-		double polyHeight = shapeCopy.getBounds2D().getHeight();
-		
-		shapeCopy.translate((int)-shapeCopy.getBounds2D().getMinX(), (int)-shapeCopy.getBounds2D().getMinY());;
 
-		AffineTransform scaleTransform = new AffineTransform();
 		double scale = 1;
+		
+		double polyWidth = shapeCopy.getMergedPolygon().getBounds2D().getWidth();
+		double polyHeight = shapeCopy.getMergedPolygon().getBounds2D().getHeight();
 		
 		if(Math.abs(drawDimensions - polyWidth) > Math.abs(drawDimensions - polyHeight)) {
 			// Scale based off width
@@ -83,10 +86,19 @@ public class AssemblyHierarchyPanel extends JPanel {
 			scale = drawDimensions/ polyHeight;
 		}
 		
+		AffineTransform scaleTransform = new AffineTransform();
+		
 		scaleTransform.setToScale(scale, scale);
 		
 		graphics.setTransform(scaleTransform);
-		graphics.drawPolygon(shapeCopy);
+		
+		int deltaX = (int) shapeCopy.getMergedPolygon().getBounds2D().getMinX();
+		int deltaY = (int) shapeCopy.getMergedPolygon().getBounds2D().getMinY();
+		
+		for(Polygon polygon:shapeCopy.getPolygons()) {
+			polygon.translate(-deltaX, -deltaY);
+			graphics.drawPolygon(polygon);
+		}
 		
 		ImageIcon image = new ImageIcon(rawImage);
 		
@@ -161,8 +173,8 @@ public class AssemblyHierarchyPanel extends JPanel {
 		this.decompStages.clear();
 		this.imagesPanel.removeAll();
 
-		for(Entry<Integer, List<Polygon>> entry:hierarchy.entrySet()) {
-			for(Polygon shape:entry.getValue()) {
+		for(Entry<Integer, List<MultiPoly>> entry:hierarchy.entrySet()) {
+			for(MultiPoly shape:entry.getValue()) {
 				this.addStageImage(shape, entry.getKey());
 			}
 		}
