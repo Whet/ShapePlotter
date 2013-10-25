@@ -41,52 +41,49 @@ public class SelfAssemblyHierarchy {
 			
 			for(int j = 0; j < connectPoints.size(); j++) {
 				for(int k = 0; k < connectPoints.size(); k++) {
-//					if(j != k) {
-						
-						Point centreBind = new Point(connectPoints.get(j)[0], connectPoints.get(j)[1]); 
+					Point centreBind = new Point(connectPoints.get(j)[0], connectPoints.get(j)[1]); 
+				
+					int translateX = centreBind.x - connectPoints.get(k)[0];
+					int translateY = centreBind.y - connectPoints.get(k)[1];
 					
-						int translateX = centreBind.x - connectPoints.get(k)[0];
-						int translateY = centreBind.y - connectPoints.get(k)[1];
-						
-						// Update the connect points after translation so we know where they are
-						int[] point = connectPoints.get(k);
-						int[] translatedBinds = new int[]{point[0] + translateX, point[1] + translateY, point[2] + translateX, point[3] + translateY,point[4] + translateX, point[5] + translateY};
-						
-						// Move centre to centre
-						poly2.translate(translateX, translateY);
-						
-						System.out.println("CENTRE: [" + centreBind.x + ", " + centreBind.y + "]");
-						System.out.println("T-CENTRE: [" + translatedBinds[0] + ", " + translatedBinds[1] + "]");
-						// Centre updates correctly
-						
-						
-						// find angle difference between inside and outside
-						double angle = Maths.getRads(connectPoints.get(j)[4], connectPoints.get(j)[5], translatedBinds[2], translatedBinds[3]) * 2;
-						
-						System.out.println("BIND: [" + connectPoints.get(j)[4] + ", " + connectPoints.get(j)[5] + "]");
-						System.out.println("TBIND: [" + translatedBinds[2] + ", " + translatedBinds[3] + "]");
-						
-						System.out.println("ANGLE: " + angle);
-						Polygon rotatedPoly = new Polygon();
-						
-						// Rotate the polygon around the centre
-						for(int m = 0; m < poly2.npoints; m++) {
-							Point rotatePoint = rotatePoint(new Point(poly2.xpoints[m], poly2.ypoints[m]), centreBind, angle);
-							rotatedPoly.addPoint(rotatePoint.x, rotatePoint.y);
-						}
-						
-						// Check if rotatedPoly intersects with poly1
-						if(!intersects(rotatedPoly, poly1)) {
-							System.out.println("ACCEPTED");
-							hierarchy.get(currentDepth).add(new MultiPoly(rotatedPoly,poly1));
+					// Update the connect points after translation so we know where they are
+					int[] point = connectPoints.get(k);
+					int[] translatedBinds = new int[]{point[0] + translateX, point[1] + translateY, point[2] + translateX, point[3] + translateY,point[4] + translateX, point[5] + translateY};
+					
+					// Move centre to centre
+					poly2.translate(translateX, translateY);
+					
+					System.out.println("CENTRE: [" + centreBind.x + ", " + centreBind.y + "]");
+					System.out.println("T-CENTRE: [" + translatedBinds[0] + ", " + translatedBinds[1] + "]");
+					// Centre updates correctly
+					
+					
+					// find angle difference between inside and outside
+					double angle = Maths.getRads(connectPoints.get(j)[4], connectPoints.get(j)[5], translatedBinds[2], translatedBinds[3]) * 2;
+					
+					System.out.println("BIND: [" + connectPoints.get(j)[4] + ", " + connectPoints.get(j)[5] + "]");
+					System.out.println("TBIND: [" + translatedBinds[2] + ", " + translatedBinds[3] + "]");
+					
+					System.out.println("ANGLE: " + angle);
+					Polygon rotatedPoly = new Polygon();
+					
+					// Rotate the polygon around the centre
+					for(int m = 0; m < poly2.npoints; m++) {
+						Point rotatePoint = rotatePoint(new Point(poly2.xpoints[m], poly2.ypoints[m]), centreBind, angle);
+						rotatedPoly.addPoint(rotatePoint.x, rotatePoint.y);
+					}
+					
+					// Check if rotatedPoly intersects with poly1
+					if(!intersects(rotatedPoly, poly1)) {
+						System.out.println("ACCEPTED");
+						hierarchy.get(currentDepth).add(new MultiPoly(rotatedPoly,poly1));
 //						hierarchy.get(currentDepth).add(rotatedPoly);
-							
-						}
-						else {
-							System.out.println("REJECTED");
-						}
 						
-//					}
+					}
+					else {
+						System.out.println("REJECTED");
+					}
+						
 				}
 			}
 		}
@@ -131,6 +128,10 @@ public class SelfAssemblyHierarchy {
 	
 	// http://wikicode.wikidot.com/check-for-polygon-polygon-intersection
 	private static boolean intersects(Polygon shape1, Polygon shape2) {
+		
+		if(shape1.contains(shape2.getBounds2D().getCenterX(), shape2.getBounds2D().getCenterY()) || shape2.contains(shape1.getBounds2D().getCenterX(), shape1.getBounds2D().getCenterY()))
+			return true;
+		
 		Point p;
     LOOP:for(int i = 0; i < shape1.npoints;i++) {
             p = new Point(shape1.xpoints[i],shape1.ypoints[i]);
