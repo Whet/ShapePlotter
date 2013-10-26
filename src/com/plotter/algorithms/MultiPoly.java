@@ -3,8 +3,11 @@ package com.plotter.algorithms;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.plotter.data.Maths;
 import com.plotter.gui.GridPanel;
 
 public class MultiPoly {
@@ -183,19 +186,45 @@ public class MultiPoly {
 			
 			if(this.getPolygons().size() != ((MultiPoly) obj).getPolygons().size())
 				return false;
-			
+
+			// Check that each collection holds polygons with same shapes
 			int matchingPolygons = 0;
+
+			Set<Integer> usedPolygons = new HashSet<>();
 			
-			for(Polygon polygon:this.polygons) {
-				for(Polygon polygon1:((MultiPoly) obj).getPolygons()) {
-					if(polyMatch(polygon, polygon1)) {
+			for(int i = 0; i < this.polygons.size(); i++) {
+				for(int j = 0; j < ((MultiPoly) obj).getPolygons().size(); j++) {
+					if(!usedPolygons.contains(j) && polyMatch(this.polygons.get(i), ((MultiPoly) obj).getPolygons().get(j))) {
+						usedPolygons.add(j);
 						matchingPolygons++;
 						break;
 					}
 				}
 			}
 			
+			// Check both collections have same set of distances
+			Set<Double> distances1 = new HashSet<>();
+			Set<Double> distances2 = new HashSet<>();
+			
+			for(Polygon polygon:this.polygons) {
+				for(Polygon polygon1:this.polygons) {
+					distances1.add(Maths.getDistance(polygon.getBounds2D().getCenterX(), polygon.getBounds2D().getCenterY(), polygon1.getBounds2D().getCenterX(), polygon1.getBounds2D().getCenterY()));
+				}
+			}
+			
+			for(Polygon polygon:((MultiPoly) obj).getPolygons()) {
+				for(Polygon polygon1:((MultiPoly) obj).getPolygons()) {
+					distances2.add(Maths.getDistance(polygon.getBounds2D().getCenterX(), polygon.getBounds2D().getCenterY(), polygon1.getBounds2D().getCenterX(), polygon1.getBounds2D().getCenterY()));
+				}
+			}
+			
 			if(matchingPolygons == this.getPolygons().size()) {
+				
+				for(Double dist1:distances1) {
+					if(!distances2.contains(dist1))
+						return false;
+				}
+				
 				return true;
 			}
 			else {
