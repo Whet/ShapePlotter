@@ -14,7 +14,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
-import com.plotter.algorithms.SelfAssemblyHierarchy;
 import com.plotter.data.ModulePolygon;
 
 public class PlotterWindow extends JFrame {

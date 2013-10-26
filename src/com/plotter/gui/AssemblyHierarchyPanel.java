@@ -72,7 +72,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		graphics.setColor(Color.green);
 
-		double scale = 1;
+		double scale = 0.2;
 		
 		double polyWidth = shapeCopy.getMergedPolygon().getBounds2D().getWidth();
 		double polyHeight = shapeCopy.getMergedPolygon().getBounds2D().getHeight();
