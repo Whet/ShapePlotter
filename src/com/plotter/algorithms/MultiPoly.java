@@ -141,4 +141,41 @@ public class MultiPoly {
 	    return (int) (Math.round(number/roundFigure) * roundFigure);
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		
+		if(obj instanceof MultiPoly) {
+			// Check all polygons have equal points
+			
+			if(this.getPolygons().size() != ((MultiPoly) obj).getPolygons().size())
+				return false;
+			
+			int matchingPolygons = 0;
+			
+			for(Polygon polygon:this.polygons) {
+				for(Polygon polygon1:((MultiPoly) obj).getPolygons()) {
+					if(polyMatch(polygon, polygon1)) {
+						matchingPolygons++;
+						break;
+					}
+				}
+			}
+			
+			if(matchingPolygons == this.getPolygons().size()) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		
+		return super.equals(obj);
+	}
+
+	private boolean polyMatch(Polygon polygon, Polygon polygon1) {
+		
+		return polygon.getBounds2D().getWidth() == polygon1.getBounds2D().getWidth() && polygon.getBounds2D().getHeight() == polygon1.getBounds2D().getHeight();
+		
+	}
+	
 }

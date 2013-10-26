@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -81,23 +82,29 @@ public class SelfAssemblyHierarchy {
 							}
 							else {
 								System.out.println("REJECTED");
-//								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getMergedPolygon(), lastLevelPolygon.getMergedPolygon()));
-								
-								// print polygons
-								System.out.println("Poly 1");
-								for(int i = 0; i < lastLevelPolygon.getPolygons().get(0).npoints; i++) {
-									System.out.println("["+lastLevelPolygon.getPolygons().get(0).xpoints[i] + "," + lastLevelPolygon.getPolygons().get(0).ypoints[i]+"]");
-								}
-								
-								System.out.println("Poly 2");
-								for(int i = 0; i < newMonomer.getPolygons().get(0).npoints; i++) {
-									System.out.println("["+newMonomer.getPolygons().get(0).xpoints[i] + "," + newMonomer.getPolygons().get(0).ypoints[i]+"]");
-								}
 							}
 						}
 					}
 				}
 			}
+			
+			// Remove duplicates
+			List<MultiPoly> list = hierarchy.get(currentDepth);
+			List<MultiPoly> undupedList = new ArrayList<>();
+			
+	LOOP:	for(MultiPoly poly:list) {
+				for(MultiPoly poly1:undupedList) {
+					if(poly.equals(poly1)) {
+						continue LOOP;
+					}
+				}
+				
+				undupedList.add(poly);
+			}
+			
+			hierarchy.remove(currentDepth);
+			hierarchy.put(currentDepth, undupedList);
+			
 		}
 		
 		return hierarchy;
