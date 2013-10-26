@@ -71,14 +71,14 @@ public class SelfAssemblyHierarchy {
 						// Check if rotatedPoly intersects with poly1
 						if(!intersects(lastLevelPolygon, newMonomer)) {
 							System.out.println("ACCEPTED");
-							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getMergedPolygon(), lastLevelPolygon.getMergedPolygon()));
+							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 						}
 						else {
 							// Try spinning other way
 							newMonomer.rotate(centreBind, -angle * 2);
 							if(!intersects(lastLevelPolygon, newMonomer)) {
 								System.out.println("ACCEPTED");
-								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getMergedPolygon(), lastLevelPolygon.getMergedPolygon()));
+								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							}
 							else {
 								System.out.println("REJECTED");

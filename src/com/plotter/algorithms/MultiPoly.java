@@ -44,6 +44,40 @@ public class MultiPoly {
 		}
 	}
 	
+	public MultiPoly(List<int[]> connectedPoints, List<Polygon> polygons1, List<Polygon> polygons2) {
+		
+		this.polygons = new ArrayList<Polygon>();
+		
+		for(int i = 0; i < polygons1.size(); i++) {
+			this.polygons.add(new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints));
+		}
+		for(int i = 0; i < polygons2.size(); i++) {
+			this.polygons.add(new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints));
+		}
+		
+		this.connectedPoints = new ArrayList<>();
+		
+		for(int i = 0; i < connectedPoints.size(); i++) {
+			this.connectedPoints.add(new int[]{connectedPoints.get(i)[0], connectedPoints.get(i)[1], connectedPoints.get(i)[2], connectedPoints.get(i)[3], connectedPoints.get(i)[4], connectedPoints.get(i)[5]});
+		}
+		
+		ArrayList<Point> points = new ArrayList<>();
+		
+		for(Polygon polygon:this.polygons) {
+			for(int i = 0; i < polygon.npoints; i++) {
+				points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
+			}
+		}
+		
+		ArrayList<Point> mergedPoints = FastConvexHull.execute(points);
+		
+		this.mergedPolygon = new Polygon();
+		
+		for(Point point: mergedPoints) {
+			this.mergedPolygon.addPoint(point.x, point.y);
+		}
+	}
+	
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		
