@@ -107,7 +107,7 @@ public class PlotterWindow extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String inputDialog = JOptionPane.showInputDialog("How many stages do you want to calculate?");
+				String inputDialog = JOptionPane.showInputDialog("What is the max number of units you want to simulate with?");
 				
 				try {
 					int maxDepth = Integer.parseInt(inputDialog);

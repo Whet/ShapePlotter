@@ -43,7 +43,7 @@ public class SelfAssemblyHierarchy {
 				 */
 				
 				for(int j = 0; j < connectPoints.size(); j++) {
-					for(int k = 0; k < connectPoints.size(); k++) {
+					for(int k = 0; k < monomer.getConnectPoints().size(); k++) {
 
 						MultiPoly newMonomer = new MultiPoly(monomer.getConnectPoints(), monomer.getPolygon());
 						
@@ -57,7 +57,8 @@ public class SelfAssemblyHierarchy {
 						newMonomer.translate(translateX, translateY);
 						
 						// find angle difference between inside and outside
-						double angle = Maths.getRads(connectPoints.get(j)[4], connectPoints.get(j)[5], newMonomer.getConnectPoints().get(k)[2], newMonomer.getConnectPoints().get(k)[3]) * 2;
+						double angle = Maths.getRads(connectPoints.get(j)[4], connectPoints.get(j)[5],
+													 newMonomer.getConnectPoints().get(k)[2], newMonomer.getConnectPoints().get(k)[3]) * 2;
 						
 						if(angle == 0 && translateX == 0 && translateY == 0)
 							angle = Math.PI;
@@ -70,17 +71,18 @@ public class SelfAssemblyHierarchy {
 						// Check if rotatedPoly intersects with poly1
 						if(!intersects(lastLevelPolygon, newMonomer)) {
 							System.out.println("ACCEPTED");
-							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 						}
 						else {
 							// Try spinning other way
 							newMonomer.rotate(centreBind, -angle * 2);
 							if(!intersects(lastLevelPolygon, newMonomer)) {
 								System.out.println("ACCEPTED");
-								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							}
 							else {
 								System.out.println("REJECTED");
+								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							}
 						}
 					}

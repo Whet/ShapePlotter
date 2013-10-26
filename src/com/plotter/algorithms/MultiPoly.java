@@ -47,7 +47,7 @@ public class MultiPoly {
 		}
 	}
 	
-	public MultiPoly(List<int[]> connectedPoints, List<Polygon> polygons1, List<Polygon> polygons2) {
+	public MultiPoly(List<int[]> connectedPoints, List<int[]> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
 		
 		this.polygons = new ArrayList<Polygon>();
 		
@@ -62,6 +62,9 @@ public class MultiPoly {
 		
 		for(int i = 0; i < connectedPoints.size(); i++) {
 			this.connectedPoints.add(new int[]{connectedPoints.get(i)[0], connectedPoints.get(i)[1], connectedPoints.get(i)[2], connectedPoints.get(i)[3], connectedPoints.get(i)[4], connectedPoints.get(i)[5]});
+		}
+		for(int i = 0; i < connectedPoints1.size(); i++) {
+			this.connectedPoints.add(new int[]{connectedPoints1.get(i)[0], connectedPoints1.get(i)[1], connectedPoints1.get(i)[2], connectedPoints1.get(i)[3], connectedPoints1.get(i)[4], connectedPoints1.get(i)[5]});
 		}
 		
 		ArrayList<Point> points = new ArrayList<>();
@@ -158,7 +161,16 @@ public class MultiPoly {
 		
 		this.mergedPolygon = rotatedMergedPolygon;
 		
-		//TODO connection points
+		ArrayList<int[]> rotatedConnections = new ArrayList<>();
+		
+		for(int[] connection:this.connectedPoints) {
+			Point rotatedConnection = rotatePoint(new Point(connection[0], connection[1]), centreOfRotation, angle);
+			Point rotatedConnection1 = rotatePoint(new Point(connection[2], connection[3]), centreOfRotation, angle);
+			Point rotatedConnection2 = rotatePoint(new Point(connection[4], connection[5]), centreOfRotation, angle);
+			rotatedConnections.add(new int[]{rotatedConnection.x, rotatedConnection.y, rotatedConnection1.x, rotatedConnection1.y, rotatedConnection2.x, rotatedConnection2.y});
+		}
+		
+		this.connectedPoints = rotatedConnections;
 	}
 	
 	// http://stackoverflow.com/questions/10533403/how-to-rotate-a-polygon-around-a-point-with-java

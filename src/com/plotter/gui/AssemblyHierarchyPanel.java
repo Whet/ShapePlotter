@@ -70,8 +70,6 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		Graphics2D graphics = (Graphics2D) rawImage.getGraphics();
 		
-		graphics.setColor(Color.green);
-
 		double scale = 1;
 		
 		double polyWidth = shapeCopy.getMergedPolygon().getBounds2D().getWidth();
@@ -86,6 +84,9 @@ public class AssemblyHierarchyPanel extends JPanel {
 			scale = drawDimensions/ polyHeight;
 		}
 		
+		// draw polygons
+		graphics.setColor(Color.green);
+		
 		AffineTransform scaleTransform = new AffineTransform();
 		
 		scaleTransform.setToScale(scale, scale);
@@ -98,6 +99,13 @@ public class AssemblyHierarchyPanel extends JPanel {
 		for(Polygon polygon:shapeCopy.getPolygons()) {
 			polygon.translate(-deltaX, -deltaY);
 			graphics.drawPolygon(polygon);
+		}
+		
+		graphics.setColor(Color.yellow);
+		
+		// draw connection points
+		for(int[] connection:shapeCopy.getConnectPoints()) {
+			graphics.fillOval(connection[0] - 5 - deltaX, connection[1] - 5 - deltaY, 10, 10);
 		}
 		
 		ImageIcon image = new ImageIcon(rawImage);
@@ -124,7 +132,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		Collections.sort(this.decompStages);
 		
 		for(DecompositionStage stage:this.decompStages) {
-			JTextField jTextField = new JTextField("Stage: " + stage.getStageNo());
+			JTextField jTextField = new JTextField("Number of Units: " + (stage.getStageNo() + 1));
 			jTextField.setEditable(false);
 			this.imagesPanel.add(jTextField);
 			
