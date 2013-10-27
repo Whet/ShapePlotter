@@ -11,11 +11,11 @@ import com.plotter.gui.GridPanel;
 
 public class MultiPoly {
 
-	private List<int[]> connectedPoints;
+	private List<ConnectionPoint> connectedPoints;
 	private List<Polygon> polygons;
 	private Polygon mergedPolygon;
 	
-	public MultiPoly(List<int[]> connectedPoints, Polygon... polygons) {
+	public MultiPoly(List<ConnectionPoint> connectedPoints, Polygon... polygons) {
 		
 		this.polygons = new ArrayList<Polygon>();
 		
@@ -26,7 +26,7 @@ public class MultiPoly {
 		this.connectedPoints = new ArrayList<>();
 		
 		for(int i = 0; i < connectedPoints.size(); i++) {
-			this.connectedPoints.add(new int[]{connectedPoints.get(i)[0], connectedPoints.get(i)[1], connectedPoints.get(i)[2], connectedPoints.get(i)[3], connectedPoints.get(i)[4], connectedPoints.get(i)[5]});
+			this.connectedPoints.add(new ConnectionPoint(connectedPoints.get(i).getLocation().x, connectedPoints.get(i).getLocation().y, connectedPoints.get(i).getInnie().x, connectedPoints.get(i).getInnie().y, connectedPoints.get(i).getOuttie().x, connectedPoints.get(i).getOuttie().y, 0, 0));
 		}
 		
 		ArrayList<Point> points = new ArrayList<>();
@@ -46,7 +46,7 @@ public class MultiPoly {
 		}
 	}
 	
-	public MultiPoly(List<int[]> connectedPoints, List<int[]> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
+	public MultiPoly(List<ConnectionPoint> connectedPoints, List<ConnectionPoint> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
 		
 		this.polygons = new ArrayList<Polygon>();
 		
@@ -61,8 +61,8 @@ public class MultiPoly {
 		
 		for(int i = 0; i < connectedPoints.size(); i++) {
 			// if both out and in ends are inside of a polygon then don't add the connect point as it is in use
-			Point end1 = new Point(connectedPoints.get(i)[2], connectedPoints.get(i)[3]);
-			Point end2 = new Point(connectedPoints.get(i)[4], connectedPoints.get(i)[5]);
+			Point end1 = new Point(connectedPoints.get(i).getInnie().x, connectedPoints.get(i).getInnie().y);
+			Point end2 = new Point(connectedPoints.get(i).getOuttie().x, connectedPoints.get(i).getOuttie().y);
 			
 //			boolean e1 = false;
 //			boolean e2 = false;
@@ -79,12 +79,12 @@ public class MultiPoly {
 //			}
 //			
 //			if(!(e1 && e2))
-				this.connectedPoints.add(new int[]{connectedPoints.get(i)[0], connectedPoints.get(i)[1], end1.x, end1.y, end2.x, end2.y});
+				this.connectedPoints.add(new ConnectionPoint(connectedPoints.get(i).getLocation().x, connectedPoints.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, 0, 0));
 		}
 		for(int i = 0; i < connectedPoints1.size(); i++) {
 			// if both out and in ends are inside of a polygon then don't add the connect point as it is in use
-			Point end1 = new Point(connectedPoints1.get(i)[2], connectedPoints1.get(i)[3]);
-			Point end2 = new Point(connectedPoints1.get(i)[4], connectedPoints1.get(i)[5]);
+			Point end1 = new Point(connectedPoints1.get(i).getInnie().x, connectedPoints1.get(i).getInnie().y);
+			Point end2 = new Point(connectedPoints1.get(i).getOuttie().x, connectedPoints1.get(i).getOuttie().y);
 			
 //			boolean e1 = false;
 //			boolean e2 = false;
@@ -101,7 +101,7 @@ public class MultiPoly {
 //			}
 //			
 //			if(!(e1 && e2))
-				this.connectedPoints.add(new int[]{connectedPoints1.get(i)[0], connectedPoints1.get(i)[1], end1.x, end1.y, end2.x, end2.y});
+				this.connectedPoints.add(new ConnectionPoint(connectedPoints1.get(i).getLocation().x, connectedPoints1.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, 0, 0));
 		}
 		
 		ArrayList<Point> points = new ArrayList<>();
@@ -130,10 +130,10 @@ public class MultiPoly {
 			polygons[i] = new Polygon(this.polygons.get(i).xpoints, this.polygons.get(i).ypoints, this.polygons.get(i).npoints);
 		}
 		
-		ArrayList<int[]> connectedPoints = new ArrayList<>();
+		ArrayList<ConnectionPoint> connectedPoints = new ArrayList<>();
 		
 		for(int i = 0; i < this.connectedPoints.size(); i++) {
-			connectedPoints.add(new int[]{this.connectedPoints.get(i)[0], this.connectedPoints.get(i)[1], this.connectedPoints.get(i)[2], this.connectedPoints.get(i)[3], this.connectedPoints.get(i)[4], this.connectedPoints.get(i)[5]});
+			connectedPoints.add(new ConnectionPoint(this.connectedPoints.get(i).getLocation().x, this.connectedPoints.get(i).getLocation().y, this.connectedPoints.get(i).getInnie().x, this.connectedPoints.get(i).getInnie().y, this.connectedPoints.get(i).getOuttie().x, this.connectedPoints.get(i).getOuttie().y, 0, 0));
 		}
 		
 		return new MultiPoly(connectedPoints, polygons);
@@ -147,7 +147,7 @@ public class MultiPoly {
 		return mergedPolygon;
 	}
 
-	public List<int[]> getConnectPoints() {
+	public List<ConnectionPoint> getConnectPoints() {
 		return this.connectedPoints;
 	}
 
@@ -157,21 +157,9 @@ public class MultiPoly {
 		}
 		this.mergedPolygon.translate(deltaX, deltaY);
 		
-		ArrayList<int[]> translatedConnections = new ArrayList<>();
-		
-		for(int[] connection:this.connectedPoints) {
-			
-			int[] translatedConnection = new int[connection.length];
-			
-			for(int i = 0; i < connection.length; i+=2) {
-				translatedConnection[i] = connection[i] + deltaX;
-				translatedConnection[i+1] = connection[i + 1] + deltaY;
-			}
-			
-			translatedConnections.add(translatedConnection);
+		for(ConnectionPoint connection:this.connectedPoints) {
+			connection.translate(deltaX, deltaY);
 		}
-		
-		this.connectedPoints = translatedConnections;
 	}
 
 	public void rotate(Point centreOfRotation, double angle) {
@@ -192,16 +180,10 @@ public class MultiPoly {
 		
 		this.mergedPolygon = rotatedMergedPolygon;
 		
-		ArrayList<int[]> rotatedConnections = new ArrayList<>();
-		
-		for(int[] connection:this.connectedPoints) {
-			Point rotatedConnection = rotatePoint(new Point(connection[0], connection[1]), centreOfRotation, angle);
-			Point rotatedConnection1 = rotatePoint(new Point(connection[2], connection[3]), centreOfRotation, angle);
-			Point rotatedConnection2 = rotatePoint(new Point(connection[4], connection[5]), centreOfRotation, angle);
-			rotatedConnections.add(new int[]{rotatedConnection.x, rotatedConnection.y, rotatedConnection1.x, rotatedConnection1.y, rotatedConnection2.x, rotatedConnection2.y});
+		for(ConnectionPoint connection:this.connectedPoints) {
+			connection.rotate(centreOfRotation, angle);
 		}
 		
-		this.connectedPoints = rotatedConnections;
 	}
 	
 	// http://stackoverflow.com/questions/10533403/how-to-rotate-a-polygon-around-a-point-with-java

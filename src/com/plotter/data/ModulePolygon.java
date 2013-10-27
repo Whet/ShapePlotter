@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.plotter.algorithms.ConnectionPoint;
+
 public class ModulePolygon {
 
 	private List<int[]> points;
@@ -73,8 +75,19 @@ public class ModulePolygon {
 		return points;
 	}
 
-	public List<int[]> getConnectPoints() {
+	public List<int[]> getConnectPointsInts() {
 		return connectPoints;
+	}
+	
+	public List<ConnectionPoint> getConnectPoints() {
+		List<ConnectionPoint> connections = new ArrayList<>();
+		
+		for(int i = 0; i < this.connectPoints.size(); i++) {
+			int[] loc = this.connectPoints.get(i);
+			connections.add(new ConnectionPoint(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], 0, 0));
+		}
+		
+		return connections;
 	}
 	
 }

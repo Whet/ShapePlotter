@@ -302,7 +302,7 @@ public class GridPanel extends JPanel {
 		g.setTransform(new AffineTransform());
 		
 		g.setColor(BINDING_POINT_COLOUR);
-		points = this.modulePolygon.getConnectPoints().toArray(new int[this.modulePolygon.getConnectPoints().size()][2]);
+		points = this.modulePolygon.getConnectPointsInts().toArray(new int[this.modulePolygon.getConnectPoints().size()][2]);
 		
 		for(int i = 0; i < points.length; i++) {
 			g.fillOval(points[i][0] - 3 + panX, points[i][1] - 3 + panY, 6, 6);

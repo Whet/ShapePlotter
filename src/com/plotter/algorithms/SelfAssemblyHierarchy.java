@@ -35,7 +35,7 @@ public class SelfAssemblyHierarchy {
 					e.printStackTrace();
 				}
 				
-				List<int[]> connectPoints = lastLevelPolygon.getConnectPoints();
+				List<ConnectionPoint> connectPoints = lastLevelPolygon.getConnectPoints();
 				
 				/*
 				 * For each binding point match the centre location [0][1]
@@ -48,17 +48,17 @@ public class SelfAssemblyHierarchy {
 
 						MultiPoly newMonomer = new MultiPoly(monomer.getConnectPoints(), monomer.getPolygon());
 						
-						Point centreBind = new Point(connectPoints.get(j)[0], connectPoints.get(j)[1]); 
+						Point centreBind = new Point(connectPoints.get(j).getLocation().x, connectPoints.get(j).getLocation().y); 
 					
-						int translateX = centreBind.x - connectPoints.get(k)[0];
-						int translateY = centreBind.y - connectPoints.get(k)[1];
+						int translateX = centreBind.x - connectPoints.get(k).getLocation().x;
+						int translateY = centreBind.y - connectPoints.get(k).getLocation().y;
 						
 						// Move centre to centre
 						newMonomer.translate(translateX, translateY);
 						
 						// find angle difference between inside and outside
-						double angle = Maths.getRads(connectPoints.get(j)[4], connectPoints.get(j)[5],
-													 newMonomer.getConnectPoints().get(k)[2], newMonomer.getConnectPoints().get(k)[3]) * 2;
+						double angle = Maths.getRads(connectPoints.get(j).getInnie().x, connectPoints.get(j).getInnie().y,
+													 newMonomer.getConnectPoints().get(k).getOuttie().x, newMonomer.getConnectPoints().get(k).getOuttie().x) * 2;
 						
 						if(angle == 0 && translateX == 0 && translateY == 0)
 							angle = Math.PI;

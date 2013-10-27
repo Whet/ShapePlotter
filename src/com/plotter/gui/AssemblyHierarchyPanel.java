@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import com.plotter.algorithms.ConnectionPoint;
 import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.SelfAssemblyHierarchy;
 import com.plotter.data.ModulePolygon;
@@ -109,8 +110,8 @@ public class AssemblyHierarchyPanel extends JPanel {
 		graphics.setColor(Color.yellow);
 		
 		// draw connection points
-		for(int[] connection:shapeCopy.getConnectPoints()) {
-			graphics.fillOval(connection[0] - 5 - deltaX, connection[1] - 5 - deltaY, 10, 10);
+		for(ConnectionPoint connection:shapeCopy.getConnectPoints()) {
+			graphics.fillOval(connection.getLocation().x - 5 - deltaX, connection.getLocation().y - 5 - deltaY, 10, 10);
 		}
 		
 		ImageIcon image = new ImageIcon(rawImage);
