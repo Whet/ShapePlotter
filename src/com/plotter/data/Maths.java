@@ -112,5 +112,14 @@ public class Maths {
 		}
 		return false;
 	}
+	
+	// http://stackoverflow.com/questions/9303604/rounding-up-a-number-to-nearest-multiple-of-5
+	public static double round(double number, double roundFigure) {
+	    return (Math.round(number/roundFigure) * roundFigure);
+	}
+	
+	public static int round(double number, int roundFigure) {
+	    return (int) (Math.round(number/roundFigure) * roundFigure);
+	}
 
 }

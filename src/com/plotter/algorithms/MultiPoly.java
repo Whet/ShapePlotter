@@ -3,9 +3,7 @@ package com.plotter.algorithms;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.plotter.data.Maths;
 import com.plotter.gui.GridPanel;
@@ -61,10 +59,48 @@ public class MultiPoly {
 		this.connectedPoints = new ArrayList<>();
 		
 		for(int i = 0; i < connectedPoints.size(); i++) {
-			this.connectedPoints.add(new int[]{connectedPoints.get(i)[0], connectedPoints.get(i)[1], connectedPoints.get(i)[2], connectedPoints.get(i)[3], connectedPoints.get(i)[4], connectedPoints.get(i)[5]});
+			// if both out and in ends are inside of a polygon then don't add the connect point as it is in use
+			Point end1 = new Point(connectedPoints.get(i)[2], connectedPoints.get(i)[3]);
+			Point end2 = new Point(connectedPoints.get(i)[4], connectedPoints.get(i)[5]);
+			
+//			boolean e1 = false;
+//			boolean e2 = false;
+//			
+//			for(Polygon polygon:this.polygons) {
+//				if(polygon.contains(end1)) {
+//					e1 = true;
+//				}
+//				if(polygon.contains(end2)) {
+//					e2 = true;
+//				}
+//				if(e1 && e2)
+//					break;
+//			}
+//			
+//			if(!(e1 && e2))
+				this.connectedPoints.add(new int[]{connectedPoints.get(i)[0], connectedPoints.get(i)[1], end1.x, end1.y, end2.x, end2.y});
 		}
 		for(int i = 0; i < connectedPoints1.size(); i++) {
-			this.connectedPoints.add(new int[]{connectedPoints1.get(i)[0], connectedPoints1.get(i)[1], connectedPoints1.get(i)[2], connectedPoints1.get(i)[3], connectedPoints1.get(i)[4], connectedPoints1.get(i)[5]});
+			// if both out and in ends are inside of a polygon then don't add the connect point as it is in use
+			Point end1 = new Point(connectedPoints1.get(i)[2], connectedPoints1.get(i)[3]);
+			Point end2 = new Point(connectedPoints1.get(i)[4], connectedPoints1.get(i)[5]);
+			
+//			boolean e1 = false;
+//			boolean e2 = false;
+//			
+//			for(Polygon polygon:this.polygons) {
+//				if(polygon.contains(end1)) {
+//					e1 = true;
+//				}
+//				if(polygon.contains(end2)) {
+//					e2 = true;
+//				}
+//				if(e1 && e2)
+//					break;
+//			}
+//			
+//			if(!(e1 && e2))
+				this.connectedPoints.add(new int[]{connectedPoints1.get(i)[0], connectedPoints1.get(i)[1], end1.x, end1.y, end2.x, end2.y});
 		}
 		
 		ArrayList<Point> points = new ArrayList<>();
@@ -144,7 +180,7 @@ public class MultiPoly {
 			for(int i = 0; i < polygon.npoints; i++) {
 				Point rotatedPoint = rotatePoint(new Point(polygon.xpoints[i], polygon.ypoints[i]), centreOfRotation, angle);
 				
-				rotatedPoly.addPoint(round(rotatedPoint.x, GridPanel.GRID_SIZE), round(rotatedPoint.y, GridPanel.GRID_SIZE));
+				rotatedPoly.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
 			}
 			rotatedPolygons.add(rotatedPoly);
 		}
@@ -156,7 +192,7 @@ public class MultiPoly {
 		for(int i = 0; i < this.mergedPolygon.npoints; i++) {
 			Point rotatedPoint = rotatePoint(new Point(this.mergedPolygon.xpoints[i], this.mergedPolygon.ypoints[i]), centreOfRotation, angle);
 			
-			rotatedMergedPolygon.addPoint(round(rotatedPoint.x, GridPanel.GRID_SIZE), round(rotatedPoint.y, GridPanel.GRID_SIZE));
+			rotatedMergedPolygon.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
 		}
 		
 		this.mergedPolygon = rotatedMergedPolygon;
@@ -185,11 +221,6 @@ public class MultiPoly {
 	    return pt;
 	}
 	
-	// http://stackoverflow.com/questions/9303604/rounding-up-a-number-to-nearest-multiple-of-5
-	private int round(double number, int roundFigure) {
-	    return (int) (Math.round(number/roundFigure) * roundFigure);
-	}
-	
 	@Override
 	public boolean equals(Object obj) {
 		
@@ -199,44 +230,7 @@ public class MultiPoly {
 			if(this.getPolygons().size() != ((MultiPoly) obj).getPolygons().size())
 				return false;
 
-			// Check that each collection holds polygons with same shapes
-			int matchingPolygons = 0;
-
-			Set<Integer> usedPolygons = new HashSet<>();
-			
-			for(int i = 0; i < this.polygons.size(); i++) {
-				for(int j = 0; j < ((MultiPoly) obj).getPolygons().size(); j++) {
-					if(!usedPolygons.contains(j) && polyMatch(this.polygons.get(i), ((MultiPoly) obj).getPolygons().get(j))) {
-						usedPolygons.add(j);
-						matchingPolygons++;
-						break;
-					}
-				}
-			}
-			
-			// Check both collections have same set of distances
-			Set<Double> distances1 = new HashSet<>();
-			Set<Double> distances2 = new HashSet<>();
-			
-			for(Polygon polygon:this.polygons) {
-				for(Polygon polygon1:this.polygons) {
-					distances1.add(Maths.getDistance(polygon.getBounds2D().getCenterX(), polygon.getBounds2D().getCenterY(), polygon1.getBounds2D().getCenterX(), polygon1.getBounds2D().getCenterY()));
-				}
-			}
-			
-			for(Polygon polygon:((MultiPoly) obj).getPolygons()) {
-				for(Polygon polygon1:((MultiPoly) obj).getPolygons()) {
-					distances2.add(Maths.getDistance(polygon.getBounds2D().getCenterX(), polygon.getBounds2D().getCenterY(), polygon1.getBounds2D().getCenterX(), polygon1.getBounds2D().getCenterY()));
-				}
-			}
-			
-			if(matchingPolygons == this.getPolygons().size()) {
-				
-				for(Double dist1:distances1) {
-					if(!distances2.contains(dist1))
-						return false;
-				}
-				
+			if(polyMatch(this.mergedPolygon, ((MultiPoly) obj).getMergedPolygon())) {
 				return true;
 			}
 			else {
@@ -249,7 +243,38 @@ public class MultiPoly {
 
 	private boolean polyMatch(Polygon polygon, Polygon polygon1) {
 		
-		return polygon.getBounds2D().getWidth() == polygon1.getBounds2D().getWidth() && polygon.getBounds2D().getHeight() == polygon1.getBounds2D().getHeight();
+		if(polygon.npoints != polygon1.npoints)
+			return false;
+		
+		// Line up polygons
+		int translateX = (int) (- polygon.getBounds2D().getMinX());
+		int translateY = (int) (- polygon.getBounds2D().getMinY());
+		
+		Polygon copy1 = new Polygon(polygon.xpoints, polygon.ypoints, polygon.npoints);
+		copy1.translate(translateX, translateY);
+		
+		translateX = (int) (- polygon1.getBounds2D().getMinX());
+		translateY = (int) (- polygon1.getBounds2D().getMinY());
+		
+		Polygon copy2 = new Polygon(polygon1.xpoints, polygon1.ypoints, polygon1.npoints);
+		copy2.translate(translateX, translateY);
+		
+		for(int i = 0; i < copy1.npoints; i++) {
+			Point point = new Point(copy1.xpoints[i], copy1.ypoints[i]);
+			boolean match = false;
+			
+			for(int j = 0; j < copy2.npoints; j++) {
+				if(copy2.xpoints[j] == point.x && copy2.ypoints[j] == point.y) {
+					match = true;
+					break;
+				}
+			}
+			
+			if(!match)
+				return false;
+		}
+		
+		return true;
 		
 	}
 	

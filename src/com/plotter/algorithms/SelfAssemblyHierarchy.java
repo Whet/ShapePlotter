@@ -2,6 +2,7 @@ package com.plotter.algorithms;
 
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +52,6 @@ public class SelfAssemblyHierarchy {
 					
 						int translateX = centreBind.x - connectPoints.get(k)[0];
 						int translateY = centreBind.y - connectPoints.get(k)[1];
-						System.out.println("X: " + translateX + " Y: " + translateY);
 						
 						// Move centre to centre
 						newMonomer.translate(translateX, translateY);
@@ -63,25 +63,25 @@ public class SelfAssemblyHierarchy {
 						if(angle == 0 && translateX == 0 && translateY == 0)
 							angle = Math.PI;
 						
-						System.out.println("ANGLE: " + Math.toDegrees(angle));
+						// TEMP: Round angle to nearest PI/2
+						angle = Maths.round(angle, Math.PI);
 						
 						// Rotate the polygon around the centre
 						newMonomer.rotate(centreBind, angle);
 						
 						// Check if rotatedPoly intersects with poly1
 						if(!intersects(lastLevelPolygon, newMonomer)) {
-							System.out.println("ACCEPTED");
 							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+							
+							newMonomer.rotate(centreBind, -angle * 2);
+							if(!intersects(lastLevelPolygon, newMonomer)) {
+								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+							}
 						}
 						else {
 							// Try spinning other way
 							newMonomer.rotate(centreBind, -angle * 2);
 							if(!intersects(lastLevelPolygon, newMonomer)) {
-								System.out.println("ACCEPTED");
-								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
-							}
-							else {
-								System.out.println("REJECTED");
 								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							}
 						}
@@ -116,36 +116,18 @@ public class SelfAssemblyHierarchy {
 	private static boolean intersects(MultiPoly mPoly1, MultiPoly mPoly2) {
 		
 		for(Polygon shape1:mPoly1.getPolygons()) {
-			for(Polygon shape2:mPoly2.getPolygons()) {
 			
-				if(shape1.contains(shape2.getBounds2D().getCenterX(), shape2.getBounds2D().getCenterY()) || shape2.contains(shape1.getBounds2D().getCenterX(), shape1.getBounds2D().getCenterY()))
+			Area area1 = new Area(shape1);
+			
+			for(Polygon shape2:mPoly2.getPolygons()) {
+				
+				Area area2 = new Area(shape2);
+				
+				area2.intersect(area1);
+				
+				if(area2.getBounds2D().getWidth() > 0 || area2.getBounds2D().getHeight() > 0)
 					return true;
 				
-//				Point p;
-//		    LOOP:for(int i = 0; i < shape1.npoints;i++) {
-//		            p = new Point(shape1.xpoints[i],shape1.ypoints[i]);
-//		            if(shape2.contains(p)) {
-//		            	
-//		            	for(int j = 0; j < shape2.npoints;j++) {
-//		            		if(p.x == shape2.xpoints[j] && p.y == shape2.ypoints[j])
-//		            			continue LOOP;
-//		            	}
-//		            	
-//		                return true;
-//		            }
-//		        }
-//		    LOOP:for(int i = 0; i < shape2.npoints;i++) {
-//		            p = new Point(shape2.xpoints[i],shape2.ypoints[i]);
-//		            if(shape1.contains(p)) {
-//		            	
-//		            	for(int j = 0; j < shape1.npoints;j++) {
-//		            		if(p.x == shape1.xpoints[j] && p.y == shape1.ypoints[j])
-//		            			continue LOOP;
-//		            	}
-//		            	
-//		                return true;
-//		            }
-//		        }
 			}
 		}
 		
