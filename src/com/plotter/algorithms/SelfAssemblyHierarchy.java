@@ -125,7 +125,7 @@ public class SelfAssemblyHierarchy {
 				
 				area2.intersect(area1);
 				
-				if(area2.getBounds2D().getWidth() > 0 || area2.getBounds2D().getHeight() > 0)
+				if(area2.getBounds2D().getWidth() > 0 && area2.getBounds2D().getHeight() > 0)
 					return true;
 				
 			}

@@ -50,6 +50,8 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		this.scrollPane = new JScrollPane(imagesPanel);
 		
+		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		
 		this.add(scrollPane);
 		this.showStages();
 	}

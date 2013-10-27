@@ -226,7 +226,6 @@ public class MultiPoly {
 	public boolean equals(Object obj) {
 		
 		if(obj instanceof MultiPoly) {
-			// Check all polygons have equal points
 			
 			if(this.getPolygons().size() != ((MultiPoly) obj).getPolygons().size())
 				return false;
@@ -263,8 +262,9 @@ public class MultiPoly {
 		Area area1 = new Area(copy1);
 		Area area2 = new Area(copy2);
 		area1.exclusiveOr(area2);
+		area2.exclusiveOr(area1);
 		
-		if(area1.getBounds2D().getWidth() == 0 && area1.getBounds2D().getHeight() == 0)
+		if(area1.getBounds2D().getWidth() == 0 && area1.getBounds2D().getHeight() == 0 && area2.getBounds2D().getWidth() == 0 && area2.getBounds2D().getHeight() == 0)
 			return true;
 			
 		
