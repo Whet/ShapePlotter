@@ -2,6 +2,7 @@ package com.plotter.algorithms;
 
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -259,20 +260,13 @@ public class MultiPoly {
 		Polygon copy2 = new Polygon(polygon1.xpoints, polygon1.ypoints, polygon1.npoints);
 		copy2.translate(translateX, translateY);
 		
-		for(int i = 0; i < copy1.npoints; i++) {
-			Point point = new Point(copy1.xpoints[i], copy1.ypoints[i]);
-			boolean match = false;
+		Area area1 = new Area(copy1);
+		Area area2 = new Area(copy2);
+		area1.exclusiveOr(area2);
+		
+		if(area1.getBounds2D().getWidth() == 0 && area1.getBounds2D().getHeight() == 0)
+			return true;
 			
-			for(int j = 0; j < copy2.npoints; j++) {
-				if(copy2.xpoints[j] == point.x && copy2.ypoints[j] == point.y) {
-					match = true;
-					break;
-				}
-			}
-			
-			if(!match)
-				return false;
-		}
 		
 		return true;
 		
