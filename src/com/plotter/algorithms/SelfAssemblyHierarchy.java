@@ -95,7 +95,7 @@ public class SelfAssemblyHierarchy {
 			
 	LOOP:	for(MultiPoly poly:list) {
 				for(MultiPoly poly1:undupedList) {
-					if(poly.equals(poly1)) {
+					if(poly1.equals(poly)) {
 						continue LOOP;
 					}
 				}

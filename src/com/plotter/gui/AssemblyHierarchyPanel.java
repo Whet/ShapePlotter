@@ -50,7 +50,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		this.scrollPane = new JScrollPane(imagesPanel);
 		
-		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(32);
 		
 		this.add(scrollPane);
 		this.showStages();
@@ -102,6 +102,9 @@ public class AssemblyHierarchyPanel extends JPanel {
 			polygon.translate(-deltaX, -deltaY);
 			graphics.drawPolygon(polygon);
 		}
+//		shapeCopy.translate(-deltaX, -deltaY);
+//		graphics.drawPolygon(shapeCopy.getMergedPolygon());
+//		shapeCopy.translate(deltaX, deltaY);
 		
 		graphics.setColor(Color.yellow);
 		

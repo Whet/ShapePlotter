@@ -227,48 +227,44 @@ public class MultiPoly {
 		
 		if(obj instanceof MultiPoly) {
 			
-			if(this.getPolygons().size() != ((MultiPoly) obj).getPolygons().size())
-				return false;
-
-			if(polyMatch(this.mergedPolygon, ((MultiPoly) obj).getMergedPolygon())) {
+			if(polyMatch(this.getPolygons(), this.getMergedPolygon(), ((MultiPoly) obj).getPolygons(), ((MultiPoly) obj).getMergedPolygon()))
 				return true;
-			}
-			else {
-				return false;
-			}
+			
+			return false;
 		}
 		
 		return super.equals(obj);
 	}
 
-	private boolean polyMatch(Polygon polygon, Polygon polygon1) {
+	private boolean polyMatch(List<Polygon> polygons1, Polygon mergedPoly1, List<Polygon> polygons2, Polygon mergedPoly2) {
 		
-		if(polygon.npoints != polygon1.npoints)
-			return false;
+		Area polygon1 = new Area();
+		Area polygon2 = new Area();
 		
-		// Line up polygons
-		int translateX = (int) (- polygon.getBounds2D().getMinX());
-		int translateY = (int) (- polygon.getBounds2D().getMinY());
+		int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
+		int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
 		
-		Polygon copy1 = new Polygon(polygon.xpoints, polygon.ypoints, polygon.npoints);
-		copy1.translate(translateX, translateY);
+		for(int i = 0; i < polygons1.size(); i++) {
+			Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
+			nPoly.translate(-deltaX, -deltaY);
+			Area area = new Area(nPoly);
+			polygon1.add(area);
+		}
 		
-		translateX = (int) (- polygon1.getBounds2D().getMinX());
-		translateY = (int) (- polygon1.getBounds2D().getMinY());
+		deltaX = (int) mergedPoly2.getBounds2D().getMinX();
+		deltaY = (int) mergedPoly2.getBounds2D().getMinY();
 		
-		Polygon copy2 = new Polygon(polygon1.xpoints, polygon1.ypoints, polygon1.npoints);
-		copy2.translate(translateX, translateY);
+		for(int i = 0; i < polygons2.size(); i++) {
+			Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
+			nPoly.translate(-deltaX, -deltaY);
+			Area area = new Area(nPoly);
+			polygon2.add(area);
+		}
 		
-		Area area1 = new Area(copy1);
-		Area area2 = new Area(copy2);
-		area1.exclusiveOr(area2);
-		area2.exclusiveOr(area1);
-		
-		if(area1.getBounds2D().getWidth() == 0 && area1.getBounds2D().getHeight() == 0 && area2.getBounds2D().getWidth() == 0 && area2.getBounds2D().getHeight() == 0)
+		if(polygon1.equals(polygon2))
 			return true;
 			
-		
-		return true;
+		return false;
 		
 	}
 	
