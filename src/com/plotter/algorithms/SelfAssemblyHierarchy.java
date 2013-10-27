@@ -64,7 +64,7 @@ public class SelfAssemblyHierarchy {
 							angle = Math.PI;
 						
 						// TEMP: Round angle to nearest PI/2
-						angle = Maths.round(angle, Math.PI);
+						angle = Maths.round(angle, Math.PI / 2);
 						
 						// Rotate the polygon around the centre
 						newMonomer.rotate(centreBind, angle);

@@ -177,13 +177,7 @@ public class MultiPoly {
 	public void rotate(Point centreOfRotation, double angle) {
 		ArrayList<Polygon> rotatedPolygons = new ArrayList<>();
 		for(Polygon polygon: this.polygons) {
-			Polygon rotatedPoly = new Polygon();
-			for(int i = 0; i < polygon.npoints; i++) {
-				Point rotatedPoint = rotatePoint(new Point(polygon.xpoints[i], polygon.ypoints[i]), centreOfRotation, angle);
-				
-				rotatedPoly.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
-			}
-			rotatedPolygons.add(rotatedPoly);
+			rotatedPolygons.add(rotatePoly(polygon,angle,centreOfRotation));
 		}
 		
 		this.polygons = rotatedPolygons;
@@ -238,34 +232,55 @@ public class MultiPoly {
 
 	private boolean polyMatch(List<Polygon> polygons1, Polygon mergedPoly1, List<Polygon> polygons2, Polygon mergedPoly2) {
 		
-		Area polygon1 = new Area();
-		Area polygon2 = new Area();
+		Point origin = new Point(0,0);
 		
-		int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
-		int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
+		for(int theta = 0; theta < 1; theta++) {
 		
-		for(int i = 0; i < polygons1.size(); i++) {
-			Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
-			nPoly.translate(-deltaX, -deltaY);
-			Area area = new Area(nPoly);
-			polygon1.add(area);
+			Area polygon1 = new Area();
+			Area polygon2 = new Area();
+			
+			int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
+			int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
+			
+			for(int i = 0; i < polygons1.size(); i++) {
+				Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
+				nPoly.translate(-deltaX, -deltaY);
+				rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
+				Area area = new Area(nPoly);
+				polygon1.add(area);
+			}
+			
+			deltaX = (int) mergedPoly2.getBounds2D().getMinX();
+			deltaY = (int) mergedPoly2.getBounds2D().getMinY();
+			
+			for(int i = 0; i < polygons2.size(); i++) {
+				Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
+				nPoly.translate(-deltaX, -deltaY);
+				rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
+				Area area = new Area(nPoly);
+				polygon2.add(area);
+			}
+			
+			if(polygon1.equals(polygon2))
+				return true;
+		
 		}
-		
-		deltaX = (int) mergedPoly2.getBounds2D().getMinX();
-		deltaY = (int) mergedPoly2.getBounds2D().getMinY();
-		
-		for(int i = 0; i < polygons2.size(); i++) {
-			Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
-			nPoly.translate(-deltaX, -deltaY);
-			Area area = new Area(nPoly);
-			polygon2.add(area);
-		}
-		
-		if(polygon1.equals(polygon2))
-			return true;
 			
 		return false;
 		
+	}
+
+	private Polygon rotatePoly(Polygon polygon, double angle, Point centreOfRotation) {
+		if(angle == 0)
+			return polygon;
+		
+		Polygon rotatedPoly = new Polygon();
+		for(int i = 0; i < polygon.npoints; i++) {
+			Point rotatedPoint = rotatePoint(new Point(polygon.xpoints[i], polygon.ypoints[i]), centreOfRotation, angle);
+			
+			rotatedPoly.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
+		}
+		return rotatedPoly;
 	}
 	
 }
