@@ -82,7 +82,7 @@ public class MultiPoly {
 //			}
 //			
 //			if(!(e1 && e2))
-				this.connectedPoints.add(new ConnectionPoint(connectedPoints.get(i).getLocation().x, connectedPoints.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, 0, 0));
+				this.connectedPoints.add(new ConnectionPoint(connectedPoints.get(i).getLocation().x, connectedPoints.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, connectedPoints.get(i).getIdentifier(), connectedPoints.get(i).getFlavour()));
 		}
 		for(int i = 0; i < connectedPoints1.size(); i++) {
 			// if both out and in ends are inside of a polygon then don't add the connect point as it is in use
@@ -104,7 +104,7 @@ public class MultiPoly {
 //			}
 //			
 //			if(!(e1 && e2))
-				this.connectedPoints.add(new ConnectionPoint(connectedPoints1.get(i).getLocation().x, connectedPoints1.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, 0, 0));
+				this.connectedPoints.add(new ConnectionPoint(connectedPoints1.get(i).getLocation().x, connectedPoints1.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, connectedPoints1.get(i).getIdentifier(), connectedPoints1.get(i).getFlavour()));
 		}
 		
 		
@@ -240,6 +240,27 @@ public class MultiPoly {
 		}
 		
 LOOP:	for(Integer connection:otherPoly.usedConnections) {
+			Iterator<Integer> it = copiedConnections.iterator();
+			
+			while(it.hasNext()) {
+				Integer next = it.next();
+				
+				if(connection.equals(next)) {
+					it.remove();
+					continue LOOP;
+				}
+			}
+			
+			return false;
+		}
+		
+		copiedConnections = new ArrayList<>();
+		
+		for(Integer connection:otherPoly.usedConnections) {
+			copiedConnections.add(connection);
+		}
+		
+LOOP:	for(Integer connection:this.usedConnections) {
 			Iterator<Integer> it = copiedConnections.iterator();
 			
 			while(it.hasNext()) {

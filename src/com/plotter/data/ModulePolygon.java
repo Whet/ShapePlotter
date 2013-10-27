@@ -42,9 +42,9 @@ public class ModulePolygon {
 		this.makePolygon();
 	}
 	
-	public void addConnectPoint(int x, int y, int x1, int y1, int x2, int y2, int flavour) {
+	public void addConnectPoint(int x, int y, int x1, int y1, int x2, int y2, int identifier, int flavour) {
 		this.connectPoints.add(new int[]{x, y, x1, y1, x2, y2});
-		this.connections.add(new ConnectionPoint(x, y, x1, y1, x2, y2, this.connections.size(), flavour));
+		this.connections.add(new ConnectionPoint(x, y, x1, y1, x2, y2, identifier, flavour));
 	}
 	
 	public void removeConnectPoint(int x, int y) {
@@ -83,11 +83,11 @@ public class ModulePolygon {
 	}
 	
 	public List<ConnectionPoint> getConnectPoints() {
+		
 		List<ConnectionPoint> connections = new ArrayList<>();
 		
-		for(int i = 0; i < this.connectPoints.size(); i++) {
-			int[] loc = this.connectPoints.get(i);
-			connections.add(new ConnectionPoint(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], 0, 0));
+		for(ConnectionPoint connection:this.connections) {
+			connections.add(new ConnectionPoint(connection.getLocation().x, connection.getLocation().y, connection.getOuttie().x, connection.getOuttie().y, connection.getInnie().x, connection.getInnie().y, connection.getIdentifier(), connection.getFlavour()));
 		}
 		
 		return connections;

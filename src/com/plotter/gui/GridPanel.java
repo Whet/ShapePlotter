@@ -46,6 +46,7 @@ public class GridPanel extends JPanel {
 	
 	private boolean shiftDown;
 	private int currentFlavour;
+	private int currentIdentifier;
 	
 	// The shape which is being drawn
 	private ModulePolygon modulePolygon;
@@ -116,7 +117,7 @@ public class GridPanel extends JPanel {
 						Point opposite = oppositePoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y);
 						Point oppositeGrid = gridPoint(opposite);
 						
-						modulePolygon.addConnectPoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y, currentFlavour);
+						modulePolygon.addConnectPoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y, currentIdentifier, currentFlavour);
 					}
 					else
 						modulePolygon.addPoint(gridPoint.x, gridPoint.y);
@@ -181,6 +182,77 @@ public class GridPanel extends JPanel {
 					// SHIFT
 					case 16:
 						shiftDown = true;
+					break;
+					
+					// 0
+					case 48:
+						if(shiftDown)
+							currentFlavour = 0;
+						else
+							currentIdentifier = 0;
+					break;
+					// 1
+					case 49:
+						if(shiftDown)
+							currentFlavour = 1;
+						else
+							currentIdentifier = 1;
+					break;
+					// 2
+					case 50:
+						if(shiftDown)
+							currentFlavour = 2;
+						else
+							currentIdentifier = 2;
+					break;
+					// 3
+					case 51:
+						if(shiftDown)
+							currentFlavour = 3;
+						else
+							currentIdentifier = 3;
+					break;
+					// 4
+					case 52:
+						if(shiftDown)
+							currentFlavour = 4;
+						else
+							currentIdentifier = 4;
+					break;
+					// 5
+					case 53:
+						if(shiftDown)
+							currentFlavour = 5;
+						else
+							currentIdentifier = 5;
+					break;
+					// 6
+					case 54:
+						if(shiftDown)
+							currentFlavour = 6;
+						else
+							currentIdentifier = 6;
+					break;
+					// 7
+					case 55:
+						if(shiftDown)
+							currentFlavour = 7;
+						else
+							currentIdentifier = 7;
+					break;
+					// 8
+					case 56:
+						if(shiftDown)
+							currentFlavour = 8;
+						else
+							currentIdentifier = 8;
+					break;
+					// 9
+					case 57:
+						if(shiftDown)
+							currentFlavour = 9;
+						else
+							currentIdentifier = 9;
 					break;
 				}
 			}
@@ -282,6 +354,12 @@ public class GridPanel extends JPanel {
 						   mouse.y + panY,
 						   mouse.x + CROSSHAIR_LENGTH + panX, 
 						   mouse.y + panY);
+		
+		
+		g.setColor(Color.white);
+		
+		g.drawString("Flavour: " + this.currentFlavour, 40, 40);
+		g.drawString("Identifier: " + this.currentIdentifier, 40, 80);
 	}
 	
 	private void drawPolygon(Graphics2D g) {
