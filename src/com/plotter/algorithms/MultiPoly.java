@@ -234,7 +234,7 @@ public class MultiPoly {
 		
 		Point origin = new Point(0,0);
 		
-		for(int theta = 0; theta < 1; theta++) {
+		for(int theta = 0; theta < 4; theta++) {
 		
 			Area polygon1 = new Area();
 			Area polygon2 = new Area();
@@ -245,7 +245,7 @@ public class MultiPoly {
 			for(int i = 0; i < polygons1.size(); i++) {
 				Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
 				nPoly.translate(-deltaX, -deltaY);
-				rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
+				nPoly = rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
 				Area area = new Area(nPoly);
 				polygon1.add(area);
 			}
@@ -256,7 +256,7 @@ public class MultiPoly {
 			for(int i = 0; i < polygons2.size(); i++) {
 				Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
 				nPoly.translate(-deltaX, -deltaY);
-				rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
+				nPoly = rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
 				Area area = new Area(nPoly);
 				polygon2.add(area);
 			}
