@@ -11,11 +11,13 @@ public class ModulePolygon {
 
 	private List<int[]> points;
 	private List<int[]> connectPoints;
+	private List<ConnectionPoint> connections;
 	private Polygon polygon;
 	
 	public ModulePolygon() {
 		this.points = new ArrayList<>();
 		this.connectPoints = new ArrayList<>();
+		this.connections = new ArrayList<>();
 		this.polygon = new Polygon();
 	}
 	
@@ -40,8 +42,9 @@ public class ModulePolygon {
 		this.makePolygon();
 	}
 	
-	public void addConnectPoint(int x, int y, int x1, int y1, int x2, int y2) {
+	public void addConnectPoint(int x, int y, int x1, int y1, int x2, int y2, int flavour) {
 		this.connectPoints.add(new int[]{x, y, x1, y1, x2, y2});
+		this.connections.add(new ConnectionPoint(x, y, x1, y1, x2, y2, this.connections.size(), flavour));
 	}
 	
 	public void removeConnectPoint(int x, int y) {

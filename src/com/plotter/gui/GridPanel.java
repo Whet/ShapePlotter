@@ -45,6 +45,7 @@ public class GridPanel extends JPanel {
 	private int[] panAtClick;
 	
 	private boolean shiftDown;
+	private int currentFlavour;
 	
 	// The shape which is being drawn
 	private ModulePolygon modulePolygon;
@@ -55,6 +56,8 @@ public class GridPanel extends JPanel {
 		
 		this.panX = 0;
 		this.panY = 0;
+		
+		this.currentFlavour = 0;
 		
 		this.setPreferredSize(new Dimension(800, 600));
 		
@@ -113,7 +116,7 @@ public class GridPanel extends JPanel {
 						Point opposite = oppositePoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y);
 						Point oppositeGrid = gridPoint(opposite);
 						
-						modulePolygon.addConnectPoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y);
+						modulePolygon.addConnectPoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y, currentFlavour);
 					}
 					else
 						modulePolygon.addPoint(gridPoint.x, gridPoint.y);
@@ -302,7 +305,7 @@ public class GridPanel extends JPanel {
 		g.setTransform(new AffineTransform());
 		
 		g.setColor(BINDING_POINT_COLOUR);
-		points = this.modulePolygon.getConnectPointsInts().toArray(new int[this.modulePolygon.getConnectPoints().size()][2]);
+		points = this.modulePolygon.getConnectPointsInts().toArray(new int[this.modulePolygon.getConnectPointsInts().size()][2]);
 		
 		for(int i = 0; i < points.length; i++) {
 			g.fillOval(points[i][0] - 3 + panX, points[i][1] - 3 + panY, 6, 6);

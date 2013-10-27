@@ -2,8 +2,8 @@ package com.plotter.algorithms;
 
 import java.awt.Point;
 import java.awt.Polygon;
-import java.awt.geom.Area;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.plotter.data.Maths;
@@ -14,8 +14,11 @@ public class MultiPoly {
 	private List<ConnectionPoint> connectedPoints;
 	private List<Polygon> polygons;
 	private Polygon mergedPolygon;
+	private List<Integer> usedConnections;
 	
-	public MultiPoly(List<ConnectionPoint> connectedPoints, Polygon... polygons) {
+	public MultiPoly(List<ConnectionPoint> connectedPoints, List<Integer> usedConnections, Polygon... polygons) {
+		
+		this.usedConnections = usedConnections;
 		
 		this.polygons = new ArrayList<Polygon>();
 		
@@ -46,7 +49,7 @@ public class MultiPoly {
 		}
 	}
 	
-	public MultiPoly(List<ConnectionPoint> connectedPoints, List<ConnectionPoint> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
+	public MultiPoly(List<ConnectionPoint> connectedPoints, List<ConnectionPoint> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2, List<Integer> usedConnections1, List<Integer> usedConnections2) {
 		
 		this.polygons = new ArrayList<Polygon>();
 		
@@ -104,6 +107,16 @@ public class MultiPoly {
 				this.connectedPoints.add(new ConnectionPoint(connectedPoints1.get(i).getLocation().x, connectedPoints1.get(i).getLocation().y, end1.x, end1.y, end2.x, end2.y, 0, 0));
 		}
 		
+		
+		this.usedConnections = new ArrayList<>();
+		
+		for(Integer connection:usedConnections1) {
+			this.usedConnections.add(connection);
+		}
+		for(Integer connection:usedConnections2) {
+			this.usedConnections.add(connection);
+		}
+		
 		ArrayList<Point> points = new ArrayList<>();
 		
 		for(Polygon polygon:this.polygons) {
@@ -136,7 +149,13 @@ public class MultiPoly {
 			connectedPoints.add(new ConnectionPoint(this.connectedPoints.get(i).getLocation().x, this.connectedPoints.get(i).getLocation().y, this.connectedPoints.get(i).getInnie().x, this.connectedPoints.get(i).getInnie().y, this.connectedPoints.get(i).getOuttie().x, this.connectedPoints.get(i).getOuttie().y, 0, 0));
 		}
 		
-		return new MultiPoly(connectedPoints, polygons);
+		ArrayList<Integer> usedConnections = new ArrayList<>();
+		
+		for(Integer intV:this.usedConnections) {
+			usedConnections.add(new Integer(intV));
+		}
+		
+		return new MultiPoly(connectedPoints, usedConnections, polygons);
 	}
 
 	public List<Polygon> getPolygons() {
@@ -203,7 +222,7 @@ public class MultiPoly {
 		
 		if(obj instanceof MultiPoly) {
 			
-			if(polyMatch(this.getPolygons(), this.getMergedPolygon(), ((MultiPoly) obj).getPolygons(), ((MultiPoly) obj).getMergedPolygon()))
+			if(connectionsMatch((MultiPoly) obj))
 				return true;
 			
 			return false;
@@ -212,44 +231,30 @@ public class MultiPoly {
 		return super.equals(obj);
 	}
 
-	private boolean polyMatch(List<Polygon> polygons1, Polygon mergedPoly1, List<Polygon> polygons2, Polygon mergedPoly2) {
+	private boolean connectionsMatch(MultiPoly otherPoly) {
 		
-		Point origin = new Point(0,0);
+		List<Integer> copiedConnections = new ArrayList<>();
 		
-		for(int theta = 0; theta < 4; theta++) {
-		
-			Area polygon1 = new Area();
-			Area polygon2 = new Area();
-			
-			int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
-			int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
-			
-			for(int i = 0; i < polygons1.size(); i++) {
-				Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
-				nPoly.translate(-deltaX, -deltaY);
-				nPoly = rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
-				Area area = new Area(nPoly);
-				polygon1.add(area);
-			}
-			
-			deltaX = (int) mergedPoly2.getBounds2D().getMinX();
-			deltaY = (int) mergedPoly2.getBounds2D().getMinY();
-			
-			for(int i = 0; i < polygons2.size(); i++) {
-				Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
-				nPoly.translate(-deltaX, -deltaY);
-				nPoly = rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
-				Area area = new Area(nPoly);
-				polygon2.add(area);
-			}
-			
-			if(polygon1.equals(polygon2))
-				return true;
-		
+		for(Integer connection:this.usedConnections) {
+			copiedConnections.add(connection);
 		}
-			
-		return false;
 		
+LOOP:	for(Integer connection:otherPoly.usedConnections) {
+			Iterator<Integer> it = copiedConnections.iterator();
+			
+			while(it.hasNext()) {
+				Integer next = it.next();
+				
+				if(connection.equals(next)) {
+					it.remove();
+					continue LOOP;
+				}
+			}
+			
+			return false;
+		}
+		
+		return true;
 	}
 
 	private Polygon rotatePoly(Polygon polygon, double angle, Point centreOfRotation) {
@@ -263,6 +268,14 @@ public class MultiPoly {
 			rotatedPoly.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
 		}
 		return rotatedPoly;
+	}
+	
+	public void addConnection(int connection) {
+		this.usedConnections.add(connection);
+	}
+
+	public List<Integer> getUsedConnections() {
+		return this.usedConnections;
 	}
 	
 }
