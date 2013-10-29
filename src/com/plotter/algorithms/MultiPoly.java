@@ -232,39 +232,32 @@ public class MultiPoly {
 
 	private boolean polyMatch(List<Polygon> polygons1, Polygon mergedPoly1, List<Polygon> polygons2, Polygon mergedPoly2) {
 		
-		Point origin = new Point(0,0);
+		Area polygon1 = new Area();
+		Area polygon2 = new Area();
 		
-		for(int theta = 0; theta < 4; theta++) {
+		int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
+		int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
 		
-			Area polygon1 = new Area();
-			Area polygon2 = new Area();
-			
-			int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
-			int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
-			
-			for(int i = 0; i < polygons1.size(); i++) {
-				Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
-				nPoly.translate(-deltaX, -deltaY);
-				nPoly = rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
-				Area area = new Area(nPoly);
-				polygon1.add(area);
-			}
-			
-			deltaX = (int) mergedPoly2.getBounds2D().getMinX();
-			deltaY = (int) mergedPoly2.getBounds2D().getMinY();
-			
-			for(int i = 0; i < polygons2.size(); i++) {
-				Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
-				nPoly.translate(-deltaX, -deltaY);
-				nPoly = rotatePoly(nPoly,(Math.PI / 2) * theta,origin);
-				Area area = new Area(nPoly);
-				polygon2.add(area);
-			}
-			
-			if(polygon1.equals(polygon2))
-				return true;
-		
+		for(int i = 0; i < polygons1.size(); i++) {
+			Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
+			nPoly.translate(-deltaX, -deltaY);
+			Area area = new Area(nPoly);
+			polygon1.add(area);
 		}
+		
+		deltaX = (int) mergedPoly2.getBounds2D().getMinX();
+		deltaY = (int) mergedPoly2.getBounds2D().getMinY();
+		
+		for(int i = 0; i < polygons2.size(); i++) {
+			Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
+			nPoly.translate(-deltaX, -deltaY);
+			Area area = new Area(nPoly);
+			polygon2.add(area);
+		}
+		
+		if(polygon1.equals(polygon2))
+			return true;
+		
 			
 		return false;
 		
