@@ -197,6 +197,17 @@ public class AssemblyHierarchyPanel extends JPanel {
 			
 			return 1;
 		}
+
+		public List<MultiPoly> getStages() {
+			List<MultiPoly> polys = new ArrayList<>();
+			
+			for(DecompositionImage image:stageImages) {
+				if(image.isUsed)
+					polys.add(image.polygon);
+			}
+			
+			return polys;
+		}
 		
 	}
 	
@@ -319,6 +330,17 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		showStages();
 		window.repaint();
+	}
+
+	public List<List<MultiPoly>> getStages() {
+		
+		List<List<MultiPoly>> stages = new ArrayList<List<MultiPoly>>();
+		
+		for(DecompositionStage stage:this.decompStages) {
+			stages.add(stage.getStages());
+		}
+		
+		return stages;
 	}
 	
 
