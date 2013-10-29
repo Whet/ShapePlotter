@@ -15,8 +15,11 @@ public class MultiPoly {
 	private List<Polygon> polygons;
 	private Polygon mergedPolygon;
 	
+	private MultiPoly parent;
+	
 	public MultiPoly(List<int[]> connectedPoints, Polygon... polygons) {
 		
+		this.parent = null;
 		this.polygons = new ArrayList<Polygon>();
 		
 		for(int i = 0; i < polygons.length; i++) {
@@ -46,8 +49,9 @@ public class MultiPoly {
 		}
 	}
 	
-	public MultiPoly(List<int[]> connectedPoints, List<int[]> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
+	public MultiPoly(MultiPoly parent, List<int[]> connectedPoints, List<int[]> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
 		
+		this.parent = parent;
 		this.polygons = new ArrayList<Polygon>();
 		
 		for(int i = 0; i < polygons1.size(); i++) {
@@ -274,6 +278,10 @@ public class MultiPoly {
 			rotatedPoly.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
 		}
 		return rotatedPoly;
+	}
+
+	public MultiPoly getParent() {
+		return parent;
 	}
 	
 }

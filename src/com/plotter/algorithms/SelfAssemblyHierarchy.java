@@ -13,6 +13,90 @@ import com.plotter.data.ModulePolygon;
 
 public class SelfAssemblyHierarchy {
 
+	public static List<MultiPoly> getNextGeneration(ModulePolygon monomer, List<MultiPoly> currentGeneration) {
+		
+		List<MultiPoly> nextGeneration = new ArrayList<>();
+		
+		for(int y = 0; y < currentGeneration.size(); y++) {
+			
+			MultiPoly lastLevelPolygon = null;
+			try {
+				lastLevelPolygon = (MultiPoly) currentGeneration.get(y).clone();
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
+			
+			List<int[]> connectPoints = lastLevelPolygon.getConnectPoints();
+			
+			/*
+			 * For each binding point match the centre location [0][1]
+			 * Make the inside of one line up with the outside of the other [2][3]/[4][5]
+			 * Check if polygons overlap
+			 */
+			
+			for(int j = 0; j < connectPoints.size(); j++) {
+				for(int k = 0; k < monomer.getConnectPoints().size(); k++) {
+
+					MultiPoly newMonomer = new MultiPoly(monomer.getConnectPoints(), monomer.getPolygon());
+					
+					Point centreBind = new Point(connectPoints.get(j)[0], connectPoints.get(j)[1]); 
+				
+					int translateX = centreBind.x - connectPoints.get(k)[0];
+					int translateY = centreBind.y - connectPoints.get(k)[1];
+					
+					// Move centre to centre
+					newMonomer.translate(translateX, translateY);
+					
+					// find angle difference between inside and outside
+					double angle = Maths.getRads(connectPoints.get(j)[4], connectPoints.get(j)[5],
+												 newMonomer.getConnectPoints().get(k)[2], newMonomer.getConnectPoints().get(k)[3]) * 2;
+					
+					if(angle == 0 && translateX == 0 && translateY == 0)
+						angle = Math.PI;
+					
+					// TEMP: Round angle to nearest PI/2
+					angle = Maths.round(angle, Math.PI / 2);
+					
+					// Rotate the polygon around the centre
+					newMonomer.rotate(centreBind, angle);
+					
+					// Check if rotatedPoly intersects with poly1
+					if(!intersects(lastLevelPolygon, newMonomer)) {
+						nextGeneration.add(new MultiPoly(lastLevelPolygon, lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+						
+						newMonomer.rotate(centreBind, -angle * 2);
+						if(!intersects(lastLevelPolygon, newMonomer)) {
+							nextGeneration.add(new MultiPoly(lastLevelPolygon, lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+						}
+					}
+					else {
+						// Try spinning other way
+						newMonomer.rotate(centreBind, -angle * 2);
+						if(!intersects(lastLevelPolygon, newMonomer)) {
+							nextGeneration.add(new MultiPoly(lastLevelPolygon, lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+						}
+					}
+				}
+			}
+		}
+		
+		// Remove duplicates
+		List<MultiPoly> undupedList = new ArrayList<>();
+		
+LOOP:	for(MultiPoly poly:nextGeneration) {
+			for(MultiPoly poly1:undupedList) {
+				if(poly1.equals(poly)) {
+					continue LOOP;
+				}
+			}
+			
+			undupedList.add(poly);
+		}
+		
+		return undupedList;
+		
+	}
+	
 	public static Map<Integer, List<MultiPoly>> getHierarchy(int maxDepth, ModulePolygon monomer) {
 		
 		Map<Integer, List<MultiPoly>> hierarchy = new HashMap<Integer, List<MultiPoly>>();
@@ -71,18 +155,18 @@ public class SelfAssemblyHierarchy {
 						
 						// Check if rotatedPoly intersects with poly1
 						if(!intersects(lastLevelPolygon, newMonomer)) {
-							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+							hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon, lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							
 							newMonomer.rotate(centreBind, -angle * 2);
 							if(!intersects(lastLevelPolygon, newMonomer)) {
-								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon, lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							}
 						}
 						else {
 							// Try spinning other way
 							newMonomer.rotate(centreBind, -angle * 2);
 							if(!intersects(lastLevelPolygon, newMonomer)) {
-								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
+								hierarchy.get(currentDepth).add(new MultiPoly(lastLevelPolygon, lastLevelPolygon.getConnectPoints(), newMonomer.getConnectPoints(), newMonomer.getPolygons(), lastLevelPolygon.getPolygons()));
 							}
 						}
 					}
@@ -133,6 +217,5 @@ public class SelfAssemblyHierarchy {
 		
         return false;
 	}
-	
-	
+
 }

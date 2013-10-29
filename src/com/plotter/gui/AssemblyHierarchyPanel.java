@@ -5,6 +5,10 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Polygon;
+import java.awt.Window;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -14,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,9 +35,10 @@ public class AssemblyHierarchyPanel extends JPanel {
 	private ModulePolygon modulePolygon;
 	private JPanel imagesPanel;
 	private JScrollPane scrollPane;
+	private JButton addGeneration;
 	
 	private List<DecompositionStage> decompStages;
-	private Map<Integer, List<MultiPoly>> hierarchy;
+	private int generation;
 	
 	public AssemblyHierarchyPanel(PlotterWindow window, ModulePolygon modulePolygon) {
 		
@@ -52,8 +58,16 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		scrollPane.getVerticalScrollBar().setUnitIncrement(32);
 		
-		this.add(scrollPane);
+		addGeneration = new GenerationButton(this);
+		
+		this.add(scrollPane, BorderLayout.CENTER);
+		this.add(addGeneration, BorderLayout.SOUTH);
+		
+		this.generation = 0;
+		
 		this.showStages();
+		
+		
 	}
 
 	public void addStageImage(MultiPoly shape, int stageNo) {
@@ -68,9 +82,11 @@ public class AssemblyHierarchyPanel extends JPanel {
 		int imageDimensions = 80;
 		int drawDimensions = imageDimensions - 5;
 		
-		BufferedImage rawImage = new BufferedImage(imageDimensions, imageDimensions, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage onImageBuffered = new BufferedImage(imageDimensions, imageDimensions, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage offImageBuffered = new BufferedImage(imageDimensions, imageDimensions, BufferedImage.TYPE_INT_ARGB);
 		
-		Graphics2D graphics = (Graphics2D) rawImage.getGraphics();
+		Graphics2D gOn = (Graphics2D) onImageBuffered.getGraphics();
+		Graphics2D gOff = (Graphics2D) offImageBuffered.getGraphics();
 		
 		double scale = 1;
 		
@@ -87,35 +103,39 @@ public class AssemblyHierarchyPanel extends JPanel {
 		}
 		
 		// draw polygons
-		graphics.setColor(Color.green);
+		gOn.setColor(Color.green);
+		gOff.setColor(Color.cyan);
 		
 		AffineTransform scaleTransform = new AffineTransform();
 		
 		scaleTransform.setToScale(scale, scale);
 		
-		graphics.setTransform(scaleTransform);
+		gOn.setTransform(scaleTransform);
+		gOff.setTransform(scaleTransform);
 		
 		int deltaX = (int) shapeCopy.getMergedPolygon().getBounds2D().getMinX();
 		int deltaY = (int) shapeCopy.getMergedPolygon().getBounds2D().getMinY();
 		
 		for(Polygon polygon:shapeCopy.getPolygons()) {
 			polygon.translate(-deltaX, -deltaY);
-			graphics.drawPolygon(polygon);
+			gOn.drawPolygon(polygon);
+			gOff.drawPolygon(polygon);
 		}
 //		shapeCopy.translate(-deltaX, -deltaY);
 //		graphics.drawPolygon(shapeCopy.getMergedPolygon());
 //		shapeCopy.translate(deltaX, deltaY);
 		
-		graphics.setColor(Color.yellow);
+//		graphics.setColor(Color.yellow);
 		
 		// draw connection points
-		for(int[] connection:shapeCopy.getConnectPoints()) {
-			graphics.fillOval(connection[0] - 5 - deltaX, connection[1] - 5 - deltaY, 10, 10);
-		}
+//		for(int[] connection:shapeCopy.getConnectPoints()) {
+//			graphics.fillOval(connection[0] - 5 - deltaX, connection[1] - 5 - deltaY, 10, 10);
+//		}
 		
-		ImageIcon image = new ImageIcon(rawImage);
+		ImageIcon onImage = new ImageIcon(onImageBuffered);
+		ImageIcon offImage = new ImageIcon(offImageBuffered);
 		
-		JLabel menuImage = new JLabel(image);
+		DecompositionImage menuImage = new DecompositionImage(onImage, offImage, shape);
 		
 		for(DecompositionStage stage:this.decompStages) {
 			if(stage.getStageNo() == stageNo) {
@@ -150,14 +170,14 @@ public class AssemblyHierarchyPanel extends JPanel {
 	private static class DecompositionStage implements Comparable<DecompositionStage> {
 		
 		private int stageNo;
-		private List<JLabel> stageImages;
+		private List<DecompositionImage> stageImages;
 		
 		public DecompositionStage(int number) {
 			this.stageNo = number;
 			this.stageImages = new ArrayList<>();
 		}
 		
-		public void addImage(JLabel menuImage) {
+		public void addImage(DecompositionImage menuImage) {
 			this.stageImages.add(menuImage);
 		}
 
@@ -165,7 +185,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 			return stageNo;
 		}
 
-		public List<JLabel> getStageImages() {
+		public List<DecompositionImage> getStageImages() {
 			return stageImages;
 		}
 
@@ -179,16 +199,111 @@ public class AssemblyHierarchyPanel extends JPanel {
 		}
 		
 	}
+	
+	private static class DecompositionImage extends JLabel {
+
+		private MultiPoly polygon;
+		private boolean isUsed;
+		
+		public DecompositionImage(final ImageIcon onImage, final ImageIcon offImage, MultiPoly polygon) {
+			super(onImage);
+			
+			this.polygon = polygon;
+			this.isUsed = true;
+			this.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mousePressed(MouseEvent e) {
+					isUsed = !isUsed;
+					
+					if(isUsed)
+						setIcon(onImage);
+					else
+						setIcon(offImage);
+					
+					repaint();
+				}
+				
+			});
+		}
+
+	}
+	
+	private static class GenerationButton extends JButton implements MouseListener {
+		
+		private final AssemblyHierarchyPanel window;
+
+		public GenerationButton(AssemblyHierarchyPanel window) {
+			super("Add Generation");
+			this.window = window;
+			this.addMouseListener(this);
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			window.addGeneration();
+		}
+		
+	}
 
 	public void createNewHierarchy(int maxDepth) {
-		hierarchy = SelfAssemblyHierarchy.getHierarchy(maxDepth, modulePolygon);
+		Map<Integer, List<MultiPoly>> hierarchyPolygons = SelfAssemblyHierarchy.getHierarchy(maxDepth, modulePolygon);
 		
 		this.decompStages.clear();
 		this.imagesPanel.removeAll();
 
-		for(Entry<Integer, List<MultiPoly>> entry:hierarchy.entrySet()) {
+		for(Entry<Integer, List<MultiPoly>> entry:hierarchyPolygons.entrySet()) {
 			for(MultiPoly shape:entry.getValue()) {
 				this.addStageImage(shape, entry.getKey());
+			}
+			
+			if(entry.getKey() > this.generation)
+				this.generation = entry.getKey();
+		}
+		
+		showStages();
+		this.repaint();
+	}
+	
+	public void addGeneration() {
+		
+		List<MultiPoly> currentGeneration = new ArrayList<>();
+		
+		for(DecompositionStage stage:this.decompStages) {
+			if(stage.getStageNo() == this.generation) {
+				
+				for(DecompositionImage image:stage.getStageImages()) {
+					if(image.isUsed)
+						currentGeneration.add(image.polygon);
+				}
+				
+				
+				List<MultiPoly> nextGeneration = SelfAssemblyHierarchy.getNextGeneration(modulePolygon, currentGeneration);
+				
+				// Add here so addStageImage makes new generation
+				this.generation++;
+				
+				for(MultiPoly poly:nextGeneration) {
+					this.addStageImage(poly, this.generation);
+				}
+				
+				break;
 			}
 		}
 		
