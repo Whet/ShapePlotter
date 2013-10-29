@@ -285,6 +285,12 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 		List<MultiPoly> currentGeneration = new ArrayList<>();
 		
+		if(this.decompStages.size() == 0) {
+			this.addStageImage(new MultiPoly(modulePolygon.getConnectPoints(), modulePolygon.getPolygon()), this.generation);
+			showStages();
+			return;
+		}
+	
 		for(DecompositionStage stage:this.decompStages) {
 			if(stage.getStageNo() == this.generation) {
 				
@@ -293,9 +299,13 @@ public class AssemblyHierarchyPanel extends JPanel {
 						currentGeneration.add(image.polygon);
 				}
 				
+				List<MultiPoly> nextGeneration = new ArrayList<>();
 				
-				List<MultiPoly> nextGeneration = SelfAssemblyHierarchy.getNextGeneration(modulePolygon, currentGeneration);
+				if(currentGeneration.size() == 0)
+					return;
 				
+				nextGeneration = SelfAssemblyHierarchy.getNextGeneration(modulePolygon, currentGeneration);
+					
 				// Add here so addStageImage makes new generation
 				this.generation++;
 				
@@ -308,7 +318,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		}
 		
 		showStages();
-		this.repaint();
+		window.repaint();
 	}
 	
 
