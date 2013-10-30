@@ -16,6 +16,7 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
 import com.plotter.data.ModulePolygon;
+import com.plotter.data.OutputSVG;
 import com.plotter.data.OutputTikz;
 
 public class PlotterWindow extends JFrame {
@@ -82,6 +83,28 @@ public class PlotterWindow extends JFrame {
 		});
 		
 		fileMenu.add(saveTikzBtn);
+		
+		JMenuItem saveSvg = new JMenuItem("Save to .svg");
+		
+		saveSvg.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser choose = new JFileChooser();
+				choose.setCurrentDirectory(new File(HOME_LOCATION));
+				int showSaveDialog = choose.showSaveDialog(PlotterWindow.this);
+				
+				if(showSaveDialog == JFileChooser.APPROVE_OPTION) {
+					try {
+						OutputSVG.outputSVG(choose.getSelectedFile().toString(), hierarchyPanel.getStages(), 800, 600);
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error saving file");
+					}
+				}
+			}
+		});
+		
+		fileMenu.add(saveSvg);
 		
 		JMenu hierMenu = new JMenu("Hierarchy");
 		menuBar.add(hierMenu);
