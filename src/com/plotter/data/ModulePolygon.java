@@ -8,7 +8,7 @@ import java.util.List;
 public class ModulePolygon {
 
 	private List<int[]> points;
-	private List<int[]> connectPoints;
+	private List<Connection> connectPoints;
 	private Polygon polygon;
 	
 	public ModulePolygon() {
@@ -38,17 +38,17 @@ public class ModulePolygon {
 		this.makePolygon();
 	}
 	
-	public void addConnectPoint(int x, int y, int x1, int y1, int x2, int y2) {
-		this.connectPoints.add(new int[]{x, y, x1, y1, x2, y2});
+	public void addConnectPoint(int flavour, int x, int y, int x1, int y1, int x2, int y2) {
+		this.connectPoints.add(new Connection(flavour, x, y, x1, y1, x2, y2));
 	}
 	
 	public void removeConnectPoint(int x, int y) {
-		Iterator<int[]> iterator = this.connectPoints.iterator();
+		Iterator<Connection> iterator = this.connectPoints.iterator();
 		
 		while(iterator.hasNext()) {
-			int[] next = iterator.next();
+			Connection next = iterator.next();
 			
-			if(next[0] == x && next[1] == y) {
+			if(next.getCentre().x == x && next.getCentre().y == y) {
 				iterator.remove();
 				break;
 			}
@@ -73,8 +73,18 @@ public class ModulePolygon {
 		return points;
 	}
 
-	public List<int[]> getConnectPoints() {
-		return connectPoints;
+	public List<int[]> getConnectionPointsLocations() {
+		List<int[]> connectionPoints = new ArrayList<>();
+		
+		for(Connection connection:this.connectPoints) {
+			connectionPoints.add(new int[]{connection.getCentre().x, connection.getCentre().y, connection.getOutside().x, connection.getOutside().y, connection.getInside().x, connection.getInside().y});
+		}
+		
+		return connectionPoints;
+	}
+	
+	public List<Connection> getConnectionPoints() {
+		return this.connectPoints;
 	}
 	
 }
