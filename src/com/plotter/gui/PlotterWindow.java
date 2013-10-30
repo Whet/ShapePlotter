@@ -61,46 +61,6 @@ public class PlotterWindow extends JFrame {
 		JMenu fileMenu = new JMenu("File");
 		menuBar.add(fileMenu);
 		
-		JMenuItem loadBtn = new JMenuItem("Load");
-		
-		loadBtn.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser choose = new JFileChooser();
-				// TODO
-				choose.setCurrentDirectory(new File(HOME_LOCATION));
-				int showOpenDialog = choose.showOpenDialog(PlotterWindow.this);
-				
-				if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
-					// TODO
-					// LOAD
-				}
-			}
-		});
-		
-		fileMenu.add(loadBtn);
-		
-		JMenuItem saveBtn = new JMenuItem("Save");
-		
-		saveBtn.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser choose = new JFileChooser();
-				// TODO
-				choose.setCurrentDirectory(new File(HOME_LOCATION));
-				int showSaveDialog = choose.showSaveDialog(PlotterWindow.this);
-				
-				if(showSaveDialog == JFileChooser.APPROVE_OPTION) {
-					// TODO
-					// LOAD
-				}
-			}
-		});
-		
-		fileMenu.add(saveBtn);
-		
 		JMenuItem saveTikzBtn = new JMenuItem("Save to .tex");
 		
 		saveTikzBtn.addActionListener(new ActionListener() {
