@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Polygon;
-import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -27,6 +26,7 @@ import javax.swing.JTextField;
 
 import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.SelfAssemblyHierarchy;
+import com.plotter.data.Connection;
 import com.plotter.data.ModulePolygon;
 
 public class AssemblyHierarchyPanel extends JPanel {
@@ -128,9 +128,11 @@ public class AssemblyHierarchyPanel extends JPanel {
 //		graphics.setColor(Color.yellow);
 		
 		// draw connection points
-//		for(int[] connection:shapeCopy.getConnectPoints()) {
-//			graphics.fillOval(connection[0] - 5 - deltaX, connection[1] - 5 - deltaY, 10, 10);
-//		}
+		for(int i = 0; i < shape.getConnectionPoints().size(); i++) {
+			Connection connection = shape.getConnectionPoints().get(i);
+			gOn.fillOval(connection.getCentre().x - 5 - deltaX, connection.getCentre().y - 5 - deltaY, 10, 10);
+			gOn.drawString("F"+connection.getFlavour(), connection.getCentre().x - 5 - deltaX, connection.getCentre().y - 5 - deltaY);
+		}
 		
 		ImageIcon onImage = new ImageIcon(onImageBuffered);
 		ImageIcon offImage = new ImageIcon(offImageBuffered);

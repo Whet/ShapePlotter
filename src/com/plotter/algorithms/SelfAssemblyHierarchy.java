@@ -37,6 +37,11 @@ public class SelfAssemblyHierarchy {
 			for(int j = 0; j < connectPoints.size(); j++) {
 				for(int k = 0; k < monomer.getConnectionPointsLocations().size(); k++) {
 
+					// Only matching flavours can bind
+					if(lastLevelPolygon.getConnectionPoints().get(j).getFlavour() != monomer.getConnectionPoints().get(k).getFlavour()) {
+						continue;
+					}
+					
 					MultiPoly newMonomer = new MultiPoly(monomer.getConnectionPoints(), monomer.getPolygon());
 					
 					Point centreBind = new Point(connectPoints.get(j)[0], connectPoints.get(j)[1]); 
@@ -130,6 +135,10 @@ LOOP:	for(MultiPoly poly:nextGeneration) {
 				for(int j = 0; j < connectPoints.size(); j++) {
 					for(int k = 0; k < monomer.getConnectionPointsLocations().size(); k++) {
 
+						// Only matching flavours can bind
+						if(lastLevelPolygon.getConnectionPoints().get(j).getFlavour() != monomer.getConnectionPoints().get(k).getFlavour())
+							continue;
+						
 						MultiPoly newMonomer = new MultiPoly(monomer.getConnectionPoints(), monomer.getPolygon());
 						
 						Point centreBind = new Point(connectPoints.get(j)[0], connectPoints.get(j)[1]); 
