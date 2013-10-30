@@ -146,7 +146,7 @@ public class GridPanel extends JPanel {
 				
 				// x, y is the start point; x1 y1 is an inside/outside point
 				
-				return new Point(x += Math.cos(angle) * distance, y += Math.sin(angle) * distance);
+				return new Point(x += Math.cos(angle) * distance + panX, y += Math.sin(angle) * distance + panY);
 			}
 			
 		});

@@ -48,8 +48,8 @@ public class PlotterWindow extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setVisible(true);
 		
-		splitPane.setDividerLocation(0.9);
-		splitPane.setResizeWeight(0.9);
+		splitPane.setDividerLocation(0.8);
+		splitPane.setResizeWeight(0.8);
 		
 	}
 	
@@ -68,7 +68,6 @@ public class PlotterWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser choose = new JFileChooser();
-				// TODO
 				choose.setCurrentDirectory(new File(HOME_LOCATION));
 				int showSaveDialog = choose.showSaveDialog(PlotterWindow.this);
 				
@@ -108,6 +107,16 @@ public class PlotterWindow extends JFrame {
 		
 		JMenu optionsMenu = new JMenu("Options");
 		menuBar.add(optionsMenu);
+		
+		JMenuItem connectionRules = new JMenuItem("Connection rules");
+		connectionRules.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			}
+			
+		});
+		optionsMenu.add(connectionRules);
 	}
 
 	private void setDecorations() {
