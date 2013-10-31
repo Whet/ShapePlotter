@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.SelfAssemblyHierarchy;
 import com.plotter.data.Connection;
@@ -103,9 +104,6 @@ public class AssemblyHierarchyPanel extends JPanel {
 		}
 		
 		// draw polygons
-		gOn.setColor(Color.green);
-		gOff.setColor(Color.cyan);
-		
 		AffineTransform scaleTransform = new AffineTransform();
 		
 		scaleTransform.setToScale(scale, scale);
@@ -116,11 +114,22 @@ public class AssemblyHierarchyPanel extends JPanel {
 		int deltaX = (int) shapeCopy.getMergedPolygon().getBounds2D().getMinX();
 		int deltaY = (int) shapeCopy.getMergedPolygon().getBounds2D().getMinY();
 		
-		for(Polygon polygon:shapeCopy.getPolygons()) {
-			polygon.translate(-deltaX, -deltaY);
-			gOn.drawPolygon(polygon);
-			gOff.drawPolygon(polygon);
+		LineMergePolygon merged = null;
+		try {
+			merged = (LineMergePolygon) shape.getMergedLines().clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
 		}
+		
+		merged.translate(-deltaX, -deltaY);
+		merged.draw(gOn, Color.green, Color.yellow);
+		merged.draw(gOff, Color.cyan, Color.blue);
+		
+//		for(Polygon polygon:shapeCopy.getPolygons()) {
+//			polygon.translate(-deltaX, -deltaY);
+//			gOn.drawPolygon(polygon);
+//			gOff.drawPolygon(polygon);
+//		}
 //		shapeCopy.translate(-deltaX, -deltaY);
 //		graphics.drawPolygon(shapeCopy.getMergedPolygon());
 //		shapeCopy.translate(deltaX, deltaY);

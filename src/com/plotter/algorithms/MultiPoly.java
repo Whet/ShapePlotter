@@ -14,7 +14,8 @@ public class MultiPoly {
 
 	private List<Connection> connectedPoints;
 	private List<Polygon> polygons;
-	private Polygon mergedPolygon;
+	private Polygon convexMergedPolygon;
+	private LineMergePolygon lineMergedPolygon;
 	private MultiPoly parent;
 	
 	public MultiPoly(List<Connection> connectedPoints, Polygon... polygons) {
@@ -33,20 +34,22 @@ public class MultiPoly {
 			this.connectedPoints.add(new Connection(connection.getFlavour(), connection.getCentre().x, connection.getCentre().y, connection.getOutside().x, connection.getOutside().y, connection.getInside().x, connection.getInside().y));
 		}
 		
+		this.lineMergedPolygon = new LineMergePolygon();
 		ArrayList<Point> points = new ArrayList<>();
 		
 		for(Polygon polygon:this.polygons) {
 			for(int i = 0; i < polygon.npoints; i++) {
 				points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
 			}
+			this.lineMergedPolygon.addPolygon(polygon);
 		}
 		
 		ArrayList<Point> mergedPoints = FastConvexHull.execute(points);
 		
-		this.mergedPolygon = new Polygon();
+		this.convexMergedPolygon = new Polygon();
 		
 		for(Point point: mergedPoints) {
-			this.mergedPolygon.addPoint(point.x, point.y);
+			this.convexMergedPolygon.addPoint(point.x, point.y);
 		}
 	}
 	
@@ -109,20 +112,22 @@ public class MultiPoly {
 				this.connectedPoints.add(new Connection(connectedPoints1.get(i).getFlavour(), connectedPoints1.get(i).getCentre().x, connectedPoints1.get(i).getCentre().y, end1.x, end1.y, end2.x, end2.y));
 		}
 		
+		this.lineMergedPolygon = new LineMergePolygon();
 		ArrayList<Point> points = new ArrayList<>();
 		
 		for(Polygon polygon:this.polygons) {
 			for(int i = 0; i < polygon.npoints; i++) {
 				points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
 			}
+			this.lineMergedPolygon.addPolygon(polygon);
 		}
 		
 		ArrayList<Point> mergedPoints = FastConvexHull.execute(points);
 		
-		this.mergedPolygon = new Polygon();
+		this.convexMergedPolygon = new Polygon();
 		
 		for(Point point: mergedPoints) {
-			this.mergedPolygon.addPoint(point.x, point.y);
+			this.convexMergedPolygon.addPoint(point.x, point.y);
 		}
 	}
 	
@@ -150,7 +155,11 @@ public class MultiPoly {
 	}
 
 	public Polygon getMergedPolygon() {
-		return mergedPolygon;
+		return convexMergedPolygon;
+	}
+	
+	public LineMergePolygon getMergedLines() {
+		return this.lineMergedPolygon;
 	}
 
 	public List<int[]> getConnectPoints() {
@@ -169,7 +178,8 @@ public class MultiPoly {
 		for(int i = 0; i < this.polygons.size(); i++) {
 			this.polygons.get(i).translate(deltaX, deltaY);
 		}
-		this.mergedPolygon.translate(deltaX, deltaY);
+		this.convexMergedPolygon.translate(deltaX, deltaY);
+		this.lineMergedPolygon.translate(deltaX, deltaY);
 		
 		ArrayList<Connection> translatedConnections = new ArrayList<>();
 		
@@ -192,13 +202,13 @@ public class MultiPoly {
 		
 		Polygon rotatedMergedPolygon = new Polygon();
 		
-		for(int i = 0; i < this.mergedPolygon.npoints; i++) {
-			Point rotatedPoint = rotatePoint(new Point(this.mergedPolygon.xpoints[i], this.mergedPolygon.ypoints[i]), centreOfRotation, angle);
+		for(int i = 0; i < this.convexMergedPolygon.npoints; i++) {
+			Point rotatedPoint = rotatePoint(new Point(this.convexMergedPolygon.xpoints[i], this.convexMergedPolygon.ypoints[i]), centreOfRotation, angle);
 			
 			rotatedMergedPolygon.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
 		}
 		
-		this.mergedPolygon = rotatedMergedPolygon;
+		this.convexMergedPolygon = rotatedMergedPolygon;
 		
 		ArrayList<Connection> rotatedConnections = new ArrayList<>();
 		
@@ -210,6 +220,13 @@ public class MultiPoly {
 		}
 		
 		this.connectedPoints = rotatedConnections;
+		
+		try {
+			this.lineMergedPolygon = (LineMergePolygon) this.lineMergedPolygon.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		this.lineMergedPolygon.rotate(centreOfRotation, angle);
 	}
 	
 	// http://stackoverflow.com/questions/10533403/how-to-rotate-a-polygon-around-a-point-with-java
@@ -291,5 +308,5 @@ public class MultiPoly {
 	public List<Connection> getConnectionPoints() {
 		return this.connectedPoints;
 	}
-
+	
 }
