@@ -6,8 +6,12 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+
+import com.plotter.data.Maths;
 
 public class LineMergePolygon {
 
@@ -23,37 +27,61 @@ public class LineMergePolygon {
 		
 		List<Edge> polygonEdges = polygonToEdges(polygon);
 		
-		Iterator<Edge> iterator = polygonEdges.iterator();
+		Iterator<Edge> newIt = polygonEdges.iterator();
 		
-		while(iterator.hasNext()) {
-			Edge next = iterator.next();
+		while(newIt.hasNext()) {
+			Edge newPolyEdge = newIt.next();
 			
+			// If there is already an inside edge for this edge nothing more can be done
+			// Discard the new edge
+			for(Edge insideEdge:insideEdges) {
+				if(newPolyEdge.equals(insideEdge)) {
+					continue;
+				}
+			}
+			
+			
+			// If there is a border edge that equals a new edge then try to merge them
+			Iterator<Edge> oldIt = borderEdges.iterator();
 			boolean newEdge = true;
 			
-			for(Edge insideEdge:insideEdges) {
-				if(next.equals(insideEdge)) {
+			while(oldIt.hasNext()) {
+				
+				Edge oldBorderEdge = oldIt.next();
+				
+				// If edges are equal then discard the old border edge and new edge and make a new inside edge
+				if(newPolyEdge.equals(oldBorderEdge)) {
+					newIt.remove();
+					oldIt.remove();
+					insideEdges.add(newPolyEdge);
 					newEdge = false;
 					break;
 				}
-			}
-			
-			Iterator<Edge> iterator2 = borderEdges.iterator();
-			
-			while(iterator2.hasNext() && newEdge) {
-				
-				Edge next2 = iterator2.next();
-				
-				if(next.equals(next2)) {
-					iterator.remove();
-					iterator2.remove();
-					insideEdges.add(next);
+				// Check if edges overlap and create new edges
+				else if(newPolyEdge.overlaps(oldBorderEdge)) {
+					
+					newIt.remove();
+					oldIt.remove();
+					
+					Edge[] newLines = newPolyEdge.getOverlap(oldBorderEdge);
+					
+					if(newLines[0].getDistance() > 0)
+						this.borderEdges.add(newLines[0]);
+					if(newLines[1].getDistance() > 0)
+						this.insideEdges.add(newLines[1]);
+					if(newLines[2].getDistance() > 0)
+						this.borderEdges.add(newLines[2]);
+					
 					newEdge = false;
+					break;
 				}
 				
 			}
 			
-			if(newEdge)
-				this.borderEdges.add(next);
+			// Must be a new border edge
+			if(newEdge) {
+				this.borderEdges.add(newPolyEdge);
+			}
 		}
 		
 	}
@@ -75,11 +103,160 @@ public class LineMergePolygon {
 		
 		private Point end1, end2;
 		
+		// 0 diagonal, 1 horizontal, 2 vertical
+		private int lineType;
+		
 		public Edge(int x, int y, int x1, int y1) {
 			this.end1 = new Point(x,y);
 			this.end2 = new Point(x1,y1);
+			
+			this.lineType = 0;
+			
+			if(this.end1.y == this.end2.y && this.end1.x != this.end2.x)
+				this.lineType = 1;
+			else if(this.end1.x == this.end2.x && this.end1.y != this.end2.y)
+				this.lineType = 2;
 		}
 		
+		public boolean overlaps(Edge edge) {
+			
+			// Check horizontal
+			if(this.lineType == 1 && edge.lineType == 1 && this.end1.y == edge.end1.y) {
+				
+				// Order points horizontally
+				List<Point> orderedPoints = new ArrayList<>();
+				orderedPoints.add(edge.end1);
+				orderedPoints.add(edge.end2);
+				orderedPoints.add(this.end1);
+				orderedPoints.add(this.end2);
+				
+				Collections.sort(orderedPoints, new Comparator<Point>() {
+					
+					@Override
+					public int compare(Point o1, Point o2) {
+						if(o1.x < o2.x)
+							return -1;
+						else if(o1.x > o2.x)
+							return 1;
+						return 0;
+					}
+					
+				});
+				
+				// if first two points or neither belong to this then no overlap
+				if(((orderedPoints.get(0) == this.end1 || (orderedPoints.get(0) == this.end2)) &&
+				   (orderedPoints.get(1) == this.end1 || (orderedPoints.get(1) == this.end2))) ||
+				   
+				   ((orderedPoints.get(2) == this.end1 || (orderedPoints.get(2) == this.end2)) &&
+				   (orderedPoints.get(3) == this.end1 || (orderedPoints.get(3) == this.end2))))
+					return false;
+				
+				return true;
+			}
+			// Check vertical
+			else if(this.lineType == 2 && edge.lineType == 2 && this.end1.x == edge.end1.x) {
+				
+				// Order points vertically
+				List<Point> orderedPoints = new ArrayList<>();
+				orderedPoints.add(edge.end1);
+				orderedPoints.add(edge.end2);
+				orderedPoints.add(this.end1);
+				orderedPoints.add(this.end2);
+				
+				Collections.sort(orderedPoints, new Comparator<Point>() {
+					
+					@Override
+					public int compare(Point o1, Point o2) {
+						if(o1.y < o2.y)
+							return -1;
+						else if(o1.y > o2.y)
+							return 1;
+						return 0;
+					}
+					
+				});
+				
+				// if first two points or neither belong to this then no overlap
+				if(((orderedPoints.get(0) == this.end1 || (orderedPoints.get(0) == this.end2)) &&
+				   (orderedPoints.get(1) == this.end1 || (orderedPoints.get(1) == this.end2))) ||
+				   
+				   ((orderedPoints.get(2) == this.end1 || (orderedPoints.get(2) == this.end2)) &&
+				   (orderedPoints.get(3) == this.end1 || (orderedPoints.get(3) == this.end2))))
+					return false;
+				
+				return true;
+			}
+			
+			return false;
+		}
+		
+		private Edge[] getOverlap(Edge edge) {
+			
+			// horizontal
+			if(this.lineType == 1) {
+				
+				List<Point> orderedPoints = new ArrayList<>();
+				orderedPoints.add(edge.end1);
+				orderedPoints.add(edge.end2);
+				orderedPoints.add(this.end1);
+				orderedPoints.add(this.end2);
+				
+				Collections.sort(orderedPoints, new Comparator<Point>() {
+					
+					@Override
+					public int compare(Point o1, Point o2) {
+						if(o1.x < o2.x)
+							return -1;
+						else if(o1.x > o2.x)
+							return 1;
+						return 0;
+					}
+					
+				});
+				
+				Edge[] edges = new Edge[]{
+						new Edge(orderedPoints.get(0).x, orderedPoints.get(0).y, orderedPoints.get(1).x, orderedPoints.get(1).y),
+						new Edge(orderedPoints.get(1).x, orderedPoints.get(1).y, orderedPoints.get(2).x, orderedPoints.get(2).y),
+						new Edge(orderedPoints.get(2).x, orderedPoints.get(2).y, orderedPoints.get(3).x, orderedPoints.get(3).y),
+				};
+				
+				return edges;
+				
+			}
+			// vertical
+			else if(this.lineType == 2) {
+				
+				List<Point> orderedPoints = new ArrayList<>();
+				orderedPoints.add(edge.end1);
+				orderedPoints.add(edge.end2);
+				orderedPoints.add(this.end1);
+				orderedPoints.add(this.end2);
+				
+				Collections.sort(orderedPoints, new Comparator<Point>() {
+					
+					@Override
+					public int compare(Point o1, Point o2) {
+						if(o1.y < o2.y)
+							return -1;
+						else if(o1.y > o2.y)
+							return 1;
+						return 0;
+					}
+					
+				});
+				
+				Edge[] edges = new Edge[]{
+						new Edge(orderedPoints.get(0).x, orderedPoints.get(0).y, orderedPoints.get(1).x, orderedPoints.get(1).y),
+						new Edge(orderedPoints.get(1).x, orderedPoints.get(1).y, orderedPoints.get(2).x, orderedPoints.get(2).y),
+						new Edge(orderedPoints.get(2).x, orderedPoints.get(2).y, orderedPoints.get(3).x, orderedPoints.get(3).y),
+				};
+				
+				return edges;
+				
+			}
+			return null;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
 			
@@ -115,6 +292,10 @@ public class LineMergePolygon {
 		    pt.x = center.x + (int) (dx*cosAngle-dy*sinAngle);
 		    pt.y = center.y + (int) (dx*sinAngle+dy*cosAngle);
 		    return pt;
+		}
+		
+		public int getDistance() {
+			return (int) Maths.getDistance(end1.x, end1.y, end2.x, end2.y);
 		}
 		
 	}

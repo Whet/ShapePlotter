@@ -80,7 +80,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 			e.printStackTrace();
 		}
 		
-		int imageDimensions = 80;
+		int imageDimensions = 120;
 		int drawDimensions = imageDimensions - 5;
 		
 		BufferedImage onImageBuffered = new BufferedImage(imageDimensions, imageDimensions, BufferedImage.TYPE_INT_ARGB);
