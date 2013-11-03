@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.plotter.data.Maths;
+import com.plotter.gui.GridPanel;
 
 public class LineMergePolygon {
 
@@ -29,14 +30,23 @@ public class LineMergePolygon {
 		
 		Iterator<Edge> newIt = polygonEdges.iterator();
 		
-		while(newIt.hasNext()) {
+LOOP:	while(newIt.hasNext()) {
 			Edge newPolyEdge = newIt.next();
 			
 			// If there is already an inside edge for this edge nothing more can be done
-			// Discard the new edge
-			for(Edge insideEdge:insideEdges) {
+			Iterator<Edge> insideIt = insideEdges.iterator();
+
+			while(insideIt.hasNext()) {
+				
+				Edge insideEdge = insideIt.next();
+				
+				// Discard the new edge if the same as an inside edge
 				if(newPolyEdge.equals(insideEdge)) {
-					continue;
+					continue LOOP;
+				}
+				// If it overlaps an inside edge make it an inside edge
+				else if(newPolyEdge.overlaps(insideEdge)) {
+					continue LOOP;
 				}
 			}
 			
@@ -89,12 +99,18 @@ public class LineMergePolygon {
 	private List<Edge> polygonToEdges(Polygon polygon) {
 		
 		List<Edge> edges = new ArrayList<>();
-		
+
 		for(int i = 0; i < polygon.npoints - 1; i++) {
-			edges.add(new Edge(polygon.xpoints[i], polygon.ypoints[i], polygon.xpoints[i + 1], polygon.ypoints[i + 1]));
+			edges.add(new Edge(Maths.round(polygon.xpoints[i], GridPanel.GRID_SIZE),
+							   Maths.round(polygon.ypoints[i], GridPanel.GRID_SIZE),
+							   Maths.round(polygon.xpoints[i + 1], GridPanel.GRID_SIZE),
+							   Maths.round(polygon.ypoints[i + 1], GridPanel.GRID_SIZE)));
 		}
 		
-		edges.add(new Edge(polygon.xpoints[polygon.npoints - 1], polygon.ypoints[polygon.npoints - 1], polygon.xpoints[0], polygon.ypoints[0]));
+		edges.add(new Edge(Maths.round(polygon.xpoints[polygon.npoints - 1], GridPanel.GRID_SIZE),
+						   Maths.round(polygon.ypoints[polygon.npoints - 1], GridPanel.GRID_SIZE),
+						   Maths.round(polygon.xpoints[0], GridPanel.GRID_SIZE),
+						   Maths.round(polygon.ypoints[0], GridPanel.GRID_SIZE)));
 		
 		return edges;
 	}
@@ -143,6 +159,11 @@ public class LineMergePolygon {
 					
 				});
 				
+				// If middle points are equal then there is no overlap
+				if(orderedPoints.get(1).equals(orderedPoints.get(2))) {
+					return false;
+				}
+				
 				// if first two points or neither belong to this then no overlap
 				if(((orderedPoints.get(0) == this.end1 || (orderedPoints.get(0) == this.end2)) &&
 				   (orderedPoints.get(1) == this.end1 || (orderedPoints.get(1) == this.end2))) ||
@@ -175,6 +196,11 @@ public class LineMergePolygon {
 					}
 					
 				});
+				
+				// If middle points are equal then there is no overlap
+				if(orderedPoints.get(1).equals(orderedPoints.get(2))) {
+					return false;
+				}
 				
 				// if first two points or neither belong to this then no overlap
 				if(((orderedPoints.get(0) == this.end1 || (orderedPoints.get(0) == this.end2)) &&
