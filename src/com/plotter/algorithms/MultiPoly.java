@@ -16,11 +16,14 @@ public class MultiPoly {
 	private List<Polygon> polygons;
 	private Polygon convexMergedPolygon;
 	private LineMergePolygon lineMergedPolygon;
-	private MultiPoly parent;
+	private String parent;
+	private String code;
 	
 	public MultiPoly(List<Connection> connectedPoints, Polygon... polygons) {
 		
-		this.parent = null;
+		this.parent = "";
+		this.code = "0";
+		
 		this.polygons = new ArrayList<Polygon>();
 		
 		for(int i = 0; i < polygons.length; i++) {
@@ -53,9 +56,11 @@ public class MultiPoly {
 		}
 	}
 	
-	public MultiPoly(MultiPoly parent, List<Connection> connectedPoints, List<Connection> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
+	public MultiPoly(String parent, String code, List<Connection> connectedPoints, List<Connection> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
 		
 		this.parent = parent;
+		this.code = code;
+		
 		this.polygons = new ArrayList<Polygon>();
 		
 		for(int i = 0; i < polygons1.size(); i++) {
@@ -147,7 +152,12 @@ public class MultiPoly {
 			connectedPoints.add(new Connection(connection.getFlavour(), connection.getCentre().x, connection.getCentre().y, connection.getOutside().x, connection.getOutside().y, connection.getInside().x, connection.getInside().y));
 		}
 		
-		return new MultiPoly(connectedPoints, polygons);
+		MultiPoly multiPoly = new MultiPoly(connectedPoints, polygons);
+		
+		multiPoly.code = code;
+		multiPoly.parent = parent;
+		
+		return multiPoly;
 	}
 
 	public List<Polygon> getPolygons() {
@@ -301,8 +311,12 @@ public class MultiPoly {
 		return rotatedPoly;
 	}
 
-	public MultiPoly getParent() {
+	public String getParent() {
 		return parent;
+	}
+	
+	public String getCode() {
+		return code;
 	}
 
 	public List<Connection> getConnectionPoints() {

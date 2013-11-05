@@ -33,14 +33,14 @@ public class OutputTikz {
 		
 		sb.append(createPreamble());
 		
-		Map<MultiPoly, String> parentNames = new HashMap<>();
+		Map<String, String> parentNames = new HashMap<>();
 		
 		for(int i = 0; i < stages.size(); i++) {
 			String varName = "Stage" + i;
 			String referenceName = "Stage" + (i-1) + "0";
 			
 			if(i == 0) {
-				parentNames.put(stages.get(0).get(0), varName);
+				parentNames.put(stages.get(0).get(0).getCode(), varName + "0");
 				sb.append(createStartNode(stages.get(0).get(0).getPolygons().get(0), stages.get(0).get(0).getMergedPolygon(), varName + "0"));
 				continue;
 			}
@@ -52,11 +52,11 @@ public class OutputTikz {
 				String lastVar = varName + (j - 1);
 				
 				if(j == 0) {
-					parentNames.put(stage.get(j), varName);
+					parentNames.put(stage.get(j).getCode(), thisVar);
 					sb.append(createNode(stage.get(j).getPolygons(), stage.get(j).getMergedPolygon(), thisVar, referenceName, parentNames.get(stage.get(j).getParent()), true));
 				}
 				else {
-					parentNames.put(stage.get(j), varName);
+					parentNames.put(stage.get(j).getCode(), thisVar);
 					sb.append(createNode(stage.get(j).getPolygons(), stage.get(j).getMergedPolygon(), thisVar, lastVar, parentNames.get(stage.get(j).getParent()), false));
 				}
 				
