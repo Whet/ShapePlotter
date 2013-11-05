@@ -115,9 +115,9 @@ LOOP:	while(newIt.hasNext()) {
 		return edges;
 	}
 
-	private static class Edge {
+	public static class Edge {
 		
-		private Point end1, end2;
+		public Point end1, end2;
 		
 		// 0 diagonal, 1 horizontal, 2 vertical
 		private int lineType;
@@ -378,5 +378,13 @@ LOOP:	while(newIt.hasNext()) {
 		
 		return lineMergePolygon;
 		
+	}
+
+	public List<Edge> getHairlines() {
+		return this.borderEdges;
+	}
+	
+	public List<Edge> getDottedlines() {
+		return this.insideEdges;
 	}
 }
