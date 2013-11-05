@@ -19,7 +19,7 @@ import com.plotter.algorithms.MultiPoly;
 
 public class OutputSVG {
 
-	public static void outputSVG(String fileLocation, List<List<MultiPoly>> stages, int pageWidth, int pageHeight) throws IOException {
+	public static void outputSVG(String fileLocation, List<MultiPoly> shapes, int pageWidth, int pageHeight) throws IOException {
 
 		// Get a DOMImplementation.
 		DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();

@@ -11,6 +11,7 @@ import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -209,7 +210,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 			return 1;
 		}
 
-		public List<MultiPoly> getStages() {
+		public List<MultiPoly> getShapes() {
 			List<MultiPoly> polys = new ArrayList<>();
 			
 			for(DecompositionImage image:stageImages) {
@@ -348,7 +349,18 @@ public class AssemblyHierarchyPanel extends JPanel {
 		List<List<MultiPoly>> stages = new ArrayList<List<MultiPoly>>();
 		
 		for(DecompositionStage stage:this.decompStages) {
-			stages.add(stage.getStages());
+			stages.add(stage.getShapes());
+		}
+		
+		return stages;
+	}
+
+	public List<MultiPoly> getShapes() {
+		
+		List<MultiPoly> stages = new ArrayList<>();
+		
+		for(DecompositionStage stage:this.decompStages) {
+			stages.addAll(stage.getShapes());
 		}
 		
 		return stages;

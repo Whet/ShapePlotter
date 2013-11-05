@@ -5,7 +5,9 @@ import java.awt.geom.Rectangle2D;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.plotter.algorithms.MultiPoly;
 
@@ -31,11 +33,14 @@ public class OutputTikz {
 		
 		sb.append(createPreamble());
 		
+		Map<MultiPoly, String> parentNames = new HashMap<>();
+		
 		for(int i = 0; i < stages.size(); i++) {
 			String varName = "Stage" + i;
 			String referenceName = "Stage" + (i-1) + "0";
 			
 			if(i == 0) {
+				parentNames.put(stages.get(0).get(0), varName);
 				sb.append(createStartNode(stages.get(0).get(0).getPolygons().get(0), stages.get(0).get(0).getMergedPolygon(), varName + "0"));
 				continue;
 			}
@@ -46,10 +51,14 @@ public class OutputTikz {
 				String thisVar = varName + j;
 				String lastVar = varName + (j - 1);
 				
-				if(j == 0)
-					sb.append(createNode(stage.get(j).getPolygons(), stage.get(j).getMergedPolygon(), thisVar, referenceName, true));
-				else
-					sb.append(createNode(stage.get(j).getPolygons(), stage.get(j).getMergedPolygon(), thisVar, lastVar, false));
+				if(j == 0) {
+					parentNames.put(stage.get(j), varName);
+					sb.append(createNode(stage.get(j).getPolygons(), stage.get(j).getMergedPolygon(), thisVar, referenceName, parentNames.get(stage.get(j).getParent()), true));
+				}
+				else {
+					parentNames.put(stage.get(j), varName);
+					sb.append(createNode(stage.get(j).getPolygons(), stage.get(j).getMergedPolygon(), thisVar, lastVar, parentNames.get(stage.get(j).getParent()), false));
+				}
 				
 			}
 		}
@@ -112,7 +121,7 @@ public class OutputTikz {
 		
 	}
 	
-	private static String createNode(List<Polygon> polygons, Polygon mergedPolygon, String nodeName, String referenceNode, boolean isFirstChild) {
+	private static String createNode(List<Polygon> polygons, Polygon mergedPolygon, String nodeName, String referenceNode, String parentNode, boolean isFirstChild) {
 		
 		StringBuffer sb = new StringBuffer();
 		
@@ -125,7 +134,9 @@ public class OutputTikz {
 			sb.append(polygonToLines(polygon, (int)mergedPolygon.getBounds2D().getMinX(), (int)mergedPolygon.getBounds2D().getMinY(), polygons.size()));
 		}
 		
-		sb.append("\n\\end{tikzpicture}\n};\n");	
+		sb.append("\n\\end{tikzpicture}\n};\n");
+		
+		sb.append("\\draw[-latex] (" + nodeName + ".north) |- (" + parentNode + ".south);\n\n");
 		
 		return sb.toString();
 		
