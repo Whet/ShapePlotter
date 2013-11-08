@@ -197,6 +197,8 @@ public class TetrisSolution {
 			this.score += fullBlocksXHeight;
 			this.score += largestSlope;
 			this.score += totalSlopes;
+			
+			this.grid.tallestY = highestY + 1;
 		}
 		
 	}
@@ -262,9 +264,11 @@ public class TetrisSolution {
 			this.tallestY = 0;
 			
 			// Make the first row 1's
-			for(int i = 0; i < width; i++) {
-				blocks[i][0] = 1;
+			for(int i = 0; i < height; i++) {
+				blocks[0][i] = 1;
 			}
+			
+			drawGrid();
 		}
 		
 		public TetrisGrid(TetrisGrid parentGrid) {
@@ -309,6 +313,10 @@ public class TetrisSolution {
 		
 		public void addPiece(TetrisPiece piece) {
 			
+			// DEBUG
+			System.out.println("BEFORE");
+			drawGrid();
+			
 			for(Polygon polygon:piece.polygons) {
 				
 				// Top left corner
@@ -339,18 +347,19 @@ public class TetrisSolution {
 			}
 			
 			// DEBUG
+			System.out.println("AFTER");
 			drawGrid();
 		}
 		
 		private void drawGrid() {
-			for(int i = 0; i < this.blocks.length; i++) {
-				for(int j = 0; j < this.blocks[i].length; j++) {
-					System.out.print(this.blocks[i][j] + 1);
+			for(int i = 0; i < this.blocks[0].length; i++) {
+				for(int j = 0; j < this.blocks.length; j++) {
+					System.out.print(this.blocks[j][i] + 1);
 				}
 				System.out.println();
 			}
 			
-			for(int i = 0; i < this.blocks.length; i++) {
+			for(int i = 0; i < this.blocks[0].length; i++) {
 				System.out.print("-");
 			}
 			System.out.println();

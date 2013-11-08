@@ -23,13 +23,12 @@ import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.TetrisSolution;
 import com.plotter.algorithms.TetrisSolution.TetrisPiece;
-import com.plotter.gui.GridPanel;
 
 public class OutputSVG {
 
-	private static final int POLY_SCALE = GridPanel.GRID_SIZE * 2;
+	private static final int POLY_SCALE = 10;
 	private static final float HAIRLINE = 1f;
-	private static final float DOTTED = 5;
+	private static final float DOTTED = 0.5f;
 
 	public static void outputSVG(String fileLocation, List<MultiPoly> shapes, int pageWidth, int pageHeight) throws IOException {
 
