@@ -19,7 +19,7 @@ public class TetrisSolution {
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
 	public static TetrisSolution getSolution(int width, int height, List<MultiPoly> shapes) {
-		System.out.println();
+
 		// Convert all possible shapes to unit polygons
 		List<TetrisPiece> shrunkPolygons = new ArrayList<TetrisPiece>();
 		
@@ -56,7 +56,7 @@ public class TetrisSolution {
 	public TetrisSolution(TetrisStage bestStage) {
 		this.solutionPieces = new ArrayList<>();
 		
-		TetrisStage tetrisPiece = bestStage.parent;
+		TetrisStage tetrisPiece = bestStage;
 		
 		while(tetrisPiece.parent != null) {
 			solutionPieces.add(tetrisPiece.bestPosition());
@@ -116,7 +116,7 @@ public class TetrisSolution {
 		}
 
 		private TetrisPiece bestPosition() {
-			return this.blockChoices.peek().parentBlock;
+			return this.parentBlock;
 		}
 		
 		public TetrisStage lookAhead() {

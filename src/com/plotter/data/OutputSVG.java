@@ -27,9 +27,9 @@ import com.plotter.gui.GridPanel;
 
 public class OutputSVG {
 
-	private static final int POLY_SIZE = 10;
-	private static final float HAIRLINE = 0.00001f;
-	private static final float DOTTED = 1;
+	private static final int POLY_SCALE = GridPanel.GRID_SIZE * 2;
+	private static final float HAIRLINE = 1f;
+	private static final float DOTTED = 5;
 
 	public static void outputSVG(String fileLocation, List<MultiPoly> shapes, int pageWidth, int pageHeight) throws IOException {
 
@@ -43,8 +43,8 @@ public class OutputSVG {
 		// Create an instance of the SVG Generator.
 		SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
 
-		int widthCubes = 10;
-		int heightCubes = 10;
+		int widthCubes = pageWidth / POLY_SCALE;
+		int heightCubes = pageHeight / POLY_SCALE;
 		
 		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, shapes);
 		
@@ -56,7 +56,7 @@ public class OutputSVG {
 		
 		List<Line> dottedLines = computeDottedLines(layout);
 		List<Line> hairLines = computeHairLines(layout);
-		
+		System.out.println();
 		// Ask the test to render into the SVG Graphics2D implementation.
 		paintToPage(svgGenerator, pageWidth, pageHeight, hairLines, dottedLines);
 
@@ -127,10 +127,10 @@ public class OutputSVG {
 				Polygon scaledPoly = new Polygon();
 				
 				for(int i = 0; i < polygon.npoints; i++) {
-					scaledPoly.addPoint(polygon.xpoints[i] * POLY_SIZE, polygon.ypoints[i] * POLY_SIZE);
+					scaledPoly.addPoint(polygon.xpoints[i] * POLY_SCALE, polygon.ypoints[i] * POLY_SCALE);
 				}
 				
-				lmp.addPolygon(polygon);	
+				lmp.addPolygon(scaledPoly, POLY_SCALE);	
 			}
 		}
 
@@ -149,7 +149,7 @@ public class OutputSVG {
 
 			List<Line> lines = new ArrayList<>();
 			
-			for(Edge edge: lmp.getHairlines()) {
+			for(Edge edge: lmp.getDottedlines()) {
 				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
 			}
 			

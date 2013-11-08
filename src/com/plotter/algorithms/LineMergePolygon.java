@@ -25,8 +25,12 @@ public class LineMergePolygon {
 	}
 	
 	public void addPolygon(Polygon polygon) {
+		addPolygon(polygon, GridPanel.GRID_SIZE);
+	}
+	
+	public void addPolygon(Polygon polygon, int scale) {
 		
-		List<Edge> polygonEdges = polygonToEdges(polygon);
+		List<Edge> polygonEdges = polygonToEdges(polygon, scale);
 		
 		Iterator<Edge> newIt = polygonEdges.iterator();
 		
@@ -96,21 +100,21 @@ LOOP:	while(newIt.hasNext()) {
 		
 	}
 	
-	private List<Edge> polygonToEdges(Polygon polygon) {
+	private List<Edge> polygonToEdges(Polygon polygon, int scale) {
 		
 		List<Edge> edges = new ArrayList<>();
 
 		for(int i = 0; i < polygon.npoints - 1; i++) {
-			edges.add(new Edge(Maths.round(polygon.xpoints[i], GridPanel.GRID_SIZE),
-							   Maths.round(polygon.ypoints[i], GridPanel.GRID_SIZE),
-							   Maths.round(polygon.xpoints[i + 1], GridPanel.GRID_SIZE),
-							   Maths.round(polygon.ypoints[i + 1], GridPanel.GRID_SIZE)));
+			edges.add(new Edge(Maths.round(polygon.xpoints[i], scale),
+							   Maths.round(polygon.ypoints[i], scale),
+							   Maths.round(polygon.xpoints[i + 1], scale),
+							   Maths.round(polygon.ypoints[i + 1], scale)));
 		}
 		
-		edges.add(new Edge(Maths.round(polygon.xpoints[polygon.npoints - 1], GridPanel.GRID_SIZE),
-						   Maths.round(polygon.ypoints[polygon.npoints - 1], GridPanel.GRID_SIZE),
-						   Maths.round(polygon.xpoints[0], GridPanel.GRID_SIZE),
-						   Maths.round(polygon.ypoints[0], GridPanel.GRID_SIZE)));
+		edges.add(new Edge(Maths.round(polygon.xpoints[polygon.npoints - 1], scale),
+						   Maths.round(polygon.ypoints[polygon.npoints - 1], scale),
+						   Maths.round(polygon.xpoints[0], scale),
+						   Maths.round(polygon.ypoints[0], scale)));
 		
 		return edges;
 	}
