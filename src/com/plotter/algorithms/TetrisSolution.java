@@ -59,6 +59,8 @@ public class TetrisSolution {
 		TetrisStage tetrisPiece = bestStage;
 		
 		while(tetrisPiece.parent != null) {
+			System.out.println("STAGE");
+			tetrisPiece.grid.drawGrid();
 			solutionPieces.add(tetrisPiece.bestPosition());
 			
 			tetrisPiece = tetrisPiece.parent;
@@ -273,6 +275,13 @@ public class TetrisSolution {
 		
 		public TetrisGrid(TetrisGrid parentGrid) {
 			this.blocks = new int[parentGrid.blocks.length][parentGrid.blocks[0].length];
+			
+			for(int i = 0; i < parentGrid.blocks.length; i++) {
+				for(int j = 0; j < parentGrid.blocks[i].length; j++) {
+					this.blocks[i][j] = parentGrid.blocks[i][j];
+				}
+			}
+			
 			this.tallestY = parentGrid.tallestY;
 		}
 
@@ -333,9 +342,8 @@ public class TetrisSolution {
 							blocks[i][j] = -1;
 							
 							// Set the block one down to being a possible building point: 1
-							// This may get overwritten but it is inconsequential
-							if(j < blocks[i].length - 1) {
-								blocks[i][j + 1] = 1;
+							if(i < blocks.length - 1 && blocks[i + 1][j] == 0) {
+								blocks[i + 1][j] = 1;
 							}
 							
 							// Set new tallest point
