@@ -27,7 +27,7 @@ import com.plotter.algorithms.TetrisSolution.TetrisPiece;
 public class OutputSVG {
 
 	private static final int POLY_SCALE = 10;
-	private static final float HAIRLINE = 1f;
+	private static final float HAIRLINE = 0.1f;
 	private static final float DOTTED = 0.5f;
 
 	public static void outputSVG(String fileLocation, List<MultiPoly> shapes, int pageWidth, int pageHeight) throws IOException {
@@ -107,10 +107,10 @@ public class OutputSVG {
 			page.drawLine(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y);
 		}
 		
-		page.setStroke(new BasicStroke(DOTTED));
-		for(Line dotted:dottedLines) {
-			page.drawLine(dotted.end1.x, dotted.end1.y, dotted.end2.x, dotted.end2.y);
-		}
+//		page.setStroke(new BasicStroke(DOTTED));
+//		for(Line dotted:dottedLines) {
+//			page.drawLine(dotted.end1.x, dotted.end1.y, dotted.end2.x, dotted.end2.y);
+//		}
 		
 	}
 	

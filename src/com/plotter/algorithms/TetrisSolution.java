@@ -14,7 +14,7 @@ import com.plotter.gui.GridPanel;
 
 public class TetrisSolution {
 
-	private static final int LOOK_AHEAD = 3;
+	private static final int LOOK_AHEAD = 1;
 	
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
@@ -30,7 +30,7 @@ public class TetrisSolution {
 		// Shuffle list to have random sequence
 		Collections.shuffle(shrunkPolygons);
 		
-		Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(5);
+		Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(shapes.size());
 		incomingBlocks.addAll(shrunkPolygons);
 
 		TetrisStage firstStage = new TetrisStage(incomingBlocks, width, height);
@@ -59,9 +59,9 @@ public class TetrisSolution {
 		TetrisStage tetrisPiece = bestStage;
 		
 		while(tetrisPiece.parent != null) {
-			System.out.println("STAGE");
+//			System.out.println("STAGE");
 			tetrisPiece.grid.drawGrid();
-			solutionPieces.add(tetrisPiece.bestPosition());
+			solutionPieces.add(tetrisPiece.getBlock());
 			
 			tetrisPiece = tetrisPiece.parent;
 		}
@@ -81,7 +81,7 @@ public class TetrisSolution {
 		private TetrisPiece placingBlock;
 		
 		private TetrisStage parent;
-		private TetrisPiece parentBlock;
+		private TetrisPiece block;
 		private TetrisGrid grid;
 		
 		public TetrisStage(Queue<TetrisPiece> incomingBlocks, int width, int height) {
@@ -95,12 +95,12 @@ public class TetrisSolution {
 			this.blockChoices = new PriorityQueue<TetrisStage>(10, new StageComp());
 			
 			this.parent = null;
-			this.parentBlock = null;
+			this.block = null;
 			this.grid = new TetrisGrid(width, height);
 			this.score = 0;
 		}
 		
-		public TetrisStage(TetrisStage parentStage, TetrisPiece parentBlock) {
+		public TetrisStage(TetrisStage parentStage, TetrisPiece newBlock) {
 			
 			this.incomingBlocks = parentStage.incomingBlocks;
 
@@ -111,14 +111,14 @@ public class TetrisSolution {
 			this.blockChoices = new PriorityQueue<TetrisStage>(10, new StageComp());
 			
 			this.parent = parentStage;
-			this.parentBlock = parentBlock;
+			this.block = newBlock;
 			this.grid = new TetrisGrid(parentStage.grid);
-			this.grid.addPiece(parentBlock);
+			this.grid.addPiece(newBlock);
 			this.computeScore();
 		}
 
-		private TetrisPiece bestPosition() {
-			return this.parentBlock;
+		private TetrisPiece getBlock() {
+			return this.block;
 		}
 		
 		public TetrisStage lookAhead() {
@@ -220,6 +220,7 @@ public class TetrisSolution {
 				for(int i = 0; i < poly.npoints; i++) {
 					nPoly.addPoint(Maths.round(poly.xpoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinX(), GridPanel.GRID_SIZE) / GridPanel.GRID_SIZE,
 								   Maths.round(poly.ypoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / GridPanel.GRID_SIZE);
+					
 				}
 				
 				polygons.add(nPoly);
@@ -255,7 +256,6 @@ public class TetrisSolution {
 		 * -1 - Block
 		 * 1 - Block can be placed
 		 * 
-		 * 0,0 is the top left block
 		 */
 		private int[][] blocks;
 		
@@ -270,7 +270,8 @@ public class TetrisSolution {
 				blocks[0][i] = 1;
 			}
 			
-			drawGrid();
+			// DEBUG
+//			drawGrid();
 		}
 		
 		public TetrisGrid(TetrisGrid parentGrid) {
@@ -300,9 +301,14 @@ public class TetrisSolution {
 				
 				// Check all grid points in the bounds to see if the polygon contains the centre
 				// - 1's since we don't want to go over the boundary when we add + 0.5
-				for(int i = widthIndex; i < widthIndex + width - 1; i++) {
-					for(int j = heightIndex; j < heightIndex + height - 1; j++) {
-						if(i + width <= this.blocks.length && j + height <= this.blocks[0].length && polygon.contains(i + 0.5, j + 0.5)) {
+				for(int i = widthIndex; i < widthIndex + width; i++) {
+					for(int j = heightIndex; j < heightIndex + height; j++) {
+						if(polygon.contains(i + 0.5, j + 0.5)) {
+							
+							// If point out of bounds, reject
+							if(i + width > this.blocks.length || j + height > this.blocks[0].length) {
+								return false;
+							}
 							
 							// Overlaps with a non-empty or non-anchor block
 							if(blocks[i][j] != 0 && blocks[i][j] != 1) {
@@ -323,8 +329,8 @@ public class TetrisSolution {
 		public void addPiece(TetrisPiece piece) {
 			
 			// DEBUG
-			System.out.println("BEFORE");
-			drawGrid();
+//			System.out.println("BEFORE");
+//			drawGrid();
 			
 			for(Polygon polygon:piece.polygons) {
 				
@@ -355,8 +361,8 @@ public class TetrisSolution {
 			}
 			
 			// DEBUG
-			System.out.println("AFTER");
-			drawGrid();
+//			System.out.println("AFTER");
+//			drawGrid();
 		}
 		
 		private void drawGrid() {
@@ -367,8 +373,8 @@ public class TetrisSolution {
 				System.out.println();
 			}
 			
-			for(int i = 0; i < this.blocks[0].length; i++) {
-				System.out.print("-");
+			for(int i = 0; i < this.blocks.length / 2 + 1; i++) {
+				System.out.print("->");
 			}
 			System.out.println();
 		}
