@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,10 +19,15 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
 import com.plotter.algorithms.LineMergePolygon;
+import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.algorithms.MultiPoly;
+import com.plotter.algorithms.TetrisSolution;
+import com.plotter.algorithms.TetrisSolution.TetrisPiece;
+import com.plotter.gui.GridPanel;
 
 public class OutputSVG {
 
+	private static final int POLY_SIZE = 10;
 	private static final float HAIRLINE = 0.00001f;
 	private static final float DOTTED = 1;
 
@@ -37,8 +43,19 @@ public class OutputSVG {
 		// Create an instance of the SVG Generator.
 		SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
 
-		List<Line> dottedLines = computeDottedLines(shapes);
-		List<Line> hairLines = computeHairLines(shapes);
+		int widthCubes = 10;
+		int heightCubes = 10;
+		
+		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, shapes);
+		
+		List<LayoutPolygon> layout = new ArrayList<>();
+		
+		for(TetrisSolution.TetrisPiece tP:solution.getSolutionPieces()) {
+			layout.add(new LayoutPolygon(tP));
+		}
+		
+		List<Line> dottedLines = computeDottedLines(layout);
+		List<Line> hairLines = computeHairLines(layout);
 		
 		// Ask the test to render into the SVG Graphics2D implementation.
 		paintToPage(svgGenerator, pageWidth, pageHeight, hairLines, dottedLines);
@@ -50,13 +67,13 @@ public class OutputSVG {
 		svgGenerator.stream(out, useCSS);
 	}
 
-	private static List<Line> computeDottedLines(List<MultiPoly> shapes) {
+	private static List<Line> computeDottedLines(List<LayoutPolygon> shapes) {
 		
 		List<Line> lines = new ArrayList<Line>();
 		
-		for(MultiPoly poly:shapes) {
+		for(LayoutPolygon poly:shapes) {
 			
-			for(LineMergePolygon.Edge dottedline: poly.getMergedLines().getDottedlines()) {
+			for(Line dottedline: poly.getDottedlines()) {
 				lines.add(new Line(dottedline.end1.x, dottedline.end1.y, dottedline.end2.x, dottedline.end2.y));
 			}
 			
@@ -65,13 +82,13 @@ public class OutputSVG {
 		return lines;
 	}
 	
-	private static List<Line> computeHairLines(List<MultiPoly> shapes) {
+	private static List<Line> computeHairLines(List<LayoutPolygon> shapes) {
 		
 		List<Line> lines = new ArrayList<Line>();
 		
-		for(MultiPoly poly:shapes) {
+		for(LayoutPolygon poly:shapes) {
 			
-			for(LineMergePolygon.Edge hairline: poly.getMergedLines().getHairlines()) {
+			for(Line hairline: poly.getHairlines()) {
 				lines.add(new Line(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y));
 			}
 			
@@ -98,8 +115,47 @@ public class OutputSVG {
 		
 	}
 	
-	private static class LayoutPolygon {
-		MultiPoly poly;
+	public static class LayoutPolygon {
+
+		private LineMergePolygon lmp;
+		
+		public LayoutPolygon(TetrisPiece tP) {
+			lmp = new LineMergePolygon();
+			
+			for(Polygon polygon:tP.polygons) {
+				
+				Polygon scaledPoly = new Polygon();
+				
+				for(int i = 0; i < polygon.npoints; i++) {
+					scaledPoly.addPoint(polygon.xpoints[i] * POLY_SIZE, polygon.ypoints[i] * POLY_SIZE);
+				}
+				
+				lmp.addPolygon(polygon);	
+			}
+		}
+
+		public List<Line> getHairlines() {
+			
+			List<Line> lines = new ArrayList<>();
+			
+			for(Edge edge: lmp.getHairlines()) {
+				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
+			}
+			
+			return lines;
+		}
+
+		public List<Line> getDottedlines() {
+
+			List<Line> lines = new ArrayList<>();
+			
+			for(Edge edge: lmp.getHairlines()) {
+				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
+			}
+			
+			return lines;
+		}
+		
 		
 	}
 	
