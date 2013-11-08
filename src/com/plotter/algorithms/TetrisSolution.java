@@ -14,7 +14,19 @@ import com.plotter.gui.GridPanel;
 
 public class TetrisSolution {
 
+	// Heuristics
+	private static final int H_HIGHEST_Y = 1;
+	private static final int H_MAX_SLOPE = 1;
+	private static final int H_FULLNESS = -10;
+	private static final int H_FULL_HEIGHT = 1;
+	private static final int H_TOTAL_SLOPE = 1;
+	private static final int H_HOLES = 10;
+	
+	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
+	private static final int MAX_CHILDREN = 50;
+	
+	
 	
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
@@ -27,13 +39,57 @@ public class TetrisSolution {
 			shrunkPolygons.add(new TetrisPiece(mPoly));
 		}
 
-		// Shuffle list to have random sequence
-		Collections.shuffle(shrunkPolygons);
+		// Genetic Algorithm
+		TetrisStage bestStage = geneticTetris(shrunkPolygons, width, height, MAX_CHILDREN);
 		
-		Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(shapes.size());
-		incomingBlocks.addAll(shrunkPolygons);
-
-		TetrisStage firstStage = new TetrisStage(incomingBlocks, width, height);
+		return new TetrisSolution(bestStage);
+	}
+	
+	private static TetrisStage geneticTetris(List<TetrisPiece> polygons, int width, int height, int maxChildren) {
+		
+		Queue<GeneticStub> geneticQueue = new PriorityQueue<>(maxChildren, new GeneticComp());
+		
+		// Create starting population
+		
+		System.out.println("Creating Population!");
+		
+		for(int i = 0; i < maxChildren; i++) {
+		
+			// Shuffle list to have random sequence start
+			Collections.shuffle(polygons);
+			
+			Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(polygons.size());
+			Queue<TetrisPiece> incomingBlocksMem = new ArrayBlockingQueue<>(polygons.size());
+			incomingBlocks.addAll(polygons);
+			incomingBlocksMem.addAll(polygons);
+			
+			TetrisStage firstStage = new TetrisStage(incomingBlocks, width, height);
+			
+			TetrisStage bestStage = firstStage;
+			
+			while(true) {
+				
+				TetrisStage potentialBest = bestStage.lookAhead();
+				
+				// Break when no further stages found (Can't find somewhere to put next block)
+				if(potentialBest == bestStage)
+					break;
+				else
+					bestStage = potentialBest;
+				
+			}
+			
+			System.out.println("Starter " + i + " fitness: " + bestStage.score);
+			geneticQueue.add(new GeneticStub(bestStage.score, incomingBlocksMem));
+		
+		}
+		
+		
+		System.out.println("Winner: " + geneticQueue.peek().fitness);
+		GeneticStub bestChild = geneticQueue.poll();
+		
+		// Choose best first stage and compute the tree
+		TetrisStage firstStage = new TetrisStage(bestChild.startQueue, width, height);
 		
 		TetrisStage bestStage = firstStage;
 		
@@ -41,6 +97,7 @@ public class TetrisSolution {
 			
 			TetrisStage potentialBest = bestStage.lookAhead();
 			
+			// Break when no further stages found (Can't find somewhere to put next block)
 			if(potentialBest == bestStage)
 				break;
 			else
@@ -48,9 +105,37 @@ public class TetrisSolution {
 			
 		}
 		
-		return new TetrisSolution(bestStage);
+		return bestStage;
 	}
 	
+	private static class GeneticStub {
+		
+		public final double fitness;
+		public final Queue<TetrisPiece> startQueue;
+		
+		public GeneticStub(double score, Queue<TetrisPiece> startQueue) {
+			this.fitness = score;
+			this.startQueue = startQueue;
+		}
+		
+	}
+	
+	private static class GeneticComp implements Comparator<GeneticStub> {
+
+		@Override
+		public int compare(GeneticStub t1, GeneticStub t2) {
+			
+			// Lower score is better
+			if(t1.fitness < t2.fitness)
+				return -1;
+			else if(t2.fitness < t1.fitness)
+				return 1;
+			
+			return 0;
+		}
+		
+	}
+
 	private List<TetrisPiece> solutionPieces;
 	
 	public TetrisSolution(TetrisStage bestStage) {
@@ -59,8 +144,9 @@ public class TetrisSolution {
 		TetrisStage tetrisPiece = bestStage;
 		
 		while(tetrisPiece.parent != null) {
+			// DEBUG
 //			System.out.println("STAGE");
-			tetrisPiece.grid.drawGrid();
+//			tetrisPiece.grid.drawGrid();
 			solutionPieces.add(tetrisPiece.getBlock());
 			
 			tetrisPiece = tetrisPiece.parent;
@@ -174,6 +260,7 @@ public class TetrisSolution {
 			int fullBlocksXHeight = 0;
 			int largestSlope = 0;
 			int totalSlopes = 0;
+			int holes = 0;
 			
 			for(int i = 0; i < this.grid.blocks.length; i++) {
 				for(int j = 0; j < this.grid.blocks[i].length; j++) {
@@ -191,14 +278,23 @@ public class TetrisSolution {
 						fullBlocksXHeight += j;
 					}
 					
+					// Detect holes (one block where either side is covered)
+					if((i - 1 < 0 || this.grid.blocks[i - 1][j] == -1) && (i + 1 >= this.grid.blocks.length || this.grid.blocks[i + 1][j] == -1)) {
+						holes++;
+					}
+					else if((j - 1 < 0 || this.grid.blocks[i][j - 1] == -1) && (j + 1 >= this.grid.blocks[0].length || this.grid.blocks[i][j + 1] == -1)) {
+						holes++;
+					}
+					
 				}
 			}
 			
-			this.score += highestY;
-			this.score += fullBlocks;
-			this.score += fullBlocksXHeight;
-			this.score += largestSlope;
-			this.score += totalSlopes;
+			this.score += highestY * H_HIGHEST_Y;
+			this.score += fullBlocks * H_FULLNESS;
+			this.score += fullBlocksXHeight * H_FULL_HEIGHT;
+			this.score += largestSlope * H_MAX_SLOPE;
+			this.score += totalSlopes * H_TOTAL_SLOPE;
+			this.score += holes * H_HOLES;
 			
 			this.grid.tallestY = highestY + 1;
 		}
@@ -384,7 +480,7 @@ public class TetrisSolution {
 			List<int[]> locations = new ArrayList<>();
 			
 			for(int i = 0; i < this.blocks.length; i++) {
-				for(int j = 0; j < tallestY + 1; j++) {
+				for(int j = 0; j < this.blocks[i].length; j++) {
 					if(j < this.blocks[i].length && this.blocks[i][j] == 1) {
 						locations.add(new int[]{i, j});
 					}
@@ -401,10 +497,11 @@ public class TetrisSolution {
 		@Override
 		public int compare(TetrisStage t1, TetrisStage t2) {
 			
+			// Lower score is better
 			if(t1.score < t2.score)
-				return 1;
-			else if(t2.score < t1.score)
 				return -1;
+			else if(t2.score < t1.score)
+				return 1;
 			
 			return 0;
 		}
