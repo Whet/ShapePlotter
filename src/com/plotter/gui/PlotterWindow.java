@@ -96,7 +96,7 @@ public class PlotterWindow extends JFrame {
 				
 				if(showSaveDialog == JFileChooser.APPROVE_OPTION) {
 					try {
-						OutputSVG.outputSVG(choose.getSelectedFile().toString(), hierarchyPanel.getShapes(), 400, 400);
+						OutputSVG.outputSVG(choose.getSelectedFile().toString(), hierarchyPanel.getShapes(), 320, 320);
 					} catch (IOException e) {
 						JOptionPane.showMessageDialog(PlotterWindow.this, "Error saving file");
 					}

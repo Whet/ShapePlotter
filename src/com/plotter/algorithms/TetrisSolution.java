@@ -1,6 +1,7 @@
 package com.plotter.algorithms;
 
 import java.awt.Polygon;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,15 +17,15 @@ public class TetrisSolution {
 
 	// Heuristics
 	private static final int H_HIGHEST_Y = 1;
-	private static final int H_MAX_SLOPE = 1;
-	private static final int H_FULLNESS = -10;
+	private static final int H_MAX_SLOPE = 0;
+	private static final int H_FULLNESS = 1;
 	private static final int H_FULL_HEIGHT = 1;
-	private static final int H_TOTAL_SLOPE = 1;
-	private static final int H_HOLES = 10;
+	private static final int H_TOTAL_SLOPE = 0;
+	private static final int H_HOLES = 0;
 	
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
-	private static final int MAX_CHILDREN = 50;
+	private static final int MAX_CHILDREN = 5;
 	
 	
 	
@@ -120,22 +121,6 @@ public class TetrisSolution {
 		
 	}
 	
-	private static class GeneticComp implements Comparator<GeneticStub> {
-
-		@Override
-		public int compare(GeneticStub t1, GeneticStub t2) {
-			
-			// Lower score is better
-			if(t1.fitness < t2.fitness)
-				return -1;
-			else if(t2.fitness < t1.fitness)
-				return 1;
-			
-			return 0;
-		}
-		
-	}
-
 	private List<TetrisPiece> solutionPieces;
 	
 	public TetrisSolution(TetrisStage bestStage) {
@@ -236,13 +221,23 @@ public class TetrisSolution {
 			// Try all possible translations
 			// AddChoice(position)
 			
-			for(int[] possibleLocation:this.grid.getTopLeftCorners()) {
+			for(int[] possibleLocation:this.grid.getAnchors()) {
 				
 				TetrisPiece testPiece = this.placingBlock.copy();
 				testPiece.translate(possibleLocation[0], possibleLocation[1]);
 				
-				if(this.grid.isPieceValid(testPiece)) {
-					this.addChoice(testPiece);
+				// Try all positions of polygon
+				
+				for(int i = 0; i < testPiece.getWidth(); i++) {
+					for(int j = 0; j < testPiece.getHeight(); j++) {
+						
+						TetrisPiece translatedPiece = testPiece.copy();
+						translatedPiece.translate(i, j);
+						
+						if(this.grid.isPieceValid(translatedPiece)) {
+							this.addChoice(translatedPiece);
+						}
+					}
 				}
 			}
 			
@@ -305,8 +300,11 @@ public class TetrisSolution {
 		
 		// Copies polygons and make them unit polygons
 		public List<Polygon> polygons;
+		private Area area;
 		
 		public TetrisPiece(MultiPoly mPoly) {
+			
+			this.area = new Area();
 			
 			polygons = new ArrayList<>();
 			
@@ -320,9 +318,18 @@ public class TetrisSolution {
 				}
 				
 				polygons.add(nPoly);
+				area.add(new Area(nPoly));
 			}
 		}
 		
+		public int getHeight() {
+			return (int) area.getBounds2D().getHeight();
+		}
+
+		public int getWidth() {
+			return (int) area.getBounds2D().getWidth();
+		}
+
 		private TetrisPiece(){
 			this.polygons = new ArrayList<>();
 		}
@@ -333,6 +340,8 @@ public class TetrisSolution {
 			for(Polygon polygon:this.polygons) {
 				t.polygons.add(new Polygon(polygon.xpoints, polygon.ypoints, polygon.npoints));
 			}
+			
+			t.area = (Area) this.area.clone();
 			
 			return t;
 		}
@@ -475,7 +484,7 @@ public class TetrisSolution {
 			System.out.println();
 		}
 
-		public List<int[]> getTopLeftCorners() {
+		public List<int[]> getAnchors() {
 			// Get all 1's 
 			List<int[]> locations = new ArrayList<>();
 			
@@ -499,9 +508,25 @@ public class TetrisSolution {
 			
 			// Lower score is better
 			if(t1.score < t2.score)
-				return -1;
-			else if(t2.score < t1.score)
 				return 1;
+			else if(t2.score < t1.score)
+				return -1;
+			
+			return 0;
+		}
+		
+	}
+	
+	private static class GeneticComp implements Comparator<GeneticStub> {
+
+		@Override
+		public int compare(GeneticStub t1, GeneticStub t2) {
+			
+			// Lower score is better
+			if(t1.fitness < t2.fitness)
+				return 1;
+			else if(t2.fitness < t1.fitness)
+				return -1;
 			
 			return 0;
 		}
