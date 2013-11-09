@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import com.plotter.data.Maths;
@@ -25,8 +26,12 @@ public class TetrisSolution {
 	
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
-	private static final int MAX_CHILDREN = 5;
 	
+	private static final int GENERATIONS = 10;
+	
+	private static final int MAX_PARENTS = 3;
+	private static final int MAX_CHILDREN = 5;
+	private static final int MAX_MUTATIONS = GENERATIONS + 2;
 	
 	
 	// Stores best lines on a grid
@@ -41,12 +46,12 @@ public class TetrisSolution {
 		}
 
 		// Genetic Algorithm
-		TetrisStage bestStage = geneticTetris(shrunkPolygons, width, height, MAX_CHILDREN);
+		TetrisStage bestStage = geneticTetris(shrunkPolygons, width, height, MAX_CHILDREN, GENERATIONS);
 		
 		return new TetrisSolution(bestStage);
 	}
 	
-	private static TetrisStage geneticTetris(List<TetrisPiece> polygons, int width, int height, int maxChildren) {
+	private static TetrisStage geneticTetris(List<TetrisPiece> polygons, int width, int height, int maxChildren, int iterations) {
 		
 		Queue<GeneticStub> geneticQueue = new PriorityQueue<>(maxChildren, new GeneticComp());
 		
@@ -83,6 +88,78 @@ public class TetrisSolution {
 			System.out.println("Starter " + i + " fitness: " + bestStage.score);
 			geneticQueue.add(new GeneticStub(bestStage.score, incomingBlocksMem));
 		
+		}
+		
+		// For X iterations take the top M children and alter them
+		for(int generation = 0; generation < iterations; generation++) {
+			
+			GeneticStub[] parents = new GeneticStub[MAX_PARENTS];
+			
+			for(int i = 0; i < parents.length; i++) {
+				parents[i] = geneticQueue.poll();
+			}
+			// Put stubs back on queue
+			for(int i = 0; i < parents.length; i++) {
+				geneticQueue.add(parents[i]);
+			}
+			
+			for(int parentNo = 0; parentNo < MAX_PARENTS; parentNo++) {
+				for(int childNo = 0; childNo < MAX_CHILDREN; childNo++) {
+				
+					Queue<TetrisPiece> parentQueue = parents[parentNo].startQueue;
+					
+					int mutationSize = new Random().nextInt(MAX_MUTATIONS - generation) + 1;
+					
+					TetrisPiece[] beforeMutations = new TetrisPiece[mutationSize];
+					TetrisPiece[] afterMutations = new TetrisPiece[mutationSize];
+					
+					Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(parentQueue.size() + (mutationSize * 2));
+					Queue<TetrisPiece> incomingBlocksMem = new ArrayBlockingQueue<>(parentQueue.size() + (mutationSize * 2));
+					
+					TetrisPiece mutantAddition = polygons.get(new Random().nextInt(polygons.size()));
+					// Add random mutation (Add a shape)
+					for(int i = 0; i < mutationSize; i++) {
+						beforeMutations[i] = mutantAddition;
+					}
+					mutantAddition = polygons.get(new Random().nextInt(polygons.size()));
+					for(int i = 0; i < mutationSize; i++) {
+						afterMutations[i] = mutantAddition;
+					}
+					
+					for(TetrisPiece mutant:beforeMutations) {
+						incomingBlocks.add(mutant);
+						incomingBlocksMem.add(mutant);
+					}
+					
+					incomingBlocks.addAll(parentQueue);
+					incomingBlocksMem.addAll(parentQueue);
+					
+					for(TetrisPiece mutant:afterMutations) {
+						incomingBlocks.add(mutant);
+						incomingBlocksMem.add(mutant);
+					}
+					
+					TetrisStage firstStage = new TetrisStage(incomingBlocks, width, height);
+					
+					TetrisStage bestStage = firstStage;
+					
+					while(true) {
+						
+						TetrisStage potentialBest = bestStage.lookAhead();
+						
+						// Break when no further stages found (Can't find somewhere to put next block)
+						if(potentialBest == bestStage)
+							break;
+						else
+							bestStage = potentialBest;
+						
+					}
+					
+					System.out.println("Generation " + generation + " child of " +  parents[parentNo].fitness + " fitness " + bestStage.score);
+					geneticQueue.add(new GeneticStub(bestStage.score, incomingBlocksMem));
+				
+				}
+			}
 		}
 		
 		
@@ -136,6 +213,7 @@ public class TetrisSolution {
 			
 			tetrisPiece = tetrisPiece.parent;
 		}
+		
 	}
 	
 	public List<TetrisPiece> getSolutionPieces() {
