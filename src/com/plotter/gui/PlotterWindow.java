@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -15,6 +16,8 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
 import com.plotter.data.ModulePolygon;
+import com.plotter.data.OutputSVG;
+import com.plotter.data.OutputTikz;
 
 public class PlotterWindow extends JFrame {
 
@@ -46,8 +49,8 @@ public class PlotterWindow extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setVisible(true);
 		
-		splitPane.setDividerLocation(0.9);
-		splitPane.setResizeWeight(0.9);
+		splitPane.setDividerLocation(0.8);
+		splitPane.setResizeWeight(0.8);
 		
 	}
 	
@@ -59,45 +62,49 @@ public class PlotterWindow extends JFrame {
 		JMenu fileMenu = new JMenu("File");
 		menuBar.add(fileMenu);
 		
-		JMenuItem loadBtn = new JMenuItem("Load");
+		JMenuItem saveTikzBtn = new JMenuItem("Save to .tex");
 		
-		loadBtn.addActionListener(new ActionListener() {
+		saveTikzBtn.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser choose = new JFileChooser();
-				// TODO
-				choose.setCurrentDirectory(new File(HOME_LOCATION));
-				int showOpenDialog = choose.showOpenDialog(PlotterWindow.this);
-				
-				if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
-					// TODO
-					// LOAD
-				}
-			}
-		});
-		
-		fileMenu.add(loadBtn);
-		
-		JMenuItem saveBtn = new JMenuItem("Save");
-		
-		saveBtn.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser choose = new JFileChooser();
-				// TODO
 				choose.setCurrentDirectory(new File(HOME_LOCATION));
 				int showSaveDialog = choose.showSaveDialog(PlotterWindow.this);
 				
 				if(showSaveDialog == JFileChooser.APPROVE_OPTION) {
-					// TODO
-					// LOAD
+					try {
+						OutputTikz.outputTikz(choose.getSelectedFile().toString(), hierarchyPanel.getStages());
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error saving file");
+					}
 				}
 			}
 		});
 		
-		fileMenu.add(saveBtn);
+		fileMenu.add(saveTikzBtn);
+		
+		JMenuItem saveSvg = new JMenuItem("Save to .svg");
+		
+		saveSvg.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser choose = new JFileChooser();
+				choose.setCurrentDirectory(new File(HOME_LOCATION));
+				int showSaveDialog = choose.showSaveDialog(PlotterWindow.this);
+				
+				if(showSaveDialog == JFileChooser.APPROVE_OPTION) {
+					try {
+						OutputSVG.outputSVG(choose.getSelectedFile().toString(), hierarchyPanel.getShapes(), 320, 320);
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error saving file");
+					}
+				}
+			}
+		});
+		
+		fileMenu.add(saveSvg);
 		
 		JMenu hierMenu = new JMenu("Hierarchy");
 		menuBar.add(hierMenu);
@@ -123,6 +130,16 @@ public class PlotterWindow extends JFrame {
 		
 		JMenu optionsMenu = new JMenu("Options");
 		menuBar.add(optionsMenu);
+		
+		JMenuItem connectionRules = new JMenuItem("Connection rules");
+		connectionRules.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			}
+			
+		});
+		optionsMenu.add(connectionRules);
 	}
 
 	private void setDecorations() {

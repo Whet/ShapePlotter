@@ -46,7 +46,10 @@ public class GridPanel extends JPanel {
 	
 	private boolean shiftDown;
 	private int currentFlavour;
+<<<<<<< HEAD
 	private int currentIdentifier;
+=======
+>>>>>>> origin/shapematching
 	
 	// The shape which is being drawn
 	private ModulePolygon modulePolygon;
@@ -117,7 +120,11 @@ public class GridPanel extends JPanel {
 						Point opposite = oppositePoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y);
 						Point oppositeGrid = gridPoint(opposite);
 						
+<<<<<<< HEAD
 						modulePolygon.addConnectPoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y, currentIdentifier, currentFlavour);
+=======
+						modulePolygon.addConnectPoint(currentFlavour, connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y);
+>>>>>>> origin/shapematching
 					}
 					else
 						modulePolygon.addPoint(gridPoint.x, gridPoint.y);
@@ -147,7 +154,7 @@ public class GridPanel extends JPanel {
 				
 				// x, y is the start point; x1 y1 is an inside/outside point
 				
-				return new Point(x += Math.cos(angle) * distance, y += Math.sin(angle) * distance);
+				return new Point(x += Math.cos(angle) * distance + panX, y += Math.sin(angle) * distance + panY);
 			}
 			
 		});
@@ -178,11 +185,13 @@ public class GridPanel extends JPanel {
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
+				
 				switch(e.getKeyCode()) {
 					// SHIFT
 					case 16:
 						shiftDown = true;
 					break;
+<<<<<<< HEAD
 					
 					// 0
 					case 48:
@@ -253,6 +262,47 @@ public class GridPanel extends JPanel {
 							currentFlavour = 9;
 						else
 							currentIdentifier = 9;
+=======
+					// 0
+					case 48:
+						currentFlavour = 0;
+					break;
+					// 1
+					case 49:
+						currentFlavour = 1;
+					break;
+					// 2
+					case 50:
+						currentFlavour = 2;
+					break;
+					// 3
+					case 51:
+						currentFlavour = 3;
+					break;
+					// 4
+					case 52:
+						currentFlavour = 4;
+					break;
+					// 5
+					case 53:
+						currentFlavour = 5;
+					break;
+					// 6
+					case 54:
+						currentFlavour = 6;
+					break;
+					// 7
+					case 55:
+						currentFlavour = 7;
+					break;
+					// 8
+					case 56:
+						currentFlavour = 8;
+					break;
+					// 9
+					case 57:
+						currentFlavour = 9;
+>>>>>>> origin/shapematching
 					break;
 				}
 			}
@@ -355,11 +405,17 @@ public class GridPanel extends JPanel {
 						   mouse.x + CROSSHAIR_LENGTH + panX, 
 						   mouse.y + panY);
 		
+<<<<<<< HEAD
 		
 		g.setColor(Color.white);
 		
 		g.drawString("Flavour: " + this.currentFlavour, 40, 40);
 		g.drawString("Identifier: " + this.currentIdentifier, 40, 80);
+=======
+		// Draw flavour info
+		g.setColor(BRIGHTEST_LINE_COLOUR);
+		g.drawString("Fl: " + this.currentFlavour, 14, 25);
+>>>>>>> origin/shapematching
 	}
 	
 	private void drawPolygon(Graphics2D g) {
@@ -382,14 +438,21 @@ public class GridPanel extends JPanel {
 		g.drawPolygon(this.modulePolygon.getPolygon());
 		g.setTransform(new AffineTransform());
 		
+<<<<<<< HEAD
 		g.setColor(BINDING_POINT_COLOUR);
 		points = this.modulePolygon.getConnectPointsInts().toArray(new int[this.modulePolygon.getConnectPointsInts().size()][2]);
+=======
+		points = this.modulePolygon.getConnectionPointsLocations().toArray(new int[this.modulePolygon.getConnectionPointsLocations().size()][2]);
+>>>>>>> origin/shapematching
 		
 		for(int i = 0; i < points.length; i++) {
+			g.setColor(BINDING_POINT_COLOUR);
 			g.fillOval(points[i][0] - 3 + panX, points[i][1] - 3 + panY, 6, 6);
 			g.fillOval(points[i][2] - 3 + panX, points[i][3] - 3 + panY, 6, 6);
 			g.fillOval(points[i][4] - 3 + panX, points[i][5] - 3 + panY, 6, 6);
 			g.drawLine(points[i][2] + panX, points[i][3] + panY, points[i][4] + panX, points[i][5] + panY);
+			g.setColor(Color.white);
+			g.drawString("F" + this.modulePolygon.getConnectionPoints().get(i).getFlavour(), points[i][0] - 3 + panX, points[i][1] - 3 + panY);
 		}
 		
 		
