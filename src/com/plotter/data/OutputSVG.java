@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -20,9 +21,10 @@ import org.w3c.dom.Document;
 
 import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.LineMergePolygon.Edge;
-import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.TetrisSolution;
 import com.plotter.algorithms.TetrisSolution.TetrisPiece;
+import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
+import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 
 public class OutputSVG {
 
@@ -30,7 +32,7 @@ public class OutputSVG {
 	private static final float HAIRLINE = 0.1f;
 	private static final float DOTTED = 0.5f;
 
-	public static void outputSVG(String fileLocation, List<MultiPoly> shapes, int pageWidth, int pageHeight) throws IOException {
+	public static void outputSVG(String fileLocation, Map<DecompositionImage, ReferenceInt> decompImages, int pageWidth, int pageHeight) throws IOException {
 
 		// Get a DOMImplementation.
 		DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
@@ -42,10 +44,10 @@ public class OutputSVG {
 		// Create an instance of the SVG Generator.
 		SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
 
-		int widthCubes = pageWidth / POLY_SCALE;
-		int heightCubes = pageHeight / POLY_SCALE;
+		int widthCubes = pageWidth;
+		int heightCubes = pageHeight;
 		
-		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, shapes);
+		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, decompImages);
 		
 		List<LayoutPolygon> layout = new ArrayList<>();
 		
@@ -57,7 +59,7 @@ public class OutputSVG {
 		List<Line> hairLines = computeHairLines(layout);
 		System.out.println();
 		// Ask the test to render into the SVG Graphics2D implementation.
-		paintToPage(svgGenerator, pageWidth, pageHeight, hairLines, dottedLines);
+		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, dottedLines);
 
 		// Finally, stream out SVG to the standard output using
 		// UTF-8 encoding.

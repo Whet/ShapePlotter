@@ -6,43 +6,48 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import com.plotter.data.Maths;
+import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
 import com.plotter.gui.GridPanel;
+import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 
 public class TetrisSolution {
 
 	// Heuristics
 	private static final int H_HIGHEST_Y = 1;
-	private static final int H_MAX_SLOPE = 0;
+	private static final int H_MAX_SLOPE = 1;
 	private static final int H_FULLNESS = 1;
 	private static final int H_FULL_HEIGHT = 1;
-	private static final int H_TOTAL_SLOPE = 0;
-	private static final int H_HOLES = 0;
+	private static final int H_TOTAL_SLOPE = 1;
+	private static final int H_HOLES = 1;
 	
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 10;
+	private static final int GENERATIONS = 20;
 	
 	private static final int MAX_PARENTS = 3;
-	private static final int MAX_CHILDREN = 5;
+	private static final int MAX_CHILDREN = 10;
 	private static final int MAX_MUTATIONS = GENERATIONS + 2;
 	
 	
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
-	public static TetrisSolution getSolution(int width, int height, List<MultiPoly> shapes) {
+	public static TetrisSolution getSolution(int width, int height, Map<DecompositionImage, ReferenceInt> decompImages) {
 
 		// Convert all possible shapes to unit polygons
 		List<TetrisPiece> shrunkPolygons = new ArrayList<TetrisPiece>();
 		
-		for(MultiPoly mPoly:shapes) {
-			shrunkPolygons.add(new TetrisPiece(mPoly));
+		for(Entry<DecompositionImage, ReferenceInt> mPoly:decompImages.entrySet()) {
+			if(mPoly.getKey().isUsed())
+				shrunkPolygons.add(new TetrisPiece(mPoly.getKey().getPolygon(), mPoly.getValue()));
 		}
 
 		// Genetic Algorithm
@@ -210,7 +215,7 @@ public class TetrisSolution {
 //			System.out.println("STAGE");
 //			tetrisPiece.grid.drawGrid();
 			solutionPieces.add(tetrisPiece.getBlock());
-			
+			tetrisPiece.getBlock().pop.increment();
 			tetrisPiece = tetrisPiece.parent;
 		}
 		
@@ -379,8 +384,11 @@ public class TetrisSolution {
 		// Copies polygons and make them unit polygons
 		public List<Polygon> polygons;
 		private Area area;
+		private ReferenceInt pop;
 		
-		public TetrisPiece(MultiPoly mPoly) {
+		public TetrisPiece(MultiPoly mPoly, ReferenceInt integer) {
+			
+			this.pop = integer;
 			
 			this.area = new Area();
 			
@@ -390,8 +398,8 @@ public class TetrisSolution {
 				Polygon nPoly = new Polygon();
 				
 				for(int i = 0; i < poly.npoints; i++) {
-					nPoly.addPoint(Maths.round(poly.xpoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinX(), GridPanel.GRID_SIZE) / GridPanel.GRID_SIZE,
-								   Maths.round(poly.ypoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / GridPanel.GRID_SIZE);
+					nPoly.addPoint(Maths.round(poly.xpoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinX(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2),
+								   Maths.round(poly.ypoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2));
 					
 				}
 				
@@ -420,6 +428,7 @@ public class TetrisSolution {
 			}
 			
 			t.area = (Area) this.area.clone();
+			t.pop = this.pop;
 			
 			return t;
 		}

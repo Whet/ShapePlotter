@@ -28,6 +28,7 @@ import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.SelfAssemblyHierarchy;
 import com.plotter.data.Connection;
 import com.plotter.data.ModulePolygon;
+import com.plotter.gui.AssemblyHierarchyPanel.DecompositionStage;
 
 public class AssemblyHierarchyPanel extends JPanel {
 
@@ -177,7 +178,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		}
 	}
 	
-	private static class DecompositionStage implements Comparable<DecompositionStage> {
+	protected static class DecompositionStage implements Comparable<DecompositionStage> {
 		
 		private int stageNo;
 		private List<DecompositionImage> stageImages;
@@ -221,7 +222,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		
 	}
 	
-	private static class DecompositionImage extends JLabel {
+	public static class DecompositionImage extends JLabel {
 
 		private MultiPoly polygon;
 		private boolean isUsed;
@@ -248,6 +249,14 @@ public class AssemblyHierarchyPanel extends JPanel {
 			});
 		}
 
+		public MultiPoly getPolygon() {
+			return polygon;
+		}
+
+		public boolean isUsed() {
+			return isUsed;
+		}
+		
 	}
 	
 	private static class GenerationButton extends JButton implements MouseListener {
@@ -362,6 +371,17 @@ public class AssemblyHierarchyPanel extends JPanel {
 		}
 		
 		return stages;
+	}
+	
+	public List<DecompositionImage> getDecompImages() {
+		
+		List<DecompositionImage> images = new ArrayList<>();
+		
+		for(DecompositionStage stage:this.decompStages) {
+			images.addAll(stage.getStageImages());
+		}
+		
+		return images;
 	}
 	
 
