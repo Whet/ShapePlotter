@@ -344,41 +344,41 @@ public class MultiPoly {
 				return true;
 			
 		
-			System.out.println();
-			System.out.println("POLY1");
-			for(int i = 0; i < poly1jg.size(); i++) {
-				System.out.print("X: ");
-				
-				for(int j = 0; j < poly1jg.get(i).xpoints.length; j++) {
-					System.out.print(poly1jg.get(i).xpoints[j] + ", ");
-				}
-				
-				System.out.println();
-				System.out.print("Y: ");
-				
-				for(int j = 0; j < poly1jg.get(i).ypoints.length; j++) {
-					System.out.print(poly1jg.get(i).ypoints[j] + ", ");
-				}
-				System.out.println();
-			}
-			
-			System.out.println();
-			System.out.println("POLY2");
-			for(int i = 0; i < rotatedPolys.size(); i++) {
-				System.out.print("X: ");
-				
-				for(int j = 0; j < rotatedPolys.get(i).xpoints.length; j++) {
-					System.out.print(rotatedPolys.get(i).xpoints[j] + ", ");
-				}
-				
-				System.out.println();
-				System.out.print("Y: ");
-				
-				for(int j = 0; j < rotatedPolys.get(i).ypoints.length; j++) {
-					System.out.print(rotatedPolys.get(i).ypoints[j] + ", ");
-				}
-				System.out.println();
-			}
+//			System.out.println();
+//			System.out.println("POLY1");
+//			for(int i = 0; i < poly1jg.size(); i++) {
+//				System.out.print("X: ");
+//				
+//				for(int j = 0; j < poly1jg.get(i).xpoints.length; j++) {
+//					System.out.print(poly1jg.get(i).xpoints[j] + ", ");
+//				}
+//				
+//				System.out.println();
+//				System.out.print("Y: ");
+//				
+//				for(int j = 0; j < poly1jg.get(i).ypoints.length; j++) {
+//					System.out.print(poly1jg.get(i).ypoints[j] + ", ");
+//				}
+//				System.out.println();
+//			}
+//			
+//			System.out.println();
+//			System.out.println("POLY2");
+//			for(int i = 0; i < rotatedPolys.size(); i++) {
+//				System.out.print("X: ");
+//				
+//				for(int j = 0; j < rotatedPolys.get(i).xpoints.length; j++) {
+//					System.out.print(rotatedPolys.get(i).xpoints[j] + ", ");
+//				}
+//				
+//				System.out.println();
+//				System.out.print("Y: ");
+//				
+//				for(int j = 0; j < rotatedPolys.get(i).ypoints.length; j++) {
+//					System.out.print(rotatedPolys.get(i).ypoints[j] + ", ");
+//				}
+//				System.out.println();
+//			}
 			
 		}
 			
