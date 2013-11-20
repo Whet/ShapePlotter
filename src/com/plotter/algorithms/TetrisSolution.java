@@ -46,8 +46,9 @@ public class TetrisSolution {
 		List<TetrisPiece> shrunkPolygons = new ArrayList<TetrisPiece>();
 		
 		for(Entry<DecompositionImage, ReferenceInt> mPoly:decompImages.entrySet()) {
-			if(mPoly.getKey().isUsed())
+			if(mPoly.getKey().isUsed()) {
 				shrunkPolygons.add(new TetrisPiece(mPoly.getKey().getPolygon(), mPoly.getValue()));
+			}
 		}
 
 		// Genetic Algorithm

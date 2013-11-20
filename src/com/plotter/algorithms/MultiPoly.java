@@ -256,7 +256,7 @@ public class MultiPoly {
 		
 		if(obj instanceof MultiPoly) {
 			
-			if(polyMatch(this.getPolygons(), this.getMergedPolygon(), ((MultiPoly) obj).getPolygons(), ((MultiPoly) obj).getMergedPolygon()))
+			if(polyMatch(this.getPolygons(), ((MultiPoly) obj).getPolygons()))
 				return true;
 			
 			return false;
@@ -265,34 +265,122 @@ public class MultiPoly {
 		return super.equals(obj);
 	}
 
-	private boolean polyMatch(List<Polygon> polygons1, Polygon mergedPoly1, List<Polygon> polygons2, Polygon mergedPoly2) {
+	private boolean polyMatch(List<Polygon> polygons1, List<Polygon> polygons2) {
 		
 		Area polygon1 = new Area();
-		Area polygon2 = new Area();
+		Area polygon2 = null;
 		
-		int deltaX = (int) mergedPoly1.getBounds2D().getMinX();
-		int deltaY = (int) mergedPoly1.getBounds2D().getMinY();
+		List<Polygon> poly1jg = new ArrayList<>();
+		
+		int deltaX = 9999999;
+		int deltaY = 9999999;
+		
+		for(int i = 0; i < polygons1.size(); i++) {
+			for(int j = 0; j < polygons1.get(i).npoints; j++) {
+				if(polygons1.get(i).xpoints[j] < deltaX)
+					deltaX = polygons1.get(i).xpoints[j];
+				if(polygons1.get(i).ypoints[j] < deltaY)
+					deltaY = polygons1.get(i).ypoints[j];
+			}
+		}
 		
 		for(int i = 0; i < polygons1.size(); i++) {
 			Polygon nPoly = new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints);
 			nPoly.translate(-deltaX, -deltaY);
 			Area area = new Area(nPoly);
 			polygon1.add(area);
+			poly1jg.add(nPoly);
 		}
 		
-		deltaX = (int) mergedPoly2.getBounds2D().getMinX();
-		deltaY = (int) mergedPoly2.getBounds2D().getMinY();
+		for(int theta = 0; theta < 4; theta++) {
 		
-		for(int i = 0; i < polygons2.size(); i++) {
-			Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
-			nPoly.translate(-deltaX, -deltaY);
-			Area area = new Area(nPoly);
-			polygon2.add(area);
+			polygon2 = new Area();
+			
+//			Polygon rotatedMerge = rotatePoly(mergedPoly2, theta * (Math.PI / 2), new Point((int)mergedPoly2.getBounds2D().getCenterX(), (int)mergedPoly2.getBounds2D().getCenterY()));
+//			Polygon rotatedMerge = mergedPoly2;
+			
+			
+			deltaX = 9999999;
+			deltaY = 9999999;
+			
+			List<Polygon> rotatedPolys = new ArrayList<>();
+			
+			for(int i = 0; i < polygons2.size(); i++) {
+				for(int j = 0; j < polygons2.get(i).npoints; j++) {
+					if(polygons2.get(i).xpoints[j] < deltaX)
+						deltaX = polygons2.get(i).xpoints[j];
+					if(polygons2.get(i).ypoints[j] < deltaY)
+						deltaY = polygons2.get(i).ypoints[j];
+				}
+			}
+			
+			for(int i = 0; i < polygons2.size(); i++) {
+				Polygon nPoly = new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints);
+				nPoly = rotatePoly(nPoly, theta * (Math.PI / 2), new Point(deltaX, deltaY));
+				rotatedPolys.add(nPoly);
+			}
+			
+			deltaX = 9999999;
+			deltaY = 9999999;
+			
+			for(int i = 0; i < rotatedPolys.size(); i++) {
+				for(int j = 0; j < rotatedPolys.get(i).npoints; j++) {
+					if(rotatedPolys.get(i).xpoints[j] < deltaX)
+						deltaX = rotatedPolys.get(i).xpoints[j];
+					if(rotatedPolys.get(i).ypoints[j] < deltaY)
+						deltaY = rotatedPolys.get(i).ypoints[j];
+				}
+			}
+			
+			for(int i = 0; i < rotatedPolys.size(); i++) {
+				rotatedPolys.get(i).translate(-deltaX, -deltaY);
+				Area area = new Area(rotatedPolys.get(i));
+				polygon2.add(area);
+			}
+			
+			polygon2.exclusiveOr(polygon1);
+			
+			if(polygon2.getBounds2D().getWidth() < 100 && polygon2.getBounds2D().getHeight() < 100)
+				return true;
+			
+		
+			System.out.println();
+			System.out.println("POLY1");
+			for(int i = 0; i < poly1jg.size(); i++) {
+				System.out.print("X: ");
+				
+				for(int j = 0; j < poly1jg.get(i).xpoints.length; j++) {
+					System.out.print(poly1jg.get(i).xpoints[j] + ", ");
+				}
+				
+				System.out.println();
+				System.out.print("Y: ");
+				
+				for(int j = 0; j < poly1jg.get(i).ypoints.length; j++) {
+					System.out.print(poly1jg.get(i).ypoints[j] + ", ");
+				}
+				System.out.println();
+			}
+			
+			System.out.println();
+			System.out.println("POLY2");
+			for(int i = 0; i < rotatedPolys.size(); i++) {
+				System.out.print("X: ");
+				
+				for(int j = 0; j < rotatedPolys.get(i).xpoints.length; j++) {
+					System.out.print(rotatedPolys.get(i).xpoints[j] + ", ");
+				}
+				
+				System.out.println();
+				System.out.print("Y: ");
+				
+				for(int j = 0; j < rotatedPolys.get(i).ypoints.length; j++) {
+					System.out.print(rotatedPolys.get(i).ypoints[j] + ", ");
+				}
+				System.out.println();
+			}
+			
 		}
-		
-		if(polygon1.equals(polygon2))
-			return true;
-		
 			
 		return false;
 		
