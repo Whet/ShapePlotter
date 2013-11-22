@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,10 +16,8 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingWorker;
 
 import com.plotter.data.OutputSVG;
 import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
@@ -34,6 +30,7 @@ public class SVGOptionsMenu extends JFrame {
 	
 	private File saveFile;
 	private Map<DecompositionImage, ReferenceInt> decompImages;
+	private Map<ReferenceInt, JTextField> populationCountFields;
 	
 	public SVGOptionsMenu(File selectedFile, List<DecompositionImage> decompImages) {
 		this.saveFile = selectedFile;
@@ -69,32 +66,34 @@ public class SVGOptionsMenu extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-					
-					@Override
-					protected void process(List<Void> chunks) {
-	                	loadingText.setText("Saving !!!]");
-	                	SVGOptionsMenu.this.repaint();
-					}
-					
-					@Override
-					protected Void doInBackground() throws Exception {
-						publish();
-						output();
-						publish();
-						return null;
-					}
-					
-					@Override
-					protected void done() {
-						loadingText.setText("");
-						showStages();
-						super.done();
-					}
-					
-				};
+//				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+//					
+//					@Override
+//					protected void process(List<Void> chunks) {
+//	                	loadingText.setText("Saving !!!");
+//	                	SVGOptionsMenu.this.repaint();
+//					}
+//					
+//					@Override
+//					protected Void doInBackground() throws Exception {
+//						publish();
+//						output();
+//						publish();
+//						return null;
+//					}
+//					
+//					@Override
+//					protected void done() {
+//						loadingText.setText("");
+//						showStages();
+//						super.done();
+//					}
+//					
+//				};
+//				
+//				worker.execute();
 				
-				worker.execute();
+				output();
 			}
 		});
 		
@@ -109,6 +108,12 @@ public class SVGOptionsMenu extends JFrame {
 	}
 	
 	public void output() {
+		
+		for(Entry<ReferenceInt, JTextField> entry:this.populationCountFields.entrySet()) {
+			entry.getKey().targetPopulation = Integer.parseInt(entry.getValue().getText());
+			entry.getKey().reset();
+		}
+		
 		try {
 			OutputSVG.outputSVG(saveFile.toString(), decompImages, 25, 25);
 		} catch (IOException e) {
@@ -119,28 +124,33 @@ public class SVGOptionsMenu extends JFrame {
 	public void showStages() {
 		this.imagesPanel.removeAll();
 		
+		this.populationCountFields = new HashMap<>();
+		
 		for(Entry<DecompositionImage, ReferenceInt> image:this.decompImages.entrySet()) {
-			JTextField jTextField = new JTextField("Population: " + image.getValue().value);
-			jTextField.setEditable(false);
+			JTextField jTextField = new JTextField(image.getValue().currentPopulation);
+			jTextField.setEditable(true);
 			this.imagesPanel.add(jTextField);
-			
 			this.imagesPanel.add(image.getKey());
+			
+			this.populationCountFields.put(image.getValue(), jTextField);
 		}
 	}
 	
 	public static class ReferenceInt {
-		public int value;
+		
+		public int currentPopulation;
+		public int targetPopulation;
 		
 		public ReferenceInt() {
-			this.value = 0;
+			this.currentPopulation = 0;
 		}
 		
 		public void reset() {
-			this.value = 0;
+			this.currentPopulation = 0;
 		}
 		
 		public void increment() {
-			this.value++;
+			this.currentPopulation++;
 		}
 	}
 

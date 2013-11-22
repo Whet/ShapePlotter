@@ -201,6 +201,51 @@ public class MultiPoly {
 		
 		this.connectedPoints = translatedConnections;
 	}
+	
+	public MultiPoly getRotatedMultipoly(int theta) {
+		
+		int deltaX = 9999999;
+		int deltaY = 9999999;
+		
+		List<Polygon> rotatedPolys = new ArrayList<>();
+		
+		for(int i = 0; i < this.polygons.size(); i++) {
+			for(int j = 0; j < this.polygons.get(i).npoints; j++) {
+				if(this.polygons.get(i).xpoints[j] < deltaX)
+					deltaX = this.polygons.get(i).xpoints[j];
+				if(this.polygons.get(i).ypoints[j] < deltaY)
+					deltaY = this.polygons.get(i).ypoints[j];
+			}
+		}
+		
+		for(int i = 0; i < this.polygons.size(); i++) {
+			Polygon nPoly = new Polygon(this.polygons.get(i).xpoints, this.polygons.get(i).ypoints, this.polygons.get(i).npoints);
+			nPoly = rotatePoly(nPoly, theta * (Math.PI / 2), new Point(deltaX, deltaY));
+			rotatedPolys.add(nPoly);
+		}
+		
+		deltaX = 9999999;
+		deltaY = 9999999;
+		
+		for(int i = 0; i < rotatedPolys.size(); i++) {
+			for(int j = 0; j < rotatedPolys.get(i).npoints; j++) {
+				if(rotatedPolys.get(i).xpoints[j] < deltaX)
+					deltaX = rotatedPolys.get(i).xpoints[j];
+				if(rotatedPolys.get(i).ypoints[j] < deltaY)
+					deltaY = rotatedPolys.get(i).ypoints[j];
+			}
+		}
+		
+		for(int i = 0; i < rotatedPolys.size(); i++) {
+			rotatedPolys.get(i).translate(-deltaX, -deltaY);
+		}
+		
+		MultiPoly mPoly = new MultiPoly(new ArrayList<Connection>(), rotatedPolys.toArray(new Polygon[rotatedPolys.size()]));
+		
+		mPoly.polygons = rotatedPolys;
+		
+		return mPoly;
+	}
 
 	public void rotate(Point centreOfRotation, double angle) {
 		ArrayList<Polygon> rotatedPolygons = new ArrayList<>();
