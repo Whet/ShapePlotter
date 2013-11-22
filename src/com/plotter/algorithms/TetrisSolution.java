@@ -23,7 +23,7 @@ import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 public class TetrisSolution {
 
 	// Heuristics
-	private static final int H_HIGHEST_Y = -1;
+	private static final int H_HIGHEST_Y = -10;
 	private static final int H_MAX_SLOPE = 1;
 	private static final int H_FULLNESS = 1;
 	private static final int H_FULL_HEIGHT = 1;
@@ -33,10 +33,10 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 20;
+	private static final int GENERATIONS = 10;
 	
-	private static final int MAX_PARENTS = 10;
-	private static final int MAX_CHILDREN = 10;
+	private static final int MAX_PARENTS = 2;
+	private static final int MAX_CHILDREN = 2;
 	
 	
 	// Stores best lines on a grid
