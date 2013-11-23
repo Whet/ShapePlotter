@@ -69,34 +69,34 @@ public class SVGOptionsMenu extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-//				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-//					
-//					@Override
-//					protected void process(List<Void> chunks) {
-//	                	loadingText.setText("Saving !!!");
-//	                	SVGOptionsMenu.this.repaint();
-//					}
-//					
-//					@Override
-//					protected Void doInBackground() throws Exception {
-//						publish();
-//						output();
-//						publish();
-//						return null;
-//					}
-//					
-//					@Override
-//					protected void done() {
-//						loadingText.setText("");
-//						showStages();
-//						super.done();
-//					}
-//					
-//				};
-//				
-//				worker.execute();
-//				
-				output();
+				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+					
+					@Override
+					protected void process(List<Void> chunks) {
+	                	loadingText.setText("Saving !!!");
+	                	SVGOptionsMenu.this.repaint();
+					}
+					
+					@Override
+					protected Void doInBackground() throws Exception {
+						publish();
+						output();
+						publish();
+						return null;
+					}
+					
+					@Override
+					protected void done() {
+						loadingText.setText("");
+						showStages();
+						super.done();
+					}
+					
+				};
+				
+				worker.execute();
+				
+//				output();
 			}
 		});
 		
@@ -152,6 +152,7 @@ public class SVGOptionsMenu extends JFrame {
 			this.imagesPanel.add(image.getKey());
 			
 			this.populationCountFields.put(image.getValue(), jTextField);
+			jTextField.setText("5");
 		}
 	}
 	

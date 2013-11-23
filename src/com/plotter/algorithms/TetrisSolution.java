@@ -25,21 +25,22 @@ public class TetrisSolution {
 
 	// Heuristics
 	private static final int H_HIGHEST_Y = -10;
-	private static final int H_MAX_SLOPE = 1;
-	private static final int H_FULLNESS = 1;
-	private static final int H_FULL_HEIGHT = 1;
-	private static final int H_TOTAL_SLOPE = 1;
+	private static final int H_MAX_SLOPE = -1;
+	private static final int H_FULLNESS = -1;
+	private static final int H_FULL_HEIGHT = -5;
+	private static final int H_TOTAL_SLOPE = -2;
 	private static final int H_HOLES = -1;
 	
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 10;
+	private static final int GENERATIONS = 20;
 	
-	private static final int MAX_CROSSOVERS = 20;
-	private static final int MAX_PARENTS = 50;
+	private static final int MAX_CROSSOVERS = 10;
+	private static final int MAX_GENEPOOL = 50;
+	private static final int MAX_BREEDERS = 3;
 	
-	private static final int INITIAL_POPULATION = 50;
+	private static final int INITIAL_POPULATION = 20;
 	
 	
 	// Stores best lines on a grid
@@ -242,7 +243,7 @@ public class TetrisSolution {
 			
 			if(attempts > 1000) {
 				System.out.println("Failed to place all blocks");
-				return null;
+				break;
 			}
 		}
 		
@@ -251,7 +252,7 @@ public class TetrisSolution {
 			
 			List<GeneticStub> parents = new ArrayList<>();
 			
-			for(int i = 0; i < MAX_PARENTS; i++) {
+			for(int i = 0; i < MAX_GENEPOOL; i++) {
 				
 				if(geneticQueue.size() == 0)
 					break;
@@ -264,7 +265,7 @@ public class TetrisSolution {
 			}
 			
 			if(parents.size() > 1)
-			for(int parentNo = 0; parentNo < parents.size(); parentNo++) {
+			for(int parentNo = 0; parentNo < MAX_BREEDERS; parentNo++) {
 				for(int childNo = 0; childNo < MAX_CROSSOVERS; childNo++) {
 				
 					Queue<TetrisPiece> parentQueue = parents.get(parentNo).startQueue;
