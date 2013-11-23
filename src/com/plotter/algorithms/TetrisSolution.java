@@ -35,8 +35,9 @@ public class TetrisSolution {
 	
 	private static final int GENERATIONS = 10;
 	
-	private static final int MAX_PARENTS = 2;
-	private static final int MAX_CHILDREN = 2;
+	private static final int MAX_PARENTS = 3;
+	private static final int INITIAL_POPULATION = 50;
+	private static final int MAX_CHILDREN = 10;
 	
 	
 	// Stores best lines on a grid
@@ -48,15 +49,10 @@ public class TetrisSolution {
 		
 		for(Entry<DecompositionImage, ReferenceInt> mPoly:decompImages.entrySet()) {
 			if(mPoly.getKey().isUsed()) {
-				shrunkPolygons.add(new TetrisPiece(mPoly.getKey().getPolygon(), mPoly.getValue()));
-				
-				MultiPoly poly1 = mPoly.getKey().getPolygon().getRotatedMultipoly(1);
-				MultiPoly poly2 = mPoly.getKey().getPolygon().getRotatedMultipoly(2);
-				MultiPoly poly3 = mPoly.getKey().getPolygon().getRotatedMultipoly(3);
-				
-				shrunkPolygons.add(new TetrisPiece(poly1, mPoly.getValue()));
-				shrunkPolygons.add(new TetrisPiece(poly2, mPoly.getValue()));
-				shrunkPolygons.add(new TetrisPiece(poly3, mPoly.getValue()));
+				shrunkPolygons.add(new TetrisPiece(0, mPoly.getKey().getPolygon(), mPoly.getValue()));
+				shrunkPolygons.add(new TetrisPiece(1, mPoly.getKey().getPolygon(), mPoly.getValue()));
+				shrunkPolygons.add(new TetrisPiece(2, mPoly.getKey().getPolygon(), mPoly.getValue()));
+				shrunkPolygons.add(new TetrisPiece(3, mPoly.getKey().getPolygon(), mPoly.getValue()));
 			}
 		}
 
@@ -118,7 +114,7 @@ public class TetrisSolution {
 		while(possiblePieces.size() > 0) {
 			
 			// Chance to keep queue as it is
-			if(new Random().nextInt(10) > 8) {
+			if(new Random().nextInt(10) > 3) {
 				pieces.add(possiblePieces.poll());
 			}
 			// Removed a piece and remember it, if there is a piece add it in
@@ -147,8 +143,10 @@ public class TetrisSolution {
 		
 		System.out.println("Creating Population!");
 		
-		for(int i = 0; i < maxChildren; i++) {
-
+		int attempts = 0;
+		
+		while(geneticQueue.size() < INITIAL_POPULATION) {
+			attempts++;
 			// Get number of blocks needed
 			Set<ReferenceInt> uniqueCounters = new HashSet<>();
 			
@@ -183,31 +181,40 @@ public class TetrisSolution {
 			}
 			
 			if(bestStage.incomingBlocks.size() > 0) {
-				System.out.println("Failed to place all blocks");
+//				System.out.println("Failed to place all blocks");
 			}
 			else {
-				System.out.println("Starter " + i + " fitness: " + bestStage.grid.getGridScore());
+				System.out.println("Starter " + attempts + " fitness: " + bestStage.grid.getGridScore());
 				geneticQueue.add(new GeneticStub(bestStage.grid.getGridScore(), incomingBlocksMem));
+			}
+			
+			if(attempts > 1000) {
+				System.out.println("Failed to place all blocks");
+				return null;
 			}
 		}
 		
 		// For X iterations take the top M children and alter them
 		for(int generation = 0; generation < iterations; generation++) {
 			
-			GeneticStub[] parents = new GeneticStub[MAX_PARENTS];
+			List<GeneticStub> parents = new ArrayList<>();
 			
-			for(int i = 0; i < parents.length; i++) {
-				parents[i] = geneticQueue.poll();
+			for(int i = 0; i < MAX_PARENTS; i++) {
+				
+				if(geneticQueue.size() == 0)
+					break;
+				
+				parents.add(geneticQueue.poll());
 			}
 			// Put stubs back on queue
-			for(int i = 0; i < parents.length; i++) {
-				geneticQueue.add(parents[i]);
+			for(int i = 0; i < parents.size(); i++) {
+				geneticQueue.add(parents.get(i));
 			}
 			
-			for(int parentNo = 0; parentNo < MAX_PARENTS; parentNo++) {
+			for(int parentNo = 0; parentNo < parents.size(); parentNo++) {
 				for(int childNo = 0; childNo < MAX_CHILDREN; childNo++) {
 				
-					Queue<TetrisPiece> parentQueue = parents[parentNo].startQueue;
+					Queue<TetrisPiece> parentQueue = parents.get(parentNo).startQueue;
 					
 					Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(parentQueue.size());
 					Queue<TetrisPiece> incomingBlocksMem = new ArrayBlockingQueue<>(parentQueue.size());
@@ -232,13 +239,12 @@ public class TetrisSolution {
 					}
 					
 					if(bestStage.incomingBlocks.size() > 0) {
-						System.out.println("Failed to place all blocks");
+//						System.out.println("Failed to place all blocks");
 					}
 					else {
-						System.out.println("Generation " + generation + " child of " +  parents[parentNo].fitness + " fitness " + bestStage.grid.getGridScore());
+						System.out.println("Generation " + generation + " child of " +  parents.get(parentNo).fitness + " fitness " + bestStage.grid.getGridScore());
 						geneticQueue.add(new GeneticStub(bestStage.grid.getGridScore(), incomingBlocksMem));
 					}
-				
 				}
 			}
 		}
@@ -466,16 +472,18 @@ public class TetrisSolution {
 		
 		// Copies polygons and make them unit polygons
 		public List<Polygon> polygons;
+		public double[] markerPolygonLocation;
 		private Area area;
 		private ReferenceInt pop;
 		
-		public TetrisPiece(MultiPoly mPoly, ReferenceInt integer) {
+		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
 			this.pop = integer;
 			
 			this.area = new Area();
-			
 			polygons = new ArrayList<>();
+			
+			mPoly = mPoly.getRotatedMultipoly(rotationComponent);
 			
 			for(Polygon poly:mPoly.getPolygons()) {
 				Polygon nPoly = new Polygon();
@@ -488,7 +496,12 @@ public class TetrisSolution {
 				
 				polygons.add(nPoly);
 				area.add(new Area(nPoly));
+				
 			}
+			
+			this.markerPolygonLocation = new double[]{area.getBounds2D().getCenterX(), area.getBounds2D().getCenterY()};
+			
+			
 		}
 		
 		public int getHeight() {
@@ -512,6 +525,7 @@ public class TetrisSolution {
 			
 			t.area = (Area) this.area.clone();
 			t.pop = this.pop;
+			t.markerPolygonLocation = new double[]{this.markerPolygonLocation[0], this.markerPolygonLocation[1]};
 			
 			return t;
 		}
@@ -520,6 +534,8 @@ public class TetrisSolution {
 			for(int i = 0; i < this.polygons.size(); i++) {
 				this.polygons.get(i).translate(deltaX, deltaY);
 			}
+			this.markerPolygonLocation[0] += deltaX;
+			this.markerPolygonLocation[1] += deltaY;
 		}
 		
 	}

@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,7 +30,7 @@ import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 
 public class OutputSVG {
 
-	private static final int POLY_SCALE = 10;
+	private static final int POLY_SCALE = 20;
 	private static final float HAIRLINE = 0.1f;
 	private static final float DOTTED = 0.5f;
 
@@ -55,11 +57,11 @@ public class OutputSVG {
 			layout.add(new LayoutPolygon(tP));
 		}
 		
-		List<Line> dottedLines = computeDottedLines(layout);
+		List<Polygon> markerPlots = computeMarkerPlots(layout);
 		List<Line> hairLines = computeHairLines(layout);
 		System.out.println();
 		// Ask the test to render into the SVG Graphics2D implementation.
-		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, dottedLines);
+		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, markerPlots);
 
 		// Finally, stream out SVG to the standard output using
 		// UTF-8 encoding.
@@ -68,19 +70,15 @@ public class OutputSVG {
 		svgGenerator.stream(out, useCSS);
 	}
 
-	private static List<Line> computeDottedLines(List<LayoutPolygon> shapes) {
+	private static List<Polygon> computeMarkerPlots(List<LayoutPolygon> shapes) {
 		
-		List<Line> lines = new ArrayList<Line>();
+		List<Polygon> markerPlots = new ArrayList<Polygon>();
 		
 		for(LayoutPolygon poly:shapes) {
-			
-			for(Line dottedline: poly.getDottedlines()) {
-				lines.add(new Line(dottedline.end1.x, dottedline.end1.y, dottedline.end2.x, dottedline.end2.y));
-			}
-			
+			markerPlots.add(poly.marker);
 		}
 		
-		return lines;
+		return markerPlots;
 	}
 	
 	private static List<Line> computeHairLines(List<LayoutPolygon> shapes) {
@@ -98,7 +96,7 @@ public class OutputSVG {
 		return lines;
 	}
 
-	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Line> dottedLines) {
+	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots) {
 		
 		// Setup graphics
 		page.setColor(Color.black);
@@ -109,19 +107,29 @@ public class OutputSVG {
 			page.drawLine(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y);
 		}
 		
-//		page.setStroke(new BasicStroke(DOTTED));
-//		for(Line dotted:dottedLines) {
-//			page.drawLine(dotted.end1.x, dotted.end1.y, dotted.end2.x, dotted.end2.y);
-//		}
-		
+		for(Polygon marker:markerPlots) {
+			Rectangle2D bounds = marker.getBounds2D();
+			
+			page.setColor(Color.black);
+			page.fillRect((int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
+			
+			// white fill inside
+			page.setColor(Color.white);
+			page.fillRect((int)bounds.getMinX() + 2, (int)bounds.getMinY() + 2, (int)bounds.getWidth() - 4, (int)bounds.getHeight() - 4);
+		}
 	}
 	
 	public static class LayoutPolygon {
 
+		private Polygon marker;
 		private LineMergePolygon lmp;
 		
 		public LayoutPolygon(TetrisPiece tP) {
 			lmp = new LineMergePolygon();
+			
+			Area area = new Area();
+			
+			Polygon firstPolygon = null;
 			
 			for(Polygon polygon:tP.polygons) {
 				
@@ -131,8 +139,40 @@ public class OutputSVG {
 					scaledPoly.addPoint(polygon.xpoints[i] * POLY_SCALE, polygon.ypoints[i] * POLY_SCALE);
 				}
 				
-				lmp.addPolygon(scaledPoly, POLY_SCALE);	
+				lmp.addPolygon(scaledPoly, POLY_SCALE);
+				area.add(new Area(scaledPoly));
+				
+				if(firstPolygon == null)
+					firstPolygon = scaledPoly;
 			}
+			
+			marker = new Polygon();
+			
+			double minX = tP.markerPolygonLocation[0] * POLY_SCALE;
+			double minY = tP.markerPolygonLocation[1] * POLY_SCALE;
+			
+			int halfMarkerSize = POLY_SCALE / 4;
+			
+			// Put block in centre
+			if(area.contains((int)minX - halfMarkerSize, (int)minY - halfMarkerSize) && area.contains((int)minX + halfMarkerSize, (int)minY - halfMarkerSize) && area.contains((int)minX + halfMarkerSize, (int)minY + halfMarkerSize) && area.contains((int)minX - halfMarkerSize, (int)minY + halfMarkerSize)) {
+				marker.addPoint((int)minX - halfMarkerSize, (int)minY - halfMarkerSize);
+				marker.addPoint((int)minX + halfMarkerSize, (int)minY - halfMarkerSize);
+				marker.addPoint((int)minX + halfMarkerSize, (int)minY + halfMarkerSize);
+				marker.addPoint((int)minX - halfMarkerSize, (int)minY + halfMarkerSize);
+			}
+			// Put block in centre of first polygon
+			else {
+				
+				minX = firstPolygon.getBounds2D().getCenterX();
+				minY = firstPolygon.getBounds2D().getCenterY();
+				
+				marker.addPoint((int)minX - halfMarkerSize, (int)minY - halfMarkerSize);
+				marker.addPoint((int)minX + halfMarkerSize, (int)minY - halfMarkerSize);
+				marker.addPoint((int)minX + halfMarkerSize, (int)minY + halfMarkerSize);
+				marker.addPoint((int)minX - halfMarkerSize, (int)minY + halfMarkerSize);
+			}
+			
+			
 		}
 
 		public List<Line> getHairlines() {
@@ -156,7 +196,10 @@ public class OutputSVG {
 			
 			return lines;
 		}
-		
+
+		public Polygon getMarker() {
+			return marker;
+		}
 		
 	}
 	

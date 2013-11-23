@@ -69,34 +69,34 @@ public class SVGOptionsMenu extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-					
-					@Override
-					protected void process(List<Void> chunks) {
-	                	loadingText.setText("Saving !!!");
-	                	SVGOptionsMenu.this.repaint();
-					}
-					
-					@Override
-					protected Void doInBackground() throws Exception {
-						publish();
-						output();
-						publish();
-						return null;
-					}
-					
-					@Override
-					protected void done() {
-						loadingText.setText("");
-						showStages();
-						super.done();
-					}
-					
-				};
-				
-				worker.execute();
-				
-//				output();
+//				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+//					
+//					@Override
+//					protected void process(List<Void> chunks) {
+//	                	loadingText.setText("Saving !!!");
+//	                	SVGOptionsMenu.this.repaint();
+//					}
+//					
+//					@Override
+//					protected Void doInBackground() throws Exception {
+//						publish();
+//						output();
+//						publish();
+//						return null;
+//					}
+//					
+//					@Override
+//					protected void done() {
+//						loadingText.setText("");
+//						showStages();
+//						super.done();
+//					}
+//					
+//				};
+//				
+//				worker.execute();
+//				
+				output();
 			}
 		});
 		
@@ -125,9 +125,11 @@ public class SVGOptionsMenu extends JFrame {
 		
 		for(Entry<ReferenceInt, JTextField> entry:this.populationCountFields.entrySet()) {
 			try {
-			entry.getKey().targetPopulation = Integer.parseInt(entry.getValue().getText());
+				entry.getKey().targetPopulation = Integer.parseInt(entry.getValue().getText());
 			}
-			catch(NumberFormatException e) {}
+			catch(NumberFormatException e) {
+				entry.getKey().targetPopulation = 0;
+			}
 			entry.getKey().reset();
 		}
 		
@@ -144,7 +146,7 @@ public class SVGOptionsMenu extends JFrame {
 		this.populationCountFields = new HashMap<>();
 		
 		for(Entry<DecompositionImage, ReferenceInt> image:this.decompImages.entrySet()) {
-			JTextField jTextField = new JTextField(image.getValue().currentPopulation);
+			JTextField jTextField = new JTextField(image.getValue().targetPopulation);
 			jTextField.setEditable(true);
 			this.imagesPanel.add(jTextField);
 			this.imagesPanel.add(image.getKey());

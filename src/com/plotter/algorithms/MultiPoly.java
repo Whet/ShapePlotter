@@ -285,7 +285,7 @@ public class MultiPoly {
 	}
 	
 	// http://stackoverflow.com/questions/10533403/how-to-rotate-a-polygon-around-a-point-with-java
-	private Point rotatePoint(Point pt, Point center, double angle) {
+	public static Point rotatePoint(Point pt, Point center, double angle) {
 	    double cosAngle = Math.cos(angle);
 	    double sinAngle = Math.sin(angle);
 	    double dx = (pt.x-center.x);
