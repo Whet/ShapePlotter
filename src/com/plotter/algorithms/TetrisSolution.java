@@ -4,6 +4,7 @@ import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -35,9 +36,10 @@ public class TetrisSolution {
 	
 	private static final int GENERATIONS = 10;
 	
-	private static final int MAX_PARENTS = 3;
+	private static final int MAX_CROSSOVERS = 20;
+	private static final int MAX_PARENTS = 50;
+	
 	private static final int INITIAL_POPULATION = 50;
-	private static final int MAX_CHILDREN = 10;
 	
 	
 	// Stores best lines on a grid
@@ -57,7 +59,7 @@ public class TetrisSolution {
 		}
 
 		// Genetic Algorithm
-		TetrisStage bestStage = geneticTetris(shrunkPolygons, width, height, MAX_CHILDREN, GENERATIONS);
+		TetrisStage bestStage = geneticTetris(shrunkPolygons, width, height);
 		
 		return new TetrisSolution(bestStage);
 	}
@@ -102,42 +104,92 @@ public class TetrisSolution {
 		return pieces;
 	}
 	
-	private static Queue<TetrisPiece> getPieces(Queue<TetrisPiece> parentQueue, int totalPop) {
+	private static Queue<TetrisPiece> getCrossover(Queue<TetrisPiece> parent1, Queue<TetrisPiece> parent2, List<TetrisPiece> polygons) {
 		
-		Queue<TetrisPiece> pieces = new ArrayBlockingQueue<>(totalPop);
+		Queue<TetrisPiece> pieces = new ArrayBlockingQueue<>(parent1.size());
 		
-		Queue<TetrisPiece> possiblePieces = new ArrayBlockingQueue<>(totalPop);
-		possiblePieces.addAll(parentQueue);
+		List<TetrisPiece> parent1Copy = new ArrayList<>();
+		parent1Copy.addAll(parent1);
 		
-		TetrisPiece shufflePiece = null;
+		List<TetrisPiece> parent2Copy = new ArrayList<>();
+		parent2Copy.addAll(parent2);
 		
-		while(possiblePieces.size() > 0) {
-			
-			// Chance to keep queue as it is
-			if(new Random().nextInt(10) > 3) {
-				pieces.add(possiblePieces.poll());
-			}
-			// Removed a piece and remember it, if there is a piece add it in
-			else if(shufflePiece == null) {
-				shufflePiece = possiblePieces.poll();
-			}
-			else {
-				pieces.add(shufflePiece);
-				shufflePiece = null;
-			}
+		// Create union of parents
+		List<TetrisPiece[]> unions = new ArrayList<>();
+		for(int i = 0; i < parent1Copy.size(); i++) {
+			unions.add(new TetrisPiece[]{parent1Copy.get(i), parent2Copy.get(i)});
 		}
 		
-		if(shufflePiece != null)
-			pieces.add(shufflePiece);
+		do {
 			
+			for(int i = 0; i < unions.size(); i++) {
+				
+				TetrisPiece[] union = unions.get(i);
+				
+				// Pick random non-null value from union
+				List<Integer> choices = new ArrayList<>();
+				
+				for(int j = 0; j < union.length; j++) {
+					if(union[j] != null) {
+						choices.add(j);
+					}
+				}
+				
+				// go onto next row of unions
+				if(choices.size() == 0)
+					continue;
+				
+				// Pick choice
+				int choiceNo = new Random().nextInt(choices.size());
+				TetrisPiece choice = null;
+				
+				while(choice == null) {
+					choice = union[choices.get(choiceNo)];
+					choiceNo = new Random().nextInt(choices.size());
+				}
+				
+				union[choiceNo] = null;
+				
+				// Remove choice set from other columns
+				ReferenceInt set = choice.pop;
+				
+				Set<Integer> checkedColumns = new HashSet<>();
+				checkedColumns.add(choiceNo);
+				
+				for(int j = 0; j < unions.size(); j++) {
+					for(int w = 0; w < unions.get(j).length; w++) {
+						
+						TetrisPiece piece = unions.get(j)[w];
+						
+						if(!checkedColumns.contains(w) && piece != null && piece.pop.equals(set)) {
+							checkedColumns.add(w);
+							// Remove choice
+							unions.get(j)[w] = null;
+						}
+					}
+					
+					if(checkedColumns.size() == 2)
+						break;
+				}
+				
+				// Add choice to list
+				pieces.add(choice);
+				
+				if(pieces.size() == parent1.size())
+					break;
+				
+			}
+			
+		}while(pieces.size() < parent1.size());
+		
 		return pieces;
 	}
 	
-	private static TetrisStage geneticTetris(List<TetrisPiece> polygons, int width, int height, int maxChildren, int iterations) {
+	private static TetrisStage geneticTetris(List<TetrisPiece> polygons, int width, int height) {
 		
 		int blockPopulation = 0;
 		
-		Queue<GeneticStub> geneticQueue = new PriorityQueue<>(maxChildren, new GeneticComp());
+		Queue<GeneticStub> geneticQueue = new PriorityQueue<>(10, new GeneticComp());
 		
 		// Create starting population
 		
@@ -195,7 +247,7 @@ public class TetrisSolution {
 		}
 		
 		// For X iterations take the top M children and alter them
-		for(int generation = 0; generation < iterations; generation++) {
+		for(int generation = 0; generation < GENERATIONS; generation++) {
 			
 			List<GeneticStub> parents = new ArrayList<>();
 			
@@ -211,15 +263,22 @@ public class TetrisSolution {
 				geneticQueue.add(parents.get(i));
 			}
 			
+			if(parents.size() > 1)
 			for(int parentNo = 0; parentNo < parents.size(); parentNo++) {
-				for(int childNo = 0; childNo < MAX_CHILDREN; childNo++) {
+				for(int childNo = 0; childNo < MAX_CROSSOVERS; childNo++) {
 				
 					Queue<TetrisPiece> parentQueue = parents.get(parentNo).startQueue;
 					
 					Queue<TetrisPiece> incomingBlocks = new ArrayBlockingQueue<>(parentQueue.size());
 					Queue<TetrisPiece> incomingBlocksMem = new ArrayBlockingQueue<>(parentQueue.size());
 					
-					incomingBlocks = getPieces(parentQueue, blockPopulation);
+					Queue<TetrisPiece> mateQueue = null;
+					
+					do {
+						mateQueue = parents.get(new Random().nextInt(parents.size())).startQueue;
+					}while(mateQueue == parentQueue);
+					
+					incomingBlocks = getCrossover(parentQueue, mateQueue, polygons);
 					incomingBlocksMem.addAll(incomingBlocks);
 					
 					TetrisStage firstStage = new TetrisStage(incomingBlocks, width, height);
