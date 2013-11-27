@@ -15,8 +15,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import javax.crypto.spec.OAEPParameterSpec;
-
 import com.plotter.data.Maths;
 import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
 import com.plotter.gui.GridPanel;
@@ -33,9 +31,9 @@ public class TetrisSolution {
 	private static final int H_HOLES = -1;
 	
 	// Genetic Algorithm
-	private static final int LOOK_AHEAD = 1;
+	private static final int LOOK_AHEAD = 0;
 	
-	private static final int GENERATIONS = 0;
+	private static final int GENERATIONS = 50;
 	
 	private static final int MAX_CROSSOVERS = 10;
 	private static final int MAX_GENEPOOL = 50;
@@ -139,6 +137,7 @@ public class TetrisSolution {
 			}
 			
 			pieces.add(randP);
+			randP.pop.increment();
 		}
 		
 		
@@ -381,8 +380,8 @@ public class TetrisSolution {
 		
 		while(tetrisPiece.parent != null) {
 			// DEBUG
-			System.out.println("STAGE");
-			tetrisPiece.grid.drawGrid();
+//			System.out.println("STAGE");
+//			tetrisPiece.grid.drawGrid();
 			solutionPieces.add(tetrisPiece.getBlock());
 //			tetrisPiece.getBlock().pop.increment();
 			tetrisPiece = tetrisPiece.parent;
