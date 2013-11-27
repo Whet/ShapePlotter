@@ -703,7 +703,7 @@ public class TetrisSolution {
 						if(polygon.contains(i + 0.5, j + 0.5)) {
 							
 							// If point out of bounds, reject
-							if(i + width >= this.blocks.length || i < 0 || j + height >= this.blocks[0].length || j < 0) {
+							if(i + width > this.blocks.length || i < 0 || j + height > this.blocks[0].length || j < 0) {
 								return false;
 							}
 							
