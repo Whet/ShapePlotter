@@ -42,11 +42,15 @@ public class TetrisSolution {
 	
 	private static final int INITIAL_POPULATION = 20;
 	
+	private static int M_HEIGHT = 0;
+	
 	
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
 	public static TetrisSolution getSolution(int width, int height, Map<DecompositionImage, ReferenceInt> decompImages) {
 
+		M_HEIGHT = height;
+		
 		// Convert all possible shapes to unit polygons
 		List<TetrisPiece> shrunkPolygons = new ArrayList<TetrisPiece>();
 		
@@ -141,76 +145,6 @@ public class TetrisSolution {
 			randP.pop.increment();
 		}
 		
-		
-		
-		// Create union of parents
-//		List<TetrisPiece[]> unions = new ArrayList<>();
-//		for(int i = 0; i < parent1Copy.size(); i++) {
-//			unions.add(new TetrisPiece[]{parent1Copy.get(i), parent2Copy.get(i)});
-//		}
-//		
-//		do {
-//			
-//			for(int i = 0; i < unions.size(); i++) {
-//				
-//				TetrisPiece[] union = unions.get(i);
-//				
-//				// Pick random non-null value from union
-//				List<Integer> choices = new ArrayList<>();
-//				
-//				for(int j = 0; j < union.length; j++) {
-//					if(union[j] != null) {
-//						choices.add(j);
-//					}
-//				}
-//				
-//				// go onto next row of unions
-//				if(choices.size() == 0)
-//					continue;
-//				
-//				// Pick choice
-//				int choiceNo = new Random().nextInt(choices.size());
-//				TetrisPiece choice = null;
-//				
-//				while(choice == null) {
-//					choice = union[choices.get(choiceNo)];
-//					choiceNo = new Random().nextInt(choices.size());
-//				}
-//				
-//				union[choiceNo] = null;
-//				
-//				// Remove choice set from other columns
-//				ReferenceInt set = choice.pop;
-//				
-//				Set<Integer> checkedColumns = new HashSet<>();
-//				checkedColumns.add(choiceNo);
-//				
-//				for(int j = 0; j < unions.size(); j++) {
-//					for(int w = 0; w < unions.get(j).length; w++) {
-//						
-//						TetrisPiece piece = unions.get(j)[w];
-//						
-//						if(!checkedColumns.contains(w) && piece != null && piece.pop.equals(set)) {
-//							checkedColumns.add(w);
-//							// Remove choice
-//							unions.get(j)[w] = null;
-//						}
-//					}
-//					
-//					if(checkedColumns.size() == 2)
-//						break;
-//				}
-//				
-//				// Add choice to list
-//				pieces.add(choice);
-//				
-//				if(pieces.size() == parent1.size())
-//					break;
-//				
-//			}
-//			
-//		}while(pieces.size() < parent1.size());
-		
 		return pieces;
 	}
 	
@@ -271,7 +205,7 @@ public class TetrisSolution {
 			
 			if(attempts > INITIAL_POPULATION * 2) {
 				System.out.println("Failed to place all blocks");
-//				bestStage.grid.drawGrid();
+				bestStage.grid.drawGrid();
 				bestStage.lookAhead();
 				break;
 			}
@@ -419,7 +353,7 @@ public class TetrisSolution {
 			
 			this.parent = null;
 			this.block = null;
-			this.grid = new TetrisGrid(width, height);
+			this.grid = new TetrisGrid(width, height, this.placingBlock.getSize());
 			this.score = 0;
 			
 //			System.out.println("INC BLOCKS: " + incomingBlocks.size());
@@ -431,17 +365,19 @@ public class TetrisSolution {
 				this.incomingBlocks = new ArrayBlockingQueue<>(parentStage.incomingBlocks.size());
 				this.incomingBlocks.addAll(parentStage.incomingBlocks);
 				this.placingBlock = incomingBlocks.poll();
+				this.grid = new TetrisGrid(parentStage.grid, this.placingBlock.getSize());
 			}
 			else {
 				this.incomingBlocks = new ArrayBlockingQueue<>(1);
 				this.placingBlock = null;
+				this.grid = new TetrisGrid(parentStage.grid, 0);
 			}
 				
 			this.blockChoices = new PriorityQueue<TetrisStage>(10, new StageComp());
 			
 			this.parent = parentStage;
 			this.block = newBlock;
-			this.grid = new TetrisGrid(parentStage.grid);
+			
 			this.grid.addPiece(newBlock);
 			this.computeScore();
 			
@@ -598,6 +534,10 @@ public class TetrisSolution {
 				System.err.println("WRONG SIZE");
 		}
 		
+		public int getSize() {
+			return Math.max(width, height);
+		}
+
 		public int getHeight() {
 			return height;
 		}
@@ -646,7 +586,7 @@ public class TetrisSolution {
 		private int[][] blocks;
 		private int height;
 		
-		public TetrisGrid(int width, int height) {
+		public TetrisGrid(int width, int height, int blockSize) {
 			this.blocks = new int[width][height];
 			
 			// Make the first row 1's
@@ -657,10 +597,11 @@ public class TetrisSolution {
 			
 		}
 		
-		public TetrisGrid(TetrisGrid parentGrid) {
+		public TetrisGrid(TetrisGrid parentGrid, int blockSize) {
 			// Check how many rows are completed and removed them
 			this.height = parentGrid.height;
 			boolean rowFull = true;
+			int extraHeight = 0;
 			do {
 				rowFull = true;
 				for(int i = 0; i < parentGrid.blocks.length; i++) {
@@ -675,7 +616,27 @@ public class TetrisSolution {
 				
 			}while(rowFull);
 			
-			this.blocks = new int[parentGrid.blocks.length][parentGrid.blocks[0].length - (this.height - parentGrid.height)];
+			// Check if placing the block would go out of bounds on height
+//			if(this.height + parentGrid.blocks[0].length < M_HEIGHT) {
+//				
+//				List<int[]> anchors = parentGrid.getAnchors();
+//				
+//				int hMax = 0;
+//				
+//				for(int[] loc:anchors) {
+//					if(loc[1] > hMax)
+//						hMax = loc[1];
+//				}
+//				
+//				if(hMax + blockSize >= parentGrid.blocks[0].length)
+//					extraHeight = blockSize;
+//				
+//				if(extraHeight + parentGrid.blocks[0].length > M_HEIGHT)
+//					extraHeight = M_HEIGHT - parentGrid.blocks[0].length;
+//				
+//			}
+			
+			this.blocks = new int[parentGrid.blocks.length][parentGrid.blocks[0].length - (this.height - parentGrid.height) + extraHeight];
 			
 			for(int i = 0; i < parentGrid.blocks.length; i++) {
 				for(int j = 0; j < parentGrid.blocks[i].length - (this.height - parentGrid.height); j++) {
@@ -700,7 +661,7 @@ public class TetrisSolution {
 				}
 			}
 			
-			return width * (height + this.height);
+			return (this.height + height) * width;
 		}
 
 		public boolean isPieceValid(TetrisPiece piece) {
