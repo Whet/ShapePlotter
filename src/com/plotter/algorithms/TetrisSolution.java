@@ -34,13 +34,13 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 0;
 	
-	private static final int GENERATIONS = 2;
+	private static final int GENERATIONS = 10;
 	
 	private static final int MAX_CROSSOVERS = 10;
 	private static final int MAX_GENEPOOL = 50;
 	private static final int MAX_BREEDERS = 3;
 	
-	private static final int INITIAL_POPULATION = 20;
+	private static final int INITIAL_POPULATION = 50;
 	
 	private static int M_HEIGHT = 0;
 	
@@ -62,9 +62,18 @@ public class TetrisSolution {
 				shrunkPolygons.add(new TetrisPiece(3, mPoly.getKey().getPolygon(), mPoly.getValue()));
 			}
 		}
+		
+		long startTime = System.currentTimeMillis();
+		
+		System.out.println("Mission accepted");
 
 		// Genetic Algorithm
 		TetrisStage bestStage = geneticTetris(shrunkPolygons, width, height);
+		
+		long endTime = System.currentTimeMillis();
+		long diff = (endTime - startTime) / 1000;
+		
+		System.out.println("Mission Completed at: " + endTime + " took " + diff + " seconds");
 		
 		return new TetrisSolution(bestStage);
 	}
@@ -309,11 +318,14 @@ public class TetrisSolution {
 	}
 	
 	private List<TetrisPiece> solutionPieces;
+	public TetrisGrid finalGrid;
 	
 	public TetrisSolution(TetrisStage bestStage) {
 		this.solutionPieces = new ArrayList<>();
 		
 		TetrisStage tetrisPiece = bestStage;
+		
+		finalGrid = tetrisPiece.grid;
 		
 		while(tetrisPiece.parent != null) {
 			// DEBUG
@@ -575,7 +587,7 @@ public class TetrisSolution {
 		
 	}
 	
-	private static class TetrisGrid {
+	public static class TetrisGrid {
 		
 		/*
 		 * 0 - No Block
@@ -763,7 +775,23 @@ public class TetrisSolution {
 			
 			for(int i = 0; i < this.blocks.length; i++) {
 				for(int j = 0; j < this.blocks[i].length; j++) {
-					if(j < this.blocks[i].length && this.blocks[i][j] == 1) {
+					if(this.blocks[i][j] == 1) {
+						locations.add(new int[]{i, j + this.height});
+					}
+					
+				}
+			}
+			
+			return locations;
+		}
+
+		public List<int[]> getHoles() {
+			// Get all 1's & 0's 
+			List<int[]> locations = new ArrayList<>();
+			
+			for(int i = 0; i < this.blocks.length; i++) {
+				for(int j = 0; j < this.blocks[i].length; j++) {
+					if(this.blocks[i][j] == 0 || this.blocks[i][j] == 1) {
 						locations.add(new int[]{i, j + this.height});
 					}
 					

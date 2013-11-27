@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -25,6 +27,7 @@ import org.w3c.dom.Document;
 import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.algorithms.TetrisSolution;
+import com.plotter.algorithms.TetrisSolution.TetrisGrid;
 import com.plotter.algorithms.TetrisSolution.TetrisPiece;
 import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
 import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
@@ -34,7 +37,8 @@ public class OutputSVG {
 	private static final int POLY_SCALE = 20;
 	private static final float HAIRLINE = 0.3f;
 	private static final float DOTTED = 0.5f;
-	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink};
+	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink, Color.cyan.darker(), Color.magenta, Color.magenta.darker(), Color.yellow, Color.red.darker(), Color.green.darker(), Color.blue.darker()};
+	private static final Color HOLE_COLOUR = Color.black;
 
 	public static void outputSVG(String fileLocation, Map<DecompositionImage, ReferenceInt> decompImages, int pageWidth, int pageHeight) throws IOException {
 
@@ -70,6 +74,11 @@ public class OutputSVG {
 		boolean useCSS = true; // we want to use CSS style attributes
 		Writer out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation)), "UTF-8");
 		svgGenerator.stream(out, useCSS);
+		
+		paintToPageFancy(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, markerPlots, solution, layout);
+
+		out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Fancy.svg")), "UTF-8");
+		svgGenerator.stream(out, useCSS);
 	}
 
 	private static List<Polygon> computeMarkerPlots(List<LayoutPolygon> shapes) {
@@ -94,6 +103,8 @@ public class OutputSVG {
 			if(!colours.containsKey(poly.identity)) {
 				colours.put(poly.identity, COLOURS[colours.size()]);
 			}
+			
+			poly.fillColour = colours.get(poly.identity);
 		}
 		
 		for(LayoutPolygon poly:shapes) {
@@ -130,11 +141,56 @@ public class OutputSVG {
 		}
 	}
 	
+	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, List<Polygon> markerPlots, TetrisSolution solution, List<LayoutPolygon> layout) {
+		
+		// Setup graphics
+		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
+		
+		page.setStroke(new BasicStroke(HAIRLINE));
+		
+		for(LayoutPolygon poly:layout) {
+			page.setColor(poly.fillColour);
+			page.fill(poly.fullPoly);
+			
+			
+			page.setColor(Color.white);
+			for(Polygon polygon:poly.polygons) {
+				page.draw(polygon);
+			}
+			
+			page.setColor(Color.black);
+			page.draw(poly.fullPoly);
+		}
+		
+		for(Polygon marker:markerPlots) {
+			Rectangle2D bounds = marker.getBounds2D();
+			
+			page.setColor(Color.black);
+			page.fillRect((int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
+			
+			// white fill inside
+			page.setColor(Color.white);
+			page.fillRect((int)bounds.getMinX() + 2, (int)bounds.getMinY() + 2, (int)bounds.getWidth() - 4, (int)bounds.getHeight() - 4);
+		}
+		
+		TetrisGrid finalGrid = solution.finalGrid;
+		
+		page.setColor(HOLE_COLOUR);
+		
+		for(int[] hole:finalGrid.getHoles()) {
+			page.fillRect(hole[0] * POLY_SCALE, hole[1] * POLY_SCALE, POLY_SCALE, POLY_SCALE);
+		}
+	}
+	
 	public static class LayoutPolygon {
 
+		public List<Polygon> polygons;
+		public Color fillColour;
 		private Polygon marker;
 		private LineMergePolygon lmp;
 		public ReferenceInt identity;
+		private Point centre;
+		private Polygon fullPoly;
 		
 		public LayoutPolygon(TetrisPiece tP) {
 			
@@ -144,6 +200,8 @@ public class OutputSVG {
 			Area area = new Area();
 			
 			Polygon firstPolygon = null;
+			
+			this.polygons = new ArrayList<>();
 			
 			for(Polygon polygon:tP.polygons) {
 				
@@ -158,7 +216,20 @@ public class OutputSVG {
 				
 				if(firstPolygon == null)
 					firstPolygon = scaledPoly;
+				
+				this.polygons.add(scaledPoly);
 			}
+			
+			centre = new Point((int)area.getBounds2D().getCenterX(), (int)area.getBounds2D().getCenterY());
+			
+			this.fullPoly = new Polygon();
+			
+			PathIterator path = area.getPathIterator(null);
+	        while (!path.isDone()) {
+	            toPolygon(path);
+	            path.next();
+	        }
+	
 			
 			marker = new Polygon();
 			
@@ -189,12 +260,16 @@ public class OutputSVG {
 			
 		}
 
+		public Point getCentre() {
+			return centre;
+		}
+
 		public List<Line> getHairlines() {
 			
 			List<Line> lines = new ArrayList<>();
 			
 			for(Edge edge: lmp.getHairlines()) {
-				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y, Color.white));
+				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
 			}
 			
 			return lines;
@@ -205,7 +280,7 @@ public class OutputSVG {
 			List<Line> lines = new ArrayList<>();
 			
 			for(Edge edge: lmp.getDottedlines()) {
-				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y, Color.white));
+				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
 			}
 			
 			return lines;
@@ -215,12 +290,23 @@ public class OutputSVG {
 			return marker;
 		}
 		
+		private void toPolygon(PathIterator p_path) {
+			double[] point = new double[2];
+			if(p_path.currentSegment(point) != PathIterator.SEG_CLOSE)
+				this.fullPoly.addPoint((int) point[0], (int) point[1]);
+		}
+		
 	}
 	
 	private static class Line {
 		
 		private Color colour;
 		private Point end1, end2;
+		
+		public Line(int x, int y, int x1, int y1) {
+			this.end1 = new Point(x, y);
+			this.end2 = new Point(x1, y1);
+		}
 		
 		public Line(int x, int y, int x1, int y1, Color colour) {
 			this.end1 = new Point(x, y);
