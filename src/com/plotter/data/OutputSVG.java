@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +32,9 @@ import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 public class OutputSVG {
 
 	private static final int POLY_SCALE = 20;
-	private static final float HAIRLINE = 0.1f;
+	private static final float HAIRLINE = 0.3f;
 	private static final float DOTTED = 0.5f;
+	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink};
 
 	public static void outputSVG(String fileLocation, Map<DecompositionImage, ReferenceInt> decompImages, int pageWidth, int pageHeight) throws IOException {
 
@@ -83,27 +85,36 @@ public class OutputSVG {
 	
 	private static List<Line> computeHairLines(List<LayoutPolygon> shapes) {
 		
+		
+		Map<ReferenceInt, Color> colours = new HashMap<>();
+		
 		List<Line> lines = new ArrayList<Line>();
+		
+		for(LayoutPolygon poly:shapes) {
+			if(!colours.containsKey(poly.identity)) {
+				colours.put(poly.identity, COLOURS[colours.size()]);
+			}
+		}
 		
 		for(LayoutPolygon poly:shapes) {
 			
 			for(Line hairline: poly.getHairlines()) {
-				lines.add(new Line(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y));
+				lines.add(new Line(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y, colours.get(poly.identity)));
 			}
 			
 		}
 		
 		return lines;
 	}
-
+	
 	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots) {
 		
 		// Setup graphics
-		page.setColor(Color.black);
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
 		
 		page.setStroke(new BasicStroke(HAIRLINE));
 		for(Line hairline:hairLines) {
+			page.setColor(hairline.colour);
 			page.drawLine(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y);
 		}
 		
@@ -123,8 +134,11 @@ public class OutputSVG {
 
 		private Polygon marker;
 		private LineMergePolygon lmp;
+		public ReferenceInt identity;
 		
 		public LayoutPolygon(TetrisPiece tP) {
+			
+			this.identity = tP.pop;
 			lmp = new LineMergePolygon();
 			
 			Area area = new Area();
@@ -180,7 +194,7 @@ public class OutputSVG {
 			List<Line> lines = new ArrayList<>();
 			
 			for(Edge edge: lmp.getHairlines()) {
-				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
+				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y, Color.white));
 			}
 			
 			return lines;
@@ -191,7 +205,7 @@ public class OutputSVG {
 			List<Line> lines = new ArrayList<>();
 			
 			for(Edge edge: lmp.getDottedlines()) {
-				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
+				lines.add(new Line(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y, Color.white));
 			}
 			
 			return lines;
@@ -205,11 +219,13 @@ public class OutputSVG {
 	
 	private static class Line {
 		
+		private Color colour;
 		private Point end1, end2;
 		
-		public Line(int x, int y, int x1, int y1) {
+		public Line(int x, int y, int x1, int y1, Color colour) {
 			this.end1 = new Point(x, y);
 			this.end2 = new Point(x1, y1);
+			this.colour = colour;
 		}
 		
 	}

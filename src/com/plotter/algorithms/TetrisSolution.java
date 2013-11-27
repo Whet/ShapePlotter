@@ -4,7 +4,6 @@ import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -353,8 +352,8 @@ public class TetrisSolution {
 		
 		while(tetrisPiece.parent != null) {
 			// DEBUG
-//			System.out.println("STAGE");
-//			tetrisPiece.grid.drawGrid();
+			System.out.println("STAGE");
+			tetrisPiece.grid.drawGrid();
 			solutionPieces.add(tetrisPiece.getBlock());
 //			tetrisPiece.getBlock().pop.increment();
 			tetrisPiece = tetrisPiece.parent;
@@ -533,14 +532,14 @@ public class TetrisSolution {
 		// Copies polygons and make them unit polygons
 		public List<Polygon> polygons;
 		public double[] markerPolygonLocation;
-		private Area area;
-		private ReferenceInt pop;
+		public ReferenceInt pop;
+		private int width, height;
 		
 		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
 			this.pop = integer;
 			
-			this.area = new Area();
+			Area area = new Area();
 			polygons = new ArrayList<>();
 			
 			mPoly = mPoly.getRotatedMultipoly(rotationComponent);
@@ -561,15 +560,19 @@ public class TetrisSolution {
 			
 			this.markerPolygonLocation = new double[]{area.getBounds2D().getCenterX(), area.getBounds2D().getCenterY()};
 			
+			this.height = (int) area.getBounds2D().getHeight();
+			this.width = (int) area.getBounds2D().getWidth();
 			
+			if(height == 0 || width == 0)
+				System.err.println("WRONG SIZE");
 		}
 		
 		public int getHeight() {
-			return (int) area.getBounds2D().getHeight();
+			return height;
 		}
 
 		public int getWidth() {
-			return (int) area.getBounds2D().getWidth();
+			return width;
 		}
 
 		private TetrisPiece(){
@@ -583,9 +586,10 @@ public class TetrisSolution {
 				t.polygons.add(new Polygon(polygon.xpoints, polygon.ypoints, polygon.npoints));
 			}
 			
-			t.area = (Area) this.area.clone();
 			t.pop = this.pop;
 			t.markerPolygonLocation = new double[]{this.markerPolygonLocation[0], this.markerPolygonLocation[1]};
+			t.width = this.width;
+			t.height = this.height;
 			
 			return t;
 		}
@@ -671,7 +675,7 @@ public class TetrisSolution {
 						if(polygon.contains(i + 0.5, j + 0.5)) {
 							
 							// If point out of bounds, reject
-							if(i + width > this.blocks.length || j + height > this.blocks[0].length) {
+							if(i + width >= this.blocks.length || i < 0 || j + height >= this.blocks[0].length || j < 0) {
 								return false;
 							}
 							

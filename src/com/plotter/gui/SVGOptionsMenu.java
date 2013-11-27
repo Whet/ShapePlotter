@@ -18,7 +18,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingWorker;
 
 import com.plotter.data.OutputSVG;
 import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
@@ -69,34 +68,34 @@ public class SVGOptionsMenu extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-					
-					@Override
-					protected void process(List<Void> chunks) {
-	                	loadingText.setText("Saving !!!");
-	                	SVGOptionsMenu.this.repaint();
-					}
-					
-					@Override
-					protected Void doInBackground() throws Exception {
-						publish();
-						output();
-						publish();
-						return null;
-					}
-					
-					@Override
-					protected void done() {
-						loadingText.setText("");
-						showStages();
-						super.done();
-					}
-					
-				};
+//				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+//					
+//					@Override
+//					protected void process(List<Void> chunks) {
+//	                	loadingText.setText("Saving !!!");
+//	                	SVGOptionsMenu.this.repaint();
+//					}
+//					
+//					@Override
+//					protected Void doInBackground() throws Exception {
+//						publish();
+//						output();
+//						publish();
+//						return null;
+//					}
+//					
+//					@Override
+//					protected void done() {
+//						loadingText.setText("");
+//						showStages();
+//						super.done();
+//					}
+//					
+//				};
+//				
+//				worker.execute();
 				
-				worker.execute();
-				
-//				output();
+				output();
 			}
 		});
 		
