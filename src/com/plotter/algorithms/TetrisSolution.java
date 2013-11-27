@@ -15,6 +15,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import javax.crypto.spec.OAEPParameterSpec;
+
 import com.plotter.data.Maths;
 import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
 import com.plotter.gui.GridPanel;
@@ -33,7 +35,7 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 20;
+	private static final int GENERATIONS = 0;
 	
 	private static final int MAX_CROSSOVERS = 10;
 	private static final int MAX_GENEPOOL = 50;
@@ -114,73 +116,100 @@ public class TetrisSolution {
 		List<TetrisPiece> parent2Copy = new ArrayList<>();
 		parent2Copy.addAll(parent2);
 		
-		// Create union of parents
-		List<TetrisPiece[]> unions = new ArrayList<>();
-		for(int i = 0; i < parent1Copy.size(); i++) {
-			unions.add(new TetrisPiece[]{parent1Copy.get(i), parent2Copy.get(i)});
+		
+		for(TetrisPiece piece:parent1) {
+			piece.pop.reset();
+		}
+		for(TetrisPiece piece:parent2) {
+			piece.pop.reset();
 		}
 		
-		do {
-			
-			for(int i = 0; i < unions.size(); i++) {
-				
-				TetrisPiece[] union = unions.get(i);
-				
-				// Pick random non-null value from union
-				List<Integer> choices = new ArrayList<>();
-				
-				for(int j = 0; j < union.length; j++) {
-					if(union[j] != null) {
-						choices.add(j);
-					}
-				}
-				
-				// go onto next row of unions
-				if(choices.size() == 0)
-					continue;
-				
-				// Pick choice
-				int choiceNo = new Random().nextInt(choices.size());
-				TetrisPiece choice = null;
-				
-				while(choice == null) {
-					choice = union[choices.get(choiceNo)];
-					choiceNo = new Random().nextInt(choices.size());
-				}
-				
-				union[choiceNo] = null;
-				
-				// Remove choice set from other columns
-				ReferenceInt set = choice.pop;
-				
-				Set<Integer> checkedColumns = new HashSet<>();
-				checkedColumns.add(choiceNo);
-				
-				for(int j = 0; j < unions.size(); j++) {
-					for(int w = 0; w < unions.get(j).length; w++) {
-						
-						TetrisPiece piece = unions.get(j)[w];
-						
-						if(!checkedColumns.contains(w) && piece != null && piece.pop.equals(set)) {
-							checkedColumns.add(w);
-							// Remove choice
-							unions.get(j)[w] = null;
-						}
-					}
-					
-					if(checkedColumns.size() == 2)
-						break;
-				}
-				
-				// Add choice to list
-				pieces.add(choice);
-				
-				if(pieces.size() == parent1.size())
-					break;
-				
+		TetrisPiece randP = null;
+		
+		while(pieces.size() < parent1.size()) {
+			if(new Random().nextBoolean()) {
+				do {
+					randP = parent1Copy.get(new Random().nextInt(parent1Copy.size()));
+				}while(randP.pop.currentPopulation == randP.pop.targetPopulation);
+			}
+			else {
+				do {
+					randP = parent2Copy.get(new Random().nextInt(parent2Copy.size()));
+				}while(randP.pop.currentPopulation == randP.pop.targetPopulation);
 			}
 			
-		}while(pieces.size() < parent1.size());
+			pieces.add(randP);
+		}
+		
+		
+		
+		// Create union of parents
+//		List<TetrisPiece[]> unions = new ArrayList<>();
+//		for(int i = 0; i < parent1Copy.size(); i++) {
+//			unions.add(new TetrisPiece[]{parent1Copy.get(i), parent2Copy.get(i)});
+//		}
+//		
+//		do {
+//			
+//			for(int i = 0; i < unions.size(); i++) {
+//				
+//				TetrisPiece[] union = unions.get(i);
+//				
+//				// Pick random non-null value from union
+//				List<Integer> choices = new ArrayList<>();
+//				
+//				for(int j = 0; j < union.length; j++) {
+//					if(union[j] != null) {
+//						choices.add(j);
+//					}
+//				}
+//				
+//				// go onto next row of unions
+//				if(choices.size() == 0)
+//					continue;
+//				
+//				// Pick choice
+//				int choiceNo = new Random().nextInt(choices.size());
+//				TetrisPiece choice = null;
+//				
+//				while(choice == null) {
+//					choice = union[choices.get(choiceNo)];
+//					choiceNo = new Random().nextInt(choices.size());
+//				}
+//				
+//				union[choiceNo] = null;
+//				
+//				// Remove choice set from other columns
+//				ReferenceInt set = choice.pop;
+//				
+//				Set<Integer> checkedColumns = new HashSet<>();
+//				checkedColumns.add(choiceNo);
+//				
+//				for(int j = 0; j < unions.size(); j++) {
+//					for(int w = 0; w < unions.get(j).length; w++) {
+//						
+//						TetrisPiece piece = unions.get(j)[w];
+//						
+//						if(!checkedColumns.contains(w) && piece != null && piece.pop.equals(set)) {
+//							checkedColumns.add(w);
+//							// Remove choice
+//							unions.get(j)[w] = null;
+//						}
+//					}
+//					
+//					if(checkedColumns.size() == 2)
+//						break;
+//				}
+//				
+//				// Add choice to list
+//				pieces.add(choice);
+//				
+//				if(pieces.size() == parent1.size())
+//					break;
+//				
+//			}
+//			
+//		}while(pieces.size() < parent1.size());
 		
 		return pieces;
 	}
