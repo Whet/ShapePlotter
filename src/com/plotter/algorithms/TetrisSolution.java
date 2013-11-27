@@ -1,6 +1,7 @@
 package com.plotter.algorithms;
 
 import java.awt.Polygon;
+import java.awt.Robot;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,7 +34,7 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 0;
 	
-	private static final int GENERATIONS = 50;
+	private static final int GENERATIONS = 2;
 	
 	private static final int MAX_CROSSOVERS = 10;
 	private static final int MAX_GENEPOOL = 50;
@@ -268,8 +269,10 @@ public class TetrisSolution {
 				geneticQueue.add(new GeneticStub(bestStage.grid.getGridScore(), incomingBlocksMem));
 			}
 			
-			if(attempts > 1000) {
+			if(attempts > INITIAL_POPULATION * 2) {
 				System.out.println("Failed to place all blocks");
+//				bestStage.grid.drawGrid();
+				bestStage.lookAhead();
 				break;
 			}
 		}
@@ -641,6 +644,7 @@ public class TetrisSolution {
 		 * 
 		 */
 		private int[][] blocks;
+		private int height;
 		
 		public TetrisGrid(int width, int height) {
 			this.blocks = new int[width][height];
@@ -649,38 +653,54 @@ public class TetrisSolution {
 			for(int i = 0; i < height; i++) {
 				blocks[0][i] = 1;
 			}
+			this.height = 0;
 			
-			// DEBUG
-//			drawGrid();
 		}
 		
 		public TetrisGrid(TetrisGrid parentGrid) {
-			this.blocks = new int[parentGrid.blocks.length][parentGrid.blocks[0].length];
+			// Check how many rows are completed and removed them
+			this.height = parentGrid.height;
+			boolean rowFull = true;
+			do {
+				rowFull = true;
+				for(int i = 0; i < parentGrid.blocks.length; i++) {
+					if(parentGrid.blocks[i][this.height - parentGrid.height] == 0 || parentGrid.blocks[i][this.height - parentGrid.height] == 1) {
+						rowFull = false;
+						break;
+					}
+				}
+				
+				if(rowFull)
+					height++;
+				
+			}while(rowFull);
+			
+			this.blocks = new int[parentGrid.blocks.length][parentGrid.blocks[0].length - (this.height - parentGrid.height)];
 			
 			for(int i = 0; i < parentGrid.blocks.length; i++) {
-				for(int j = 0; j < parentGrid.blocks[i].length; j++) {
-					this.blocks[i][j] = parentGrid.blocks[i][j];
+				for(int j = 0; j < parentGrid.blocks[i].length - (this.height - parentGrid.height); j++) {
+					this.blocks[i][j] = parentGrid.blocks[i][j + (this.height - parentGrid.height)];
 				}
 			}
 		}
 		
 		public int getGridScore() {
 			
-			int height = 0;
 			int width = 0;
+			int height = 0;
 			
 			for(int i = 0; i < blocks.length; i++) {
 				for(int j = 0; j < blocks[i].length; j++) {
 					if(blocks[i][j] == -1) {
-						height = i;
+						width = i;
 						
-						if(j > width)
-							width = j;
+						if(j > height)
+							height = j;
 					}
 				}
 			}
 			
-			return height * width;
+			return width * (height + this.height);
 		}
 
 		public boolean isPieceValid(TetrisPiece piece) {
@@ -703,16 +723,19 @@ public class TetrisSolution {
 						if(polygon.contains(i + 0.5, j + 0.5)) {
 							
 							// If point out of bounds, reject
-							if(i + width > this.blocks.length || i < 0 || j + height > this.blocks[0].length || j < 0) {
+							if(i + width > this.blocks.length ||
+							   i < 0 ||
+							   j + height > this.blocks[0].length + this.height ||
+							   j - this.height < 0) {
 								return false;
 							}
 							
 							// Overlaps with a non-empty or non-anchor block
-							if(blocks[i][j] != 0 && blocks[i][j] != 1) {
+							if(blocks[i][j - this.height] != 0 && blocks[i][j - this.height] != 1) {
 								return false;
 							}
 							// Overlaps with anchor
-							else if(blocks[i][j] == 1) {
+							else if(blocks[i][j - this.height] == 1) {
 								anchorFound = true;
 							}
 						}
@@ -740,13 +763,14 @@ public class TetrisSolution {
 				// Check all grid points in the bounds to see if the polygon contains the centre
 				for(int i = widthIndex; i < widthIndex + width; i++) {
 					for(int j = heightIndex; j < heightIndex + height; j++) {
+						
 						if(polygon.contains(i + 0.5, j + 0.5)) {
 							// Set the selected block to being used: -1
-							blocks[i][j] = -1;
+							blocks[i][j - this.height] = -1;
 							
 							// Set the block one down to being a possible building point: 1
-							if(i < blocks.length - 1 && blocks[i + 1][j] == 0) {
-								blocks[i + 1][j] = 1;
+							if(i < blocks.length - 1 && j - this.height >= 0 && blocks[i + 1][j - this.height] == 0) {
+								blocks[i + 1][j - this.height] = 1;
 							}
 						}
 					}
@@ -779,7 +803,7 @@ public class TetrisSolution {
 			for(int i = 0; i < this.blocks.length; i++) {
 				for(int j = 0; j < this.blocks[i].length; j++) {
 					if(j < this.blocks[i].length && this.blocks[i][j] == 1) {
-						locations.add(new int[]{i, j});
+						locations.add(new int[]{i, j + this.height});
 					}
 					
 				}
