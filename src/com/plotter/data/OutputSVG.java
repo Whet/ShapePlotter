@@ -74,11 +74,13 @@ public class OutputSVG {
 		boolean useCSS = true; // we want to use CSS style attributes
 		Writer out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation)), "UTF-8");
 		svgGenerator.stream(out, useCSS);
+		out.close();
 		
 		paintToPageFancy(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, markerPlots, solution, layout);
 
 		out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Fancy.svg")), "UTF-8");
 		svgGenerator.stream(out, useCSS);
+		out.close();
 	}
 
 	private static List<Polygon> computeMarkerPlots(List<LayoutPolygon> shapes) {
@@ -153,11 +155,11 @@ public class OutputSVG {
 			page.fill(poly.fullPoly);
 			
 			
-			page.setColor(Color.white);
-			for(Polygon polygon:poly.polygons) {
-				page.draw(polygon);
-			}
-			
+//			page.setColor(Color.white);
+//			for(Polygon polygon:poly.polygons) {
+//				page.draw(polygon);
+//			}
+//			
 			page.setColor(Color.black);
 			page.draw(poly.fullPoly);
 		}
@@ -184,7 +186,6 @@ public class OutputSVG {
 	
 	public static class LayoutPolygon {
 
-		public List<Polygon> polygons;
 		public Color fillColour;
 		private Polygon marker;
 		private LineMergePolygon lmp;
@@ -199,37 +200,20 @@ public class OutputSVG {
 			
 			Area area = new Area();
 			
-			Polygon firstPolygon = null;
+			Polygon scaledPoly = new Polygon();
 			
-			this.polygons = new ArrayList<>();
+			Polygon polygon = tP.mergedPolygon;
 			
-			for(Polygon polygon:tP.polygons) {
-				
-				Polygon scaledPoly = new Polygon();
-				
-				for(int i = 0; i < polygon.npoints; i++) {
-					scaledPoly.addPoint(polygon.xpoints[i] * POLY_SCALE, polygon.ypoints[i] * POLY_SCALE);
-				}
-				
-				lmp.addPolygon(scaledPoly, POLY_SCALE);
-				area.add(new Area(scaledPoly));
-				
-				if(firstPolygon == null)
-					firstPolygon = scaledPoly;
-				
-				this.polygons.add(scaledPoly);
+			for(int i = 0; i < polygon.npoints; i++) {
+				scaledPoly.addPoint(polygon.xpoints[i] * POLY_SCALE, polygon.ypoints[i] * POLY_SCALE);
 			}
 			
+			lmp.addPolygon(scaledPoly, POLY_SCALE);
+			area.add(new Area(scaledPoly));
+			
+			this.fullPoly = scaledPoly;
+			
 			centre = new Point((int)area.getBounds2D().getCenterX(), (int)area.getBounds2D().getCenterY());
-			
-			this.fullPoly = new Polygon();
-			
-			PathIterator path = area.getPathIterator(null);
-	        while (!path.isDone()) {
-	            toPolygon(path);
-	            path.next();
-	        }
-	
 			
 			marker = new Polygon();
 			
@@ -247,9 +231,6 @@ public class OutputSVG {
 			}
 			// Put block in centre of first polygon
 			else {
-				
-				minX = firstPolygon.getBounds2D().getCenterX();
-				minY = firstPolygon.getBounds2D().getCenterY();
 				
 				marker.addPoint((int)minX - halfMarkerSize, (int)minY - halfMarkerSize);
 				marker.addPoint((int)minX + halfMarkerSize, (int)minY - halfMarkerSize);

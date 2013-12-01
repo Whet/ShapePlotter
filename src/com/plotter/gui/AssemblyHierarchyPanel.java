@@ -28,7 +28,6 @@ import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.SelfAssemblyHierarchy;
 import com.plotter.data.Connection;
 import com.plotter.data.ModulePolygon;
-import com.plotter.gui.AssemblyHierarchyPanel.DecompositionStage;
 
 public class AssemblyHierarchyPanel extends JPanel {
 

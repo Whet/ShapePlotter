@@ -147,7 +147,7 @@ public class PlotterWindow extends JFrame {
 
 	private void setDecorations() {
 		
-		this.setTitle("Decomposition Plotter");
+		this.setTitle("Shape Plotter");
 		this.setSize(800,600);
 		
 	}

@@ -1,8 +1,8 @@
 package com.plotter.algorithms;
 
 import java.awt.Polygon;
-import java.awt.Robot;
 import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -29,28 +29,23 @@ public class TetrisSolution {
 	private static final int H_FULLNESS = -1;
 	private static final int H_FULL_HEIGHT = -5;
 	private static final int H_TOTAL_SLOPE = -2;
-	private static final int H_HOLES = -1;
+	private static final int H_HOLES = 0;
 	
 	// Genetic Algorithm
-	private static final int LOOK_AHEAD = 0;
+	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 10;
+	private static final int GENERATIONS = 20;
 	
 	private static final int MAX_CROSSOVERS = 10;
-	private static final int MAX_GENEPOOL = 50;
-	private static final int MAX_BREEDERS = 3;
+	private static final int MAX_GENEPOOL = 200;
+	private static final int MAX_BREEDERS = 10;
 	
-	private static final int INITIAL_POPULATION = 50;
-	
-	private static int M_HEIGHT = 0;
-	
+	private static final int INITIAL_POPULATION = 10;
 	
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
 	public static TetrisSolution getSolution(int width, int height, Map<DecompositionImage, ReferenceInt> decompImages) {
 
-		M_HEIGHT = height;
-		
 		// Convert all possible shapes to unit polygons
 		List<TetrisPiece> shrunkPolygons = new ArrayList<TetrisPiece>();
 		
@@ -73,7 +68,7 @@ public class TetrisSolution {
 		long endTime = System.currentTimeMillis();
 		long diff = (endTime - startTime) / 1000;
 		
-		System.out.println("Mission Completed at: " + endTime + " took " + diff + " seconds");
+		System.out.println("Mission Completed took " + diff + " seconds");
 		
 		return new TetrisSolution(bestStage);
 	}
@@ -409,30 +404,23 @@ public class TetrisSolution {
 			if(this.placingBlock == null)
 				return this;
 			
-			this.computeAllChoices();
-			
-			Queue<TetrisStage> leaves = new PriorityQueue<>(5, new StageComp());
+			if(lookAhead > 0)
+				this.computeAllChoices(lookAhead);
 			
 			if(this.blockChoices.peek() == null) {
 				return this;
-			}
-			else if(lookAhead > 0) {
-				for(TetrisStage stage:this.blockChoices) {
-					leaves.add(stage.lookAhead(lookAhead - 1));
-				}
 			}
 			else {
 				return this.blockChoices.peek();
 			}
 			
-			return leaves.peek();
 		}
 		
-		private void computeAllChoices() {
+		private void computeAllChoices(int lookAhead) {
 			// Take the placing block
 			// Try all possible translations
 			// AddChoice(position)
-			
+//			System.out.println("Possibilities: " + this.grid.getAnchors().size());
 			for(int[] possibleLocation:this.grid.getAnchors()) {
 				
 				TetrisPiece testPiece = this.placingBlock.copy();
@@ -447,7 +435,7 @@ public class TetrisSolution {
 						translatedPiece.translate(i, j);
 						
 						if(this.grid.isPieceValid(translatedPiece)) {
-							this.addChoice(translatedPiece);
+							this.addChoice(translatedPiece, lookAhead);
 						}
 					}
 				}
@@ -455,8 +443,10 @@ public class TetrisSolution {
 			
 		}
 		
-		private void addChoice(TetrisPiece positionedBlock) {
-			this.blockChoices.add(new TetrisStage(this, positionedBlock));
+		private void addChoice(TetrisPiece positionedBlock, int lookAhead) {
+			TetrisStage tetrisStage = new TetrisStage(this, positionedBlock);
+			this.blockChoices.add(tetrisStage.lookAhead(lookAhead - 1));
+//			System.out.println("Choices: " + this.blockChoices.size());
 		}
 		
 		private void computeScore() {
@@ -509,7 +499,7 @@ public class TetrisSolution {
 	public static class TetrisPiece {
 		
 		// Copies polygons and make them unit polygons
-		public List<Polygon> polygons;
+		public Polygon mergedPolygon;
 		public double[] markerPolygonLocation;
 		public ReferenceInt pop;
 		private int width, height;
@@ -519,7 +509,7 @@ public class TetrisSolution {
 			this.pop = integer;
 			
 			Area area = new Area();
-			polygons = new ArrayList<>();
+			mergedPolygon = new Polygon();
 			
 			mPoly = mPoly.getRotatedMultipoly(rotationComponent);
 			
@@ -532,10 +522,17 @@ public class TetrisSolution {
 					
 				}
 				
-				polygons.add(nPoly);
 				area.add(new Area(nPoly));
 				
 			}
+			
+			this.mergedPolygon = new Polygon();
+			
+			PathIterator path = area.getPathIterator(null);
+	        while (!path.isDone()) {
+	            toPolygon(path);
+	            path.next();
+	        }
 			
 			this.markerPolygonLocation = new double[]{area.getBounds2D().getCenterX(), area.getBounds2D().getCenterY()};
 			
@@ -559,16 +556,12 @@ public class TetrisSolution {
 		}
 
 		private TetrisPiece(){
-			this.polygons = new ArrayList<>();
 		}
 
 		public TetrisPiece copy() {
 			TetrisPiece t = new TetrisPiece();
 			
-			for(Polygon polygon:this.polygons) {
-				t.polygons.add(new Polygon(polygon.xpoints, polygon.ypoints, polygon.npoints));
-			}
-			
+			t.mergedPolygon = new Polygon(this.mergedPolygon.xpoints, this.mergedPolygon.ypoints, this.mergedPolygon.npoints);
 			t.pop = this.pop;
 			t.markerPolygonLocation = new double[]{this.markerPolygonLocation[0], this.markerPolygonLocation[1]};
 			t.width = this.width;
@@ -578,11 +571,15 @@ public class TetrisSolution {
 		}
 		
 		public void translate(int deltaX, int deltaY) {
-			for(int i = 0; i < this.polygons.size(); i++) {
-				this.polygons.get(i).translate(deltaX, deltaY);
-			}
+			this.mergedPolygon.translate(deltaX, deltaY);
 			this.markerPolygonLocation[0] += deltaX;
 			this.markerPolygonLocation[1] += deltaY;
+		}
+		
+		private void toPolygon(PathIterator p_path) {
+			double[] point = new double[2];
+			if(p_path.currentSegment(point) != PathIterator.SEG_CLOSE)
+				this.mergedPolygon.addPoint((int) point[0], (int) point[1]);
 		}
 		
 	}
@@ -681,36 +678,35 @@ public class TetrisSolution {
 			// Block must be sat ontop of another block to be valid
 			boolean anchorFound = false;
 			
-			for(Polygon polygon:piece.polygons) {
+			Polygon polygon = piece.mergedPolygon;
 				
-				// Top left corner
-				int widthIndex = (int) polygon.getBounds2D().getMinX();
-				int heightIndex = (int) polygon.getBounds2D().getMinY();
-				int width = (int) polygon.getBounds2D().getWidth();
-				int height = (int) polygon.getBounds2D().getHeight();
-				
-				// Check all grid points in the bounds to see if the polygon contains the centre
-				// - 1's since we don't want to go over the boundary when we add + 0.5
-				for(int i = widthIndex; i < widthIndex + width; i++) {
-					for(int j = heightIndex; j < heightIndex + height; j++) {
-						if(polygon.contains(i + 0.5, j + 0.5)) {
-							
-							// If point out of bounds, reject
-							if(i + width > this.blocks.length ||
-							   i < 0 ||
-							   j + height > this.blocks[0].length + this.height ||
-							   j - this.height < 0) {
-								return false;
-							}
-							
-							// Overlaps with a non-empty or non-anchor block
-							if(blocks[i][j - this.height] != 0 && blocks[i][j - this.height] != 1) {
-								return false;
-							}
-							// Overlaps with anchor
-							else if(blocks[i][j - this.height] == 1) {
-								anchorFound = true;
-							}
+			// Top left corner
+			int widthIndex = (int) polygon.getBounds2D().getMinX();
+			int heightIndex = (int) polygon.getBounds2D().getMinY();
+			int width = (int) polygon.getBounds2D().getWidth();
+			int height = (int) polygon.getBounds2D().getHeight();
+			
+			// Check all grid points in the bounds to see if the polygon contains the centre
+			// - 1's since we don't want to go over the boundary when we add + 0.5
+			for(int i = widthIndex; i < widthIndex + width; i++) {
+				for(int j = heightIndex; j < heightIndex + height; j++) {
+					if(polygon.contains(i + 0.5, j + 0.5)) {
+						
+						// If point out of bounds, reject
+						if(i + width > this.blocks.length ||
+						   i < 0 ||
+						   j + height > this.blocks[0].length + this.height ||
+						   j - this.height < 0) {
+							return false;
+						}
+						
+						// Overlaps with a non-empty or non-anchor block
+						if(blocks[i][j - this.height] != 0 && blocks[i][j - this.height] != 1) {
+							return false;
+						}
+						// Overlaps with anchor
+						else if(blocks[i][j - this.height] == 1) {
+							anchorFound = true;
 						}
 					}
 				}
@@ -725,26 +721,25 @@ public class TetrisSolution {
 //			System.out.println("BEFORE");
 //			drawGrid();
 			
-			for(Polygon polygon:piece.polygons) {
+			Polygon polygon = piece.mergedPolygon;
 				
-				// Top left corner
-				int widthIndex = (int) polygon.getBounds2D().getMinX();
-				int heightIndex = (int) polygon.getBounds2D().getMinY();
-				int width = (int) polygon.getBounds2D().getWidth();
-				int height = (int) polygon.getBounds2D().getHeight();
-				
-				// Check all grid points in the bounds to see if the polygon contains the centre
-				for(int i = widthIndex; i < widthIndex + width; i++) {
-					for(int j = heightIndex; j < heightIndex + height; j++) {
+			// Top left corner
+			int widthIndex = (int) polygon.getBounds2D().getMinX();
+			int heightIndex = (int) polygon.getBounds2D().getMinY();
+			int width = (int) polygon.getBounds2D().getWidth();
+			int height = (int) polygon.getBounds2D().getHeight();
+			
+			// Check all grid points in the bounds to see if the polygon contains the centre
+			for(int i = widthIndex; i < widthIndex + width; i++) {
+				for(int j = heightIndex; j < heightIndex + height; j++) {
+					
+					if(polygon.contains(i + 0.5, j + 0.5)) {
+						// Set the selected block to being used: -1
+						blocks[i][j - this.height] = -1;
 						
-						if(polygon.contains(i + 0.5, j + 0.5)) {
-							// Set the selected block to being used: -1
-							blocks[i][j - this.height] = -1;
-							
-							// Set the block one down to being a possible building point: 1
-							if(i < blocks.length - 1 && j - this.height >= 0 && blocks[i + 1][j - this.height] == 0) {
-								blocks[i + 1][j - this.height] = 1;
-							}
+						// Set the block one down to being a possible building point: 1
+						if(i < blocks.length - 1 && j - this.height >= 0 && blocks[i + 1][j - this.height] == 0) {
+							blocks[i + 1][j - this.height] = 1;
 						}
 					}
 				}
