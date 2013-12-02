@@ -3,6 +3,11 @@ package com.plotter.algorithms;
 import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -34,7 +39,7 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 20;
+	private static final int GENERATIONS = 50;
 	
 	private static final int MAX_CROSSOVERS = 10;
 	private static final int MAX_GENEPOOL = 200;
@@ -215,6 +220,27 @@ public class TetrisSolution {
 			}
 		}
 		
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(new FileOutputStream(new File("C:/Users/Daedalus/Desktop/geneticData.txt"), true));
+			
+			List<GeneticStub> stubs = new ArrayList<>();
+			
+			while(geneticQueue.size() > 0) {
+				GeneticStub stub = geneticQueue.poll();
+				stubs.add(stub);
+				
+				writer.println(0 + "," + stub.fitness);
+			}
+			
+			geneticQueue.addAll(stubs);
+			
+			writer.close();
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
 		// For X iterations take the top M children and alter them
 		for(int generation = 0; generation < GENERATIONS; generation++) {
 			
@@ -274,6 +300,25 @@ public class TetrisSolution {
 						geneticQueue.add(new GeneticStub(bestStage.grid.getGridScore(), incomingBlocksMem));
 					}
 				}
+			}
+			
+			try {
+				writer = new PrintWriter(new FileOutputStream(new File("C:/Users/Daedalus/Desktop/geneticData.txt"), true));
+				
+				List<GeneticStub> stubs = new ArrayList<>();
+				
+				while(geneticQueue.size() > 0) {
+					GeneticStub stub = geneticQueue.poll();
+					stubs.add(stub);
+					writer.println((generation + 1) + "," + stub.fitness);
+				}
+				
+				geneticQueue.addAll(stubs);
+				
+				writer.close();
+				
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
 			}
 		}
 		
