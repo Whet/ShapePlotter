@@ -65,6 +65,8 @@ public class OutputSVG {
 			layout.add(new LayoutPolygon(tP));
 		}
 		
+		System.out.println("Blocks placed " + layout.size());
+		
 		List<Polygon> markerPlots = computeMarkerPlots(layout);
 		List<Line> hairLines = computeHairLines(layout);
 		System.out.println();

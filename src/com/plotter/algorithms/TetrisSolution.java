@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -32,7 +31,7 @@ public class TetrisSolution {
 	private static final int H_HIGHEST_Y = -10;
 	private static final int H_MAX_SLOPE = -1;
 	private static final int H_FULLNESS = -1;
-	private static final int H_FULL_HEIGHT = -5;
+	private static final int H_FULL_HEIGHT = -10;
 	private static final int H_TOTAL_SLOPE = -2;
 	private static final int H_HOLES = 0;
 	
@@ -204,8 +203,8 @@ public class TetrisSolution {
 				
 			}
 			
-			if(bestStage.incomingBlocks.size() > 0) {
-//				System.out.println("Failed to place all blocks");
+			if(bestStage.placingBlock != null) {
+				System.out.println("Failed to place all blocks");
 			}
 			else {
 				System.out.println("Starter " + attempts + " fitness: " + bestStage.grid.getGridScore());
@@ -292,8 +291,8 @@ public class TetrisSolution {
 						
 					}
 					
-					if(bestStage.incomingBlocks.size() > 0) {
-//						System.out.println("Failed to place all blocks");
+					if(bestStage.placingBlock != null) {
+						System.out.println("Failed to place all blocks");
 					}
 					else {
 						System.out.println("Generation " + generation + " child of " +  parents.get(parentNo).fitness + " fitness " + bestStage.grid.getGridScore());
@@ -375,6 +374,8 @@ public class TetrisSolution {
 //			tetrisPiece.getBlock().pop.increment();
 			tetrisPiece = tetrisPiece.parent;
 		}
+		
+		System.out.println("Solution blocks " + solutionPieces.size());
 		
 	}
 	
