@@ -40,11 +40,11 @@ public class TetrisSolution {
 	
 	private static final int GENERATIONS = 50;
 	
-	private static final int MAX_CROSSOVERS = 10;
-	private static final int MAX_GENEPOOL = 200;
-	private static final int MAX_BREEDERS = 10;
+	private static final int MAX_CROSSOVERS = 5;
+	private static final int MAX_GENEPOOL = 30;
+	private static final int MAX_BREEDERS = 30;
 	
-	private static final int INITIAL_POPULATION = 10;
+	private static final int INITIAL_POPULATION = 30;
 	
 	// Stores best lines on a grid
 	// No real measurements, must be scaled on svg output
@@ -207,13 +207,13 @@ public class TetrisSolution {
 				System.out.println("Failed to place all blocks");
 			}
 			else {
-				System.out.println("Starter " + attempts + " fitness: " + bestStage.grid.getGridScore());
-				geneticQueue.add(new GeneticStub(bestStage.grid.getGridScore(), incomingBlocksMem));
+				System.out.println("Starter " + attempts + " fitness: " + bestStage.getGrid().getGridScore());
+				geneticQueue.add(new GeneticStub(bestStage.getGrid().getGridScore(), incomingBlocksMem));
 			}
 			
 			if(attempts > INITIAL_POPULATION * 2) {
 				System.out.println("Failed to place all blocks");
-				bestStage.grid.drawGrid();
+				bestStage.getGrid().drawGrid();
 				bestStage.lookAhead();
 				break;
 			}
@@ -225,12 +225,26 @@ public class TetrisSolution {
 			
 			List<GeneticStub> stubs = new ArrayList<>();
 			
+			double averageScore = 0;
+			double lowestScore = 99999999;
+			double heighestScore = 0;
+			
 			while(geneticQueue.size() > 0) {
 				GeneticStub stub = geneticQueue.poll();
 				stubs.add(stub);
 				
-				writer.println(0 + "," + stub.fitness);
+				
+				if(stub.fitness > heighestScore)
+					heighestScore = stub.fitness;
+				if(stub.fitness < lowestScore)
+					lowestScore = stub.fitness;
+				
+				averageScore += stub.fitness;
 			}
+			
+			averageScore /= stubs.size();
+			
+			writer.println("0 " + lowestScore + " " + averageScore + " " + heighestScore);
 			
 			geneticQueue.addAll(stubs);
 			
@@ -295,8 +309,8 @@ public class TetrisSolution {
 						System.out.println("Failed to place all blocks");
 					}
 					else {
-						System.out.println("Generation " + generation + " child of " +  parents.get(parentNo).fitness + " fitness " + bestStage.grid.getGridScore());
-						geneticQueue.add(new GeneticStub(bestStage.grid.getGridScore(), incomingBlocksMem));
+						System.out.println("Generation " + generation + " child of " +  parents.get(parentNo).fitness + " fitness " + bestStage.getGrid().getGridScore());
+						geneticQueue.add(new GeneticStub(bestStage.getGrid().getGridScore(), incomingBlocksMem));
 					}
 				}
 			}
@@ -306,11 +320,26 @@ public class TetrisSolution {
 				
 				List<GeneticStub> stubs = new ArrayList<>();
 				
+				double averageScore = 0;
+				double lowestScore = 99999999;
+				double heighestScore = 0;
+				
 				while(geneticQueue.size() > 0) {
 					GeneticStub stub = geneticQueue.poll();
 					stubs.add(stub);
-					writer.println((generation + 1) + "," + stub.fitness);
+					
+					
+					if(stub.fitness > heighestScore)
+						heighestScore = stub.fitness;
+					if(stub.fitness < lowestScore)
+						lowestScore = stub.fitness;
+					
+					averageScore += stub.fitness;
 				}
+				
+				averageScore /= stubs.size();
+				
+				writer.println((generation + 1) + " " + lowestScore + " " + averageScore + " " + heighestScore);
 				
 				geneticQueue.addAll(stubs);
 				
@@ -364,7 +393,7 @@ public class TetrisSolution {
 		
 		TetrisStage tetrisPiece = bestStage;
 		
-		finalGrid = tetrisPiece.grid;
+		finalGrid = tetrisPiece.getGrid();
 		
 		while(tetrisPiece.parent != null) {
 			// DEBUG
@@ -418,12 +447,12 @@ public class TetrisSolution {
 				this.incomingBlocks = new ArrayBlockingQueue<>(parentStage.incomingBlocks.size());
 				this.incomingBlocks.addAll(parentStage.incomingBlocks);
 				this.placingBlock = incomingBlocks.poll();
-				this.grid = new TetrisGrid(parentStage.grid, this.placingBlock.getSize());
+//				this.grid = new TetrisGrid(parentStage.getGrid(), this.placingBlock.getSize());
 			}
 			else {
 				this.incomingBlocks = new ArrayBlockingQueue<>(1);
 				this.placingBlock = null;
-				this.grid = new TetrisGrid(parentStage.grid, 0);
+//				this.grid = new TetrisGrid(parentStage.getGrid(), 0);
 			}
 				
 			this.blockChoices = new PriorityQueue<TetrisStage>(10, new StageComp());
@@ -431,7 +460,6 @@ public class TetrisSolution {
 			this.parent = parentStage;
 			this.block = newBlock;
 			
-			this.grid.addPiece(newBlock);
 			this.computeScore();
 			
 //			System.out.println("INC BLOCKS: " + incomingBlocks.size());
@@ -465,9 +493,8 @@ public class TetrisSolution {
 		private void computeAllChoices(int lookAhead) {
 			// Take the placing block
 			// Try all possible translations
-			// AddChoice(position)
-//			System.out.println("Possibilities: " + this.grid.getAnchors().size());
-			for(int[] possibleLocation:this.grid.getAnchors()) {
+			
+			for(int[] possibleLocation:this.getGrid().getAnchors()) {
 				
 				TetrisPiece testPiece = this.placingBlock.copy();
 				testPiece.translate(possibleLocation[0], possibleLocation[1]);
@@ -480,7 +507,7 @@ public class TetrisSolution {
 						TetrisPiece translatedPiece = testPiece.copy();
 						translatedPiece.translate(i, j);
 						
-						if(this.grid.isPieceValid(translatedPiece)) {
+						if(this.getGrid().isPieceValid(translatedPiece)) {
 							this.addChoice(translatedPiece, lookAhead);
 						}
 					}
@@ -492,7 +519,6 @@ public class TetrisSolution {
 		private void addChoice(TetrisPiece positionedBlock, int lookAhead) {
 			TetrisStage tetrisStage = new TetrisStage(this, positionedBlock);
 			this.blockChoices.add(tetrisStage.lookAhead(lookAhead - 1));
-//			System.out.println("Choices: " + this.blockChoices.size());
 		}
 		
 		private void computeScore() {
@@ -505,10 +531,12 @@ public class TetrisSolution {
 			int totalSlopes = 0;
 			int holes = 0;
 			
-			for(int i = 0; i < this.grid.blocks.length; i++) {
-				for(int j = 0; j < this.grid.blocks[i].length; j++) {
+			TetrisGrid localGrid = this.getGrid();
+			
+			for(int i = 0; i < localGrid.blocks.length; i++) {
+				for(int j = 0; j < localGrid.blocks[i].length; j++) {
 					
-					int gridCode = this.grid.blocks[i][j];
+					int gridCode = localGrid.blocks[i][j];
 					
 					// Detect highest point on grid
 					if(j > highestY && gridCode == -1)
@@ -522,10 +550,10 @@ public class TetrisSolution {
 					}
 					
 					// Detect holes (one block where either side is covered)
-					if((i - 1 < 0 || this.grid.blocks[i - 1][j] == -1) && (i + 1 >= this.grid.blocks.length || this.grid.blocks[i + 1][j] == -1)) {
+					if((i - 1 < 0 || localGrid.blocks[i - 1][j] == -1) && (i + 1 >= localGrid.blocks.length || localGrid.blocks[i + 1][j] == -1)) {
 						holes++;
 					}
-					else if((j - 1 < 0 || this.grid.blocks[i][j - 1] == -1) && (j + 1 >= this.grid.blocks[0].length || this.grid.blocks[i][j + 1] == -1)) {
+					else if((j - 1 < 0 || localGrid.blocks[i][j - 1] == -1) && (j + 1 >= localGrid.blocks[0].length || localGrid.blocks[i][j + 1] == -1)) {
 						holes++;
 					}
 					
@@ -538,6 +566,17 @@ public class TetrisSolution {
 			this.score += largestSlope * H_MAX_SLOPE;
 			this.score += totalSlopes * H_TOTAL_SLOPE;
 			this.score += holes * H_HOLES;
+		}
+		
+		public TetrisGrid getGrid() {
+			
+			if(this.grid != null)
+				return this.grid;
+			
+			TetrisGrid grid = this.parent.getGrid();
+			grid.addPiece(this.block);
+			
+			return grid;
 		}
 		
 	}
@@ -658,21 +697,21 @@ public class TetrisSolution {
 		public TetrisGrid(TetrisGrid parentGrid, int blockSize) {
 			// Check how many rows are completed and removed them
 			this.height = parentGrid.height;
-			boolean rowFull = true;
+//			boolean rowFull = true;
 			int extraHeight = 0;
-			do {
-				rowFull = true;
-				for(int i = 0; i < parentGrid.blocks.length; i++) {
-					if(parentGrid.blocks[i][this.height - parentGrid.height] == 0 || parentGrid.blocks[i][this.height - parentGrid.height] == 1) {
-						rowFull = false;
-						break;
-					}
-				}
-				
-				if(rowFull)
-					height++;
-				
-			}while(rowFull);
+//			do {
+//				rowFull = true;
+//				for(int i = 0; i < parentGrid.blocks.length; i++) {
+//					if(parentGrid.blocks[i][this.height - parentGrid.height] == 0 || parentGrid.blocks[i][this.height - parentGrid.height] == 1) {
+//						rowFull = false;
+//						break;
+//					}
+//				}
+//				
+//				if(rowFull)
+//					height++;
+//				
+//			}while(rowFull);
 			
 			// Check if placing the block would go out of bounds on height
 //			if(this.height + parentGrid.blocks[0].length < M_HEIGHT) {
