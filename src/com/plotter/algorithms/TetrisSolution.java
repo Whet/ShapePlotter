@@ -38,7 +38,7 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 50;
+	private static final int GENERATIONS = 20;
 	
 	private static final int MAX_CROSSOVERS = 5;
 	private static final int MAX_GENEPOOL = 30;
@@ -169,7 +169,7 @@ public class TetrisSolution {
 		int attempts = 0;
 		
 		while(geneticQueue.size() < INITIAL_POPULATION) {
-			attempts++;
+			
 			// Get number of blocks needed
 			Set<ReferenceInt> uniqueCounters = new HashSet<>();
 			
@@ -192,7 +192,7 @@ public class TetrisSolution {
 			TetrisStage bestStage = firstStage;
 			
 			while(true) {
-
+				
 				TetrisStage potentialBest = bestStage.lookAhead();
 				
 				// Break when no further stages found (Can't find somewhere to put next block)
@@ -201,17 +201,20 @@ public class TetrisSolution {
 				else
 					bestStage = potentialBest;
 				
+//				System.out.println(bestStage.incomingBlocks.size());
+				
 			}
 			
 			if(bestStage.placingBlock != null) {
 				System.out.println("Failed to place all blocks");
+				attempts++;
 			}
 			else {
 				System.out.println("Starter " + attempts + " fitness: " + bestStage.getGrid().getGridScore());
 				geneticQueue.add(new GeneticStub(bestStage.getGrid().getGridScore(), incomingBlocksMem));
 			}
 			
-			if(attempts > INITIAL_POPULATION * 2) {
+			if(attempts > 3) {
 				System.out.println("Failed to place all blocks");
 				bestStage.getGrid().drawGrid();
 				bestStage.lookAhead();
@@ -470,6 +473,10 @@ public class TetrisSolution {
 		}
 		
 		public TetrisStage lookAhead() {
+			
+			if(this.grid == null)
+				this.grid = this.getGrid();
+			
 			return lookAhead(TetrisSolution.LOOK_AHEAD);
 		}
 		
