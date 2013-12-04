@@ -442,7 +442,7 @@ public class TetrisSolution {
 		}
 		
 		public TetrisStage(TetrisStage parentStage, TetrisPiece newBlock) {
-			
+			this.grid = null;
 			if(parentStage.incomingBlocks.size() > 0) {
 				this.incomingBlocks = new ArrayBlockingQueue<>(parentStage.incomingBlocks.size());
 				this.incomingBlocks.addAll(parentStage.incomingBlocks);
@@ -571,7 +571,7 @@ public class TetrisSolution {
 		public TetrisGrid getGrid() {
 			
 			if(this.grid != null)
-				return this.grid;
+				return new TetrisGrid(this.grid, 0);
 			
 			TetrisGrid grid = this.parent.getGrid();
 			grid.addPiece(this.block);
