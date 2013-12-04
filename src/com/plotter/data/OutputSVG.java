@@ -57,6 +57,8 @@ public class OutputSVG {
 		
 		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, decompImages);
 		
+		LayoutPolygon.rotations = new HashMap<>();
+		
 		List<LayoutPolygon> layout = new ArrayList<>();
 		
 		for(TetrisSolution.TetrisPiece tP:solution.getSolutionPieces()) {
@@ -186,6 +188,8 @@ public class OutputSVG {
 	
 	public static class LayoutPolygon {
 
+		protected static Map<ReferenceInt, int[]> rotations;
+		
 		public Color fillColour;
 		private Polygon marker;
 		private LineMergePolygon lmp;
@@ -217,30 +221,127 @@ public class OutputSVG {
 			
 			marker = new Polygon();
 			
-			double minX = tP.markerPolygonLocation[0] * POLY_SCALE;
-			double minY = tP.markerPolygonLocation[1] * POLY_SCALE;
+			double centreX = tP.markerPolygonLocation[0] * POLY_SCALE;
+			double centreY = tP.markerPolygonLocation[1] * POLY_SCALE;
 			
 			int halfMarkerSize = POLY_SCALE / 4;
 			
-			// Put block in centre
-			if(area.contains((int)minX - halfMarkerSize, (int)minY - halfMarkerSize) && area.contains((int)minX + halfMarkerSize, (int)minY - halfMarkerSize) && area.contains((int)minX + halfMarkerSize, (int)minY + halfMarkerSize) && area.contains((int)minX - halfMarkerSize, (int)minY + halfMarkerSize)) {
-				marker.addPoint((int)minX - halfMarkerSize, (int)minY - halfMarkerSize);
-				marker.addPoint((int)minX + halfMarkerSize, (int)minY - halfMarkerSize);
-				marker.addPoint((int)minX + halfMarkerSize, (int)minY + halfMarkerSize);
-				marker.addPoint((int)minX - halfMarkerSize, (int)minY + halfMarkerSize);
+			// Put block in centre if possible
+			if(area.contains((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize) && 
+			   area.contains((int)centreX + halfMarkerSize, (int)centreY - halfMarkerSize) &&
+			   area.contains((int)centreX + halfMarkerSize, (int)centreY + halfMarkerSize) &&
+			   area.contains((int)centreX - halfMarkerSize, (int)centreY + halfMarkerSize)) {
+				
+				marker.addPoint((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize);
+				marker.addPoint((int)centreX + halfMarkerSize, (int)centreY - halfMarkerSize);
+				marker.addPoint((int)centreX + halfMarkerSize, (int)centreY + halfMarkerSize);
+				marker.addPoint((int)centreX - halfMarkerSize, (int)centreY + halfMarkerSize);
+				
 			}
-			// Put block in centre of first polygon
+			// Keep moving marker towards corner until it fits
 			else {
 				
-				marker.addPoint((int)minX - halfMarkerSize, (int)minY - halfMarkerSize);
-				marker.addPoint((int)minX + halfMarkerSize, (int)minY - halfMarkerSize);
-				marker.addPoint((int)minX + halfMarkerSize, (int)minY + halfMarkerSize);
-				marker.addPoint((int)minX - halfMarkerSize, (int)minY + halfMarkerSize);
+				boolean blockPlaced = true;
+				
+				int[][] combos = new int[4][2];
+				
+				if(tP.rotationComponent == 0) {
+					combos[0][0] = 1;
+					combos[0][1] = 1;
+					combos[1][0] = 1;
+					combos[1][1] = -1;
+					combos[2][0] = -1;
+					combos[2][1] = -1;
+					combos[3][0] = -1;
+					combos[3][1] = 1;
+				}
+				else if(tP.rotationComponent == 1){
+					combos[1][0] = 1;
+					combos[1][1] = 1;
+					combos[2][0] = 1;
+					combos[2][1] = -1;
+					combos[3][0] = -1;
+					combos[3][1] = -1;
+					combos[0][0] = -1;
+					combos[0][1] = 1;
+				}
+				else if(tP.rotationComponent == 2){
+					combos[2][0] = 1;
+					combos[2][1] = 1;
+					combos[3][0] = 1;
+					combos[3][1] = -1;
+					combos[0][0] = -1;
+					combos[0][1] = -1;
+					combos[1][0] = -1;
+					combos[1][1] = 1;		
+				}
+				else if(tP.rotationComponent == 3){
+					combos[3][0] = 1;
+					combos[3][1] = 1;
+					combos[0][0] = 1;
+					combos[0][1] = -1;
+					combos[1][0] = -1;
+					combos[1][1] = -1;
+					combos[2][0] = -1;
+					combos[2][1] = 1;
+				}
+				
+				double startX = centreX;
+				double startY = centreY;
+				
+				if(rotations.containsKey(tP.pop)) {
+					
+					centreX = startX;
+					centreY = startY;
+					centreX += rotations.get(tP.pop)[1] * combos[rotations.get(tP.pop)[0]][0];
+					centreY += rotations.get(tP.pop)[1] * combos[rotations.get(tP.pop)[0]][1];
+					
+					marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
+					marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
+					marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
+					marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
+					return;
+				}
+				
+				for(int i = 0; i < 4; i++) {
+					
+					blockPlaced = true;
+					centreX = startX;
+					centreY = startY;
+					
+					int offset = 1;
+					
+					do {
+						
+						centreX += 1 * combos[i][0];
+						centreY += 1 * combos[i][1];
+						
+						if(!area.getBounds2D().contains(centreX,centreY)) {
+							blockPlaced = false;
+							break;
+						}
+						
+						offset++;
+						
+					}
+					while(!area.contains((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize) || 
+						  !area.contains((int)centreX + halfMarkerSize, (int)centreY - halfMarkerSize) ||
+						  !area.contains((int)centreX + halfMarkerSize, (int)centreY + halfMarkerSize) ||
+						  !area.contains((int)centreX - halfMarkerSize, (int)centreY + halfMarkerSize));
+				
+					if(blockPlaced) {
+						marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
+						marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
+						marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
+						marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
+						
+						rotations.put(tP.pop, new int[]{i,offset});
+						break;
+					}
+				}
 			}
-			
-			
 		}
-
+		
 		public Point getCentre() {
 			return centre;
 		}

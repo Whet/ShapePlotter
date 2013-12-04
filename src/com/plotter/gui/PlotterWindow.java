@@ -16,7 +16,6 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
 import com.plotter.data.ModulePolygon;
-import com.plotter.data.OutputSVG;
 import com.plotter.data.OutputTikz;
 
 public class PlotterWindow extends JFrame {

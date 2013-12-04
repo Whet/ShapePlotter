@@ -548,9 +548,11 @@ public class TetrisSolution {
 		public double[] markerPolygonLocation;
 		public ReferenceInt pop;
 		private int width, height;
+		public int rotationComponent;
 		
 		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
+			this.rotationComponent = rotationComponent;
 			this.pop = integer;
 			
 			Area area = new Area();
@@ -611,6 +613,7 @@ public class TetrisSolution {
 			t.markerPolygonLocation = new double[]{this.markerPolygonLocation[0], this.markerPolygonLocation[1]};
 			t.width = this.width;
 			t.height = this.height;
+			t.rotationComponent = this.rotationComponent;
 			
 			return t;
 		}
