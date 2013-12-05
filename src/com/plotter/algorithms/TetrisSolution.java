@@ -474,8 +474,12 @@ public class TetrisSolution {
 		
 		public TetrisStage lookAhead() {
 			
-			if(this.grid == null)
+			if(this.grid == null) {
 				this.grid = this.getGrid();
+				
+				if(this.parent != null && this.parent.parent != null && this.parent.grid != null)
+					this.parent.grid = null;
+			}
 			
 			return lookAhead(TetrisSolution.LOOK_AHEAD);
 		}
@@ -751,16 +755,18 @@ public class TetrisSolution {
 		
 		public int getGridScore() {
 			
-			int width = 0;
-			int height = 0;
+			int width = 1;
+			int height = 1;
 			
 			for(int i = 0; i < blocks.length; i++) {
 				for(int j = 0; j < blocks[i].length; j++) {
 					if(blocks[i][j] == -1) {
-						width = i;
 						
-						if(j > height)
-							height = j;
+						if(i + 1 > width)
+							width = i + 1;
+						
+						if(j + 1 > height)
+							height = j + 1;
 					}
 				}
 			}
