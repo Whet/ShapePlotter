@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -137,6 +138,15 @@ public class TetrisSolution {
 		
 		TetrisPiece randP = null;
 		
+		Map<ReferenceInt, List<TetrisPiece>> mutate = new HashMap<>();
+		
+		for(TetrisPiece piece:polygons) {
+			if(!mutate.containsKey(piece.pop))
+				mutate.put(piece.pop, new ArrayList<TetrisPiece>());
+			
+			mutate.get(piece.pop).add(piece);
+		}
+		
 		while(pieces.size() < parent1.size()) {
 			if(new Random().nextBoolean()) {
 				do {
@@ -147,6 +157,12 @@ public class TetrisSolution {
 				do {
 					randP = parent2Copy.get(new Random().nextInt(parent2Copy.size()));
 				}while(randP.pop.currentPopulation == randP.pop.targetPopulation);
+			}
+			
+			// Chance to mutate
+			if(new Random().nextInt(10) < 2) {
+				List<TetrisPiece> mutationChoices = mutate.get(randP.pop);
+				randP = mutationChoices.get(new Random().nextInt(mutationChoices.size())).copy();
 			}
 			
 			pieces.add(randP);
