@@ -2,7 +2,9 @@ package com.plotter.algorithms;
 
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class MultiPoly {
 
 	private List<Connection> connectedPoints;
 	private List<Polygon> polygons;
-	private Polygon convexMergedPolygon;
+	private Polygon mergedPolygon;
 	private LineMergePolygon lineMergedPolygon;
 	private String parent;
 	private String code;
@@ -39,21 +41,18 @@ public class MultiPoly {
 		
 		this.lineMergedPolygon = new LineMergePolygon();
 		ArrayList<Point> points = new ArrayList<>();
+		Area mergedArea = new Area();
 		
 		for(Polygon polygon:this.polygons) {
 			for(int i = 0; i < polygon.npoints; i++) {
 				points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
 			}
 			this.lineMergedPolygon.addPolygon(polygon);
+			mergedArea.add(new Area(polygon));
 		}
 		
-		ArrayList<Point> mergedPoints = FastConvexHull.execute(points);
+		createMergedPolygon(mergedArea.getPathIterator(new AffineTransform()));
 		
-		this.convexMergedPolygon = new Polygon();
-		
-		for(Point point: mergedPoints) {
-			this.convexMergedPolygon.addPoint(point.x, point.y);
-		}
 	}
 	
 	public MultiPoly(String parent, String code, List<Connection> connectedPoints, List<Connection> connectedPoints1, List<Polygon> polygons1, List<Polygon> polygons2) {
@@ -77,63 +76,36 @@ public class MultiPoly {
 			Point end1 = new Point(connectedPoints.get(i).getOutside().x, connectedPoints.get(i).getOutside().y);
 			Point end2 = new Point(connectedPoints.get(i).getInside().x, connectedPoints.get(i).getInside().y);
 			
-//			boolean e1 = false;
-//			boolean e2 = false;
-//			
-//			for(Polygon polygon:this.polygons) {
-//				if(polygon.contains(end1)) {
-//					e1 = true;
-//				}
-//				if(polygon.contains(end2)) {
-//					e2 = true;
-//				}
-//				if(e1 && e2)
-//					break;
-//			}
-//			
-//			if(!(e1 && e2))
-				this.connectedPoints.add(new Connection(connectedPoints.get(i).getFlavour(), connectedPoints.get(i).getCentre().x, connectedPoints.get(i).getCentre().y, end1.x, end1.y, end2.x, end2.y));
+			this.connectedPoints.add(new Connection(connectedPoints.get(i).getFlavour(), connectedPoints.get(i).getCentre().x, connectedPoints.get(i).getCentre().y, end1.x, end1.y, end2.x, end2.y));
 		}
 		for(int i = 0; i < connectedPoints1.size(); i++) {
 			// if both out and in ends are inside of a polygon then don't add the connect point as it is in use
 			Point end1 = new Point(connectedPoints1.get(i).getOutside().x, connectedPoints1.get(i).getOutside().y);
 			Point end2 = new Point(connectedPoints1.get(i).getInside().x, connectedPoints1.get(i).getInside().y);
 			
-//			boolean e1 = false;
-//			boolean e2 = false;
-//			
-//			for(Polygon polygon:this.polygons) {
-//				if(polygon.contains(end1)) {
-//					e1 = true;
-//				}
-//				if(polygon.contains(end2)) {
-//					e2 = true;
-//				}
-//				if(e1 && e2)
-//					break;
-//			}
-//			
-//			if(!(e1 && e2))
 				this.connectedPoints.add(new Connection(connectedPoints1.get(i).getFlavour(), connectedPoints1.get(i).getCentre().x, connectedPoints1.get(i).getCentre().y, end1.x, end1.y, end2.x, end2.y));
 		}
 		
 		this.lineMergedPolygon = new LineMergePolygon();
 		ArrayList<Point> points = new ArrayList<>();
+		Area mergedArea = new Area();
 		
 		for(Polygon polygon:this.polygons) {
 			for(int i = 0; i < polygon.npoints; i++) {
 				points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
 			}
 			this.lineMergedPolygon.addPolygon(polygon);
+			mergedArea.add(new Area(polygon));
 		}
 		
-		ArrayList<Point> mergedPoints = FastConvexHull.execute(points);
-		
-		this.convexMergedPolygon = new Polygon();
-		
-		for(Point point: mergedPoints) {
-			this.convexMergedPolygon.addPoint(point.x, point.y);
-		}
+		createMergedPolygon(mergedArea.getPathIterator(new AffineTransform()));
+	}
+	
+	private void createMergedPolygon(PathIterator p_path) {
+		this.mergedPolygon = new Polygon();
+		double[] point = new double[2];
+		if(p_path.currentSegment(point) != PathIterator.SEG_CLOSE)
+			this.mergedPolygon.addPoint((int) point[0], (int) point[1]);
 	}
 	
 	@Override
@@ -165,7 +137,7 @@ public class MultiPoly {
 	}
 
 	public Polygon getMergedPolygon() {
-		return convexMergedPolygon;
+		return mergedPolygon;
 	}
 	
 	public LineMergePolygon getMergedLines() {
@@ -188,7 +160,7 @@ public class MultiPoly {
 		for(int i = 0; i < this.polygons.size(); i++) {
 			this.polygons.get(i).translate(deltaX, deltaY);
 		}
-		this.convexMergedPolygon.translate(deltaX, deltaY);
+		this.mergedPolygon.translate(deltaX, deltaY);
 		this.lineMergedPolygon.translate(deltaX, deltaY);
 		
 		ArrayList<Connection> translatedConnections = new ArrayList<>();
@@ -257,13 +229,13 @@ public class MultiPoly {
 		
 		Polygon rotatedMergedPolygon = new Polygon();
 		
-		for(int i = 0; i < this.convexMergedPolygon.npoints; i++) {
-			Point rotatedPoint = rotatePoint(new Point(this.convexMergedPolygon.xpoints[i], this.convexMergedPolygon.ypoints[i]), centreOfRotation, angle);
+		for(int i = 0; i < this.mergedPolygon.npoints; i++) {
+			Point rotatedPoint = rotatePoint(new Point(this.mergedPolygon.xpoints[i], this.mergedPolygon.ypoints[i]), centreOfRotation, angle);
 			
 			rotatedMergedPolygon.addPoint(Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE), Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
 		}
 		
-		this.convexMergedPolygon = rotatedMergedPolygon;
+		this.mergedPolygon = rotatedMergedPolygon;
 		
 		ArrayList<Connection> rotatedConnections = new ArrayList<>();
 		
