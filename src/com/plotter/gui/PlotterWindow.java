@@ -1,11 +1,19 @@
 package com.plotter.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Calendar;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -14,7 +22,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.plotter.algorithms.LibkokiUtils;
 import com.plotter.data.ModulePolygon;
 import com.plotter.data.OutputTikz;
 
@@ -130,14 +140,48 @@ public class PlotterWindow extends JFrame {
 		});
 		hierMenu.add(generateHierarchy );
 		
-		JMenu optionsMenu = new JMenu("Options");
+		JMenu optionsMenu = new JMenu("Libkoki");
 		menuBar.add(optionsMenu);
 		
-		JMenuItem connectionRules = new JMenuItem("Connection rules");
+		JMenuItem connectionRules = new JMenuItem("Draw Markers");
 		connectionRules.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				
+				JFileChooser choose = new JFileChooser();
+				FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
+				choose.setFileFilter(imageFilter);
+				
+				choose.setCurrentDirectory(new File(HOME_LOCATION));
+				int showOpenDialog = choose.showOpenDialog(PlotterWindow.this);
+				
+				if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+					
+					try {
+						BufferedImage image = ImageIO.read(new FileInputStream(choose.getSelectedFile()));
+						Graphics2D graphics = (Graphics2D) image.getGraphics();
+						
+						JFileChooser xmlChoose = new JFileChooser();
+						FileNameExtensionFilter xmlfilter = new FileNameExtensionFilter("xml files (*.xml)", "xml");
+						xmlChoose.setFileFilter(xmlfilter);
+						
+						xmlChoose.setCurrentDirectory(new File(HOME_LOCATION));
+						showOpenDialog = xmlChoose.showOpenDialog(PlotterWindow.this);
+						
+						if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+							LibkokiUtils.showMarkers(xmlChoose.getSelectedFile(), graphics);
+						}
+						
+						ImageIO.write(image, "png", choose.getSelectedFile());
+						
+					} catch (FileNotFoundException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error loading image file");
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error loading image file");
+					}
+				}
+				
 			}
 			
 		});
