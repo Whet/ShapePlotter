@@ -3,10 +3,6 @@ package com.plotter.algorithms;
 import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,7 +35,7 @@ public class TetrisSolution {
 	// Genetic Algorithm
 	private static final int LOOK_AHEAD = 1;
 	
-	private static final int GENERATIONS = 20;
+	private static final int GENERATIONS = 10;
 	
 	private static final int MAX_CROSSOVERS = 5;
 	private static final int MAX_GENEPOOL = 30;

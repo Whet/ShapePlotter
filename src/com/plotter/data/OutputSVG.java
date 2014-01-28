@@ -5,9 +5,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -34,7 +35,7 @@ import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 
 public class OutputSVG {
 
-	private static final int POLY_SCALE = 20;
+	private static final int POLY_SCALE = 80;
 	private static final float HAIRLINE = 0.3f;
 	private static final float DOTTED = 0.5f;
 	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink, Color.cyan.darker(), Color.magenta, Color.magenta.darker(), Color.yellow, Color.red.darker(), Color.green.darker(), Color.blue.darker()};
@@ -124,30 +125,35 @@ public class OutputSVG {
 		return lines;
 	}
 	
-	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots) {
+	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots) throws IOException {
+		
+		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size());
 		
 		// Setup graphics
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
 		
+		// Draw lines
 		page.setStroke(new BasicStroke(HAIRLINE));
 		for(Line hairline:hairLines) {
 			page.setColor(hairline.colour);
 			page.drawLine(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y);
 		}
 		
+		int markerId = 0;
+		
+		// Draw markers
 		for(Polygon marker:markerPlots) {
 			Rectangle2D bounds = marker.getBounds2D();
-			
-			page.setColor(Color.black);
-			page.fillRect((int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
-			
-			// white fill inside
-			page.setColor(Color.white);
-			page.fillRect((int)bounds.getMinX() + 2, (int)bounds.getMinY() + 2, (int)bounds.getWidth() - 4, (int)bounds.getHeight() - 4);
+			AffineTransform transformation = new AffineTransform();
+			transformation.translate(bounds.getMinX() - POLY_SCALE / 8, bounds.getMinY() - POLY_SCALE / 8);
+			page.drawImage(markers.get(markerId), transformation, null);
+			markerId++;
 		}
 	}
 	
-	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, List<Polygon> markerPlots, TetrisSolution solution, List<LayoutPolygon> layout) {
+	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, List<Polygon> markerPlots, TetrisSolution solution, List<LayoutPolygon> layout) throws IOException {
+		
+		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size());
 		
 		// Setup graphics
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
@@ -168,15 +174,15 @@ public class OutputSVG {
 			page.draw(poly.fullPoly);
 		}
 		
+		int markerId = 0;
+		
+		// Draw markers
 		for(Polygon marker:markerPlots) {
 			Rectangle2D bounds = marker.getBounds2D();
-			
-			page.setColor(Color.black);
-			page.fillRect((int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
-			
-			// white fill inside
-			page.setColor(Color.white);
-			page.fillRect((int)bounds.getMinX() + 2, (int)bounds.getMinY() + 2, (int)bounds.getWidth() - 4, (int)bounds.getHeight() - 4);
+			AffineTransform transformation = new AffineTransform();
+			transformation.translate(bounds.getMinX() - POLY_SCALE / 8, bounds.getMinY() - POLY_SCALE / 8);
+			page.drawImage(markers.get(markerId), transformation, null);
+			markerId++;
 		}
 		
 		TetrisGrid finalGrid = solution.finalGrid;

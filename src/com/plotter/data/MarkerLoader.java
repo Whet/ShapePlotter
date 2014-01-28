@@ -1,7 +1,5 @@
 package com.plotter.data;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,8 +11,8 @@ import javax.imageio.ImageIO;
 public class MarkerLoader {
 
 	private static final String MARKER_SHEET = "spritesheets/15mill.png";
-	private static final int MARKER_WIDTH = 57;
-	private static final int MARKER_HEIGHT = 57;
+	public static final int MARKER_WIDTH = 57;
+	public static final int MARKER_HEIGHT = 57;
 	
 	private static final int WIDTH_GAP = 1;
 	private static final int HEIGHT_GAP = 1;
