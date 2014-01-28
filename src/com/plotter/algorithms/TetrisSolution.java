@@ -238,41 +238,6 @@ public class TetrisSolution {
 			}
 		}
 		
-		PrintWriter writer;
-		try {
-			writer = new PrintWriter(new FileOutputStream(new File("C:/Users/Daedalus/Desktop/geneticData.txt"), true));
-			
-			List<GeneticStub> stubs = new ArrayList<>();
-			
-			double averageScore = 0;
-			double lowestScore = 99999999;
-			double heighestScore = 0;
-			
-			while(geneticQueue.size() > 0) {
-				GeneticStub stub = geneticQueue.poll();
-				stubs.add(stub);
-				
-				
-				if(stub.fitness > heighestScore)
-					heighestScore = stub.fitness;
-				if(stub.fitness < lowestScore)
-					lowestScore = stub.fitness;
-				
-				averageScore += stub.fitness;
-			}
-			
-			averageScore /= stubs.size();
-			
-			writer.println("0 " + lowestScore + " " + averageScore + " " + heighestScore);
-			
-			geneticQueue.addAll(stubs);
-			
-			writer.close();
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		
 		// For X iterations take the top M children and alter them
 		for(int generation = 0; generation < GENERATIONS; generation++) {
 			
@@ -334,39 +299,6 @@ public class TetrisSolution {
 				}
 			}
 			
-			try {
-				writer = new PrintWriter(new FileOutputStream(new File("C:/Users/Daedalus/Desktop/geneticData.txt"), true));
-				
-				List<GeneticStub> stubs = new ArrayList<>();
-				
-				double averageScore = 0;
-				double lowestScore = 99999999;
-				double heighestScore = 0;
-				
-				while(geneticQueue.size() > 0) {
-					GeneticStub stub = geneticQueue.poll();
-					stubs.add(stub);
-					
-					
-					if(stub.fitness > heighestScore)
-						heighestScore = stub.fitness;
-					if(stub.fitness < lowestScore)
-						lowestScore = stub.fitness;
-					
-					averageScore += stub.fitness;
-				}
-				
-				averageScore /= stubs.size();
-				
-				writer.println((generation + 1) + " " + lowestScore + " " + averageScore + " " + heighestScore);
-				
-				geneticQueue.addAll(stubs);
-				
-				writer.close();
-				
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
 		}
 		
 		System.out.println("Winner: " + geneticQueue.peek().fitness);
