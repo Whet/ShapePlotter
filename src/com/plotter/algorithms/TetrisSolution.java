@@ -539,6 +539,7 @@ public class TetrisSolution {
 	public static class TetrisPiece {
 		
 		// Copies polygons and make them unit polygons
+		public MultiPoly mPoly;
 		public Polygon mergedPolygon;
 		public double[] markerPolygonLocation;
 		public ReferenceInt pop;
@@ -547,6 +548,7 @@ public class TetrisSolution {
 		
 		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
+			this.mPoly = mPoly;
 			this.rotationComponent = rotationComponent;
 			this.pop = integer;
 			

@@ -1,8 +1,9 @@
 package com.plotter.data;
 
 import java.awt.Point;
+import java.io.Serializable;
 
-public class Connection {
+public class Connection implements Serializable{
 
 	private int flavour;
 	private Point centre, inside, outside;

@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,7 +15,7 @@ import java.util.List;
 import com.plotter.data.Maths;
 import com.plotter.gui.GridPanel;
 
-public class LineMergePolygon {
+public class LineMergePolygon implements Serializable {
 
 	private List<Edge> borderEdges;
 	private List<Edge> insideEdges;
@@ -119,8 +120,10 @@ LOOP:	while(newIt.hasNext()) {
 		return edges;
 	}
 
-	public static class Edge {
+	public static class Edge implements Serializable {
 		
+		private static final long serialVersionUID = -5183350144300093104L;
+
 		public Point end1, end2;
 		
 		// 0 diagonal, 1 horizontal, 2 vertical

@@ -58,6 +58,9 @@ public class OutputSVG {
 		
 		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, decompImages);
 		
+		Database database = new Database(solution.getSolutionPieces());
+		database.saveDatabase(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Database"));
+		
 		LayoutPolygon.rotations = new HashMap<>();
 		
 		List<LayoutPolygon> layout = new ArrayList<>();
