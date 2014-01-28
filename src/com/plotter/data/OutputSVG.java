@@ -35,7 +35,7 @@ import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 
 public class OutputSVG {
 
-	private static final int POLY_SCALE = 80;
+	private static final int POLY_SCALE = 100;
 	private static final float HAIRLINE = 0.3f;
 	private static final float DOTTED = 0.5f;
 	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink, Color.cyan.darker(), Color.magenta, Color.magenta.darker(), Color.yellow, Color.red.darker(), Color.green.darker(), Color.blue.darker()};
@@ -145,7 +145,7 @@ public class OutputSVG {
 		for(Polygon marker:markerPlots) {
 			Rectangle2D bounds = marker.getBounds2D();
 			AffineTransform transformation = new AffineTransform();
-			transformation.translate(bounds.getMinX() - POLY_SCALE / 8, bounds.getMinY() - POLY_SCALE / 8);
+			transformation.translate(bounds.getCenterX() - MarkerLoader.MARKER_WIDTH / 2, bounds.getCenterY() -  MarkerLoader.MARKER_WIDTH / 2);
 			page.drawImage(markers.get(markerId), transformation, null);
 			markerId++;
 		}
@@ -163,13 +163,6 @@ public class OutputSVG {
 		for(LayoutPolygon poly:layout) {
 			page.setColor(poly.fillColour);
 			page.fill(poly.fullPoly);
-			
-			
-//			page.setColor(Color.white);
-//			for(Polygon polygon:poly.polygons) {
-//				page.draw(polygon);
-//			}
-//			
 			page.setColor(Color.black);
 			page.draw(poly.fullPoly);
 		}
@@ -180,7 +173,7 @@ public class OutputSVG {
 		for(Polygon marker:markerPlots) {
 			Rectangle2D bounds = marker.getBounds2D();
 			AffineTransform transformation = new AffineTransform();
-			transformation.translate(bounds.getMinX() - POLY_SCALE / 8, bounds.getMinY() - POLY_SCALE / 8);
+			transformation.translate(bounds.getCenterX() -  MarkerLoader.MARKER_WIDTH / 2, bounds.getCenterY() -  MarkerLoader.MARKER_WIDTH / 2);
 			page.drawImage(markers.get(markerId), transformation, null);
 			markerId++;
 		}
@@ -232,7 +225,7 @@ public class OutputSVG {
 			double centreX = tP.markerPolygonLocation[0] * POLY_SCALE;
 			double centreY = tP.markerPolygonLocation[1] * POLY_SCALE;
 			
-			int halfMarkerSize = POLY_SCALE / 4;
+			int halfMarkerSize = MarkerLoader.MARKER_WIDTH / 2;
 			
 			// Put block in centre if possible
 			if(area.contains((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize) && 
