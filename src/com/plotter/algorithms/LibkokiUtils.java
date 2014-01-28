@@ -3,6 +3,7 @@ package com.plotter.algorithms;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,34 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.plotter.data.Connection;
+import com.plotter.data.Database;
+
 public class LibkokiUtils {
+	
+	public static void showShapes(File selectedFile, Graphics2D graphics, Database database) {
+		
+		List<MarkerInfo> markers = parseXML(selectedFile);
+		
+		for(MarkerInfo marker:markers) {
+			MultiPoly multiPoly = database.markerToShape.get(marker.id);
+			
+			graphics.setColor(Color.green);
+			graphics.setComposite(makeComposite(1.0f));
+			Polygon mergedPolygon = new Polygon(multiPoly.getMergedPolygon().xpoints, multiPoly.getMergedPolygon().ypoints, multiPoly.getMergedPolygon().npoints);
+			mergedPolygon.translate((int)(marker.centrePixels[0] - mergedPolygon.getBounds2D().getWidth() / 2),
+									(int)(marker.centrePixels[1] - mergedPolygon.getBounds2D().getHeight() / 2));
+			graphics.drawPolygon(mergedPolygon);
+			
+			graphics.setColor(Color.red);
+			graphics.setComposite(makeComposite(0.3f));
+			
+			for(Connection connection:multiPoly.getConnectionPoints()) {
+				graphics.fillOval(connection.getCentre().x - 5, connection.getCentre().y - 5, 10, 10);
+			}
+		}
+		
+	}
 
 	public static void showMarkers(File selectedFile, Graphics2D graphics) {
 		List<MarkerInfo> markers = parseXML(selectedFile);

@@ -25,6 +25,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.plotter.algorithms.LibkokiUtils;
+import com.plotter.data.Database;
 import com.plotter.data.ModulePolygon;
 import com.plotter.data.OutputTikz;
 
@@ -140,11 +141,11 @@ public class PlotterWindow extends JFrame {
 		});
 		hierMenu.add(generateHierarchy );
 		
-		JMenu optionsMenu = new JMenu("Libkoki");
-		menuBar.add(optionsMenu);
+		JMenu libkokiMenu = new JMenu("Libkoki");
+		menuBar.add(libkokiMenu);
 		
-		JMenuItem connectionRules = new JMenuItem("Draw Markers");
-		connectionRules.addActionListener(new ActionListener() {
+		JMenuItem drawMarkersOption = new JMenuItem("Draw Markers");
+		drawMarkersOption.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -185,7 +186,59 @@ public class PlotterWindow extends JFrame {
 			}
 			
 		});
-		optionsMenu.add(connectionRules);
+		libkokiMenu.add(drawMarkersOption);
+		
+		JMenuItem drawShapesOption = new JMenuItem("Draw Polygons");
+		drawShapesOption.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				JFileChooser choose = new JFileChooser();
+				FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
+				choose.setFileFilter(imageFilter);
+				
+				choose.setCurrentDirectory(new File(HOME_LOCATION));
+				int showOpenDialog = choose.showOpenDialog(PlotterWindow.this);
+				
+				if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+					
+					try {
+						BufferedImage image = ImageIO.read(new FileInputStream(choose.getSelectedFile()));
+						Graphics2D graphics = (Graphics2D) image.getGraphics();
+						
+						JFileChooser xmlChoose = new JFileChooser();
+						FileNameExtensionFilter xmlfilter = new FileNameExtensionFilter("xml files (*.xml)", "xml");
+						xmlChoose.setFileFilter(xmlfilter);
+						
+						xmlChoose.setCurrentDirectory(new File(HOME_LOCATION));
+						showOpenDialog = xmlChoose.showOpenDialog(PlotterWindow.this);
+						
+						if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+							
+							JFileChooser databaseChoose = new JFileChooser();
+							databaseChoose.setCurrentDirectory(new File(HOME_LOCATION));
+							showOpenDialog = databaseChoose.showOpenDialog(PlotterWindow.this);
+							
+							if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+								Database database = Database.loadDatabase(databaseChoose.getSelectedFile());
+								LibkokiUtils.showShapes(xmlChoose.getSelectedFile(), graphics, database);
+							}
+						}
+						
+						ImageIO.write(image, "png", choose.getSelectedFile());
+						
+					} catch (FileNotFoundException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error loading image file");
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error loading image file");
+					}
+				}
+				
+			}
+			
+		});
+		libkokiMenu.add(drawShapesOption);
 	}
 
 	private void setDecorations() {
