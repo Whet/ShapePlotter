@@ -29,8 +29,8 @@ public class MarkerLoader {
 		BufferedImage spriteSheet = ImageIO.read(new File(MARKER_SHEET));
 		
 		// Debug
-		Graphics graphics = spriteSheet.getGraphics();
-		graphics.setColor(Color.red);
+//		Graphics graphics = spriteSheet.getGraphics();
+//		graphics.setColor(Color.red);
 		
 		int x = WIDTH_GAP;
 		int y = HEIGHT_GAP;
@@ -39,7 +39,7 @@ public class MarkerLoader {
 			markers.add(spriteSheet.getSubimage(x, y, MARKER_WIDTH, MARKER_WIDTH));
 			
 			// Debug
-			graphics.drawRect(x, y, MARKER_WIDTH, MARKER_WIDTH);
+//			graphics.drawRect(x, y, MARKER_WIDTH, MARKER_WIDTH);
 			
 			x += MARKER_WIDTH + WIDTH_GAP * 2;
 			
@@ -50,7 +50,7 @@ public class MarkerLoader {
 		}
 		
 		// Debug
-		ImageIO.write(spriteSheet, "png", new File("spritesheets/test.png"));
+//		ImageIO.write(spriteSheet, "png", new File("spritesheets/test.png"));
 		
 		return markers;
 		
