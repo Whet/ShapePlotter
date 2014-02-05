@@ -55,6 +55,10 @@ public class LibkokiUtils {
 			graphics.setColor(Color.black);
 			graphics.setComposite(makeComposite(1f));
 			graphics.drawString(Integer.toString(marker.id), (int)marker.centrePixels[0], (int)marker.centrePixels[1]);
+			
+			graphics.setColor(Color.black);
+			graphics.drawLine((int)marker.centrePixels[0] - 20, (int)marker.centrePixels[1] - 20,
+							  (int) (marker.centrePixels[0] - 20 + (Math.cos(marker.rotation) * 40)), (int) (marker.centrePixels[1] - 20  + (Math.cos(marker.rotation) * 40)));
 		}
 
 	}
@@ -70,13 +74,16 @@ public class LibkokiUtils {
 
 			DefaultHandler handler = new DefaultHandler() {
 
+				boolean rotation = false;
 				boolean centrePixels = false;
 				boolean x = false;
 				boolean y = false;
+				boolean z = false;
 				
 				private int markerId = 0;
 				double xVal = 0;
 				double yVal = 0;
+				double zRot = 0;
 
 				public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 
@@ -98,6 +105,14 @@ public class LibkokiUtils {
 						y = true;
 					}
 					
+					if (qName.equalsIgnoreCase("z")) {
+						z = true;
+					}
+					
+					if (qName.equalsIgnoreCase("rotation")) {
+						rotation = true;
+					}
+					
 				}
 
 				public void endElement(String uri, String localName, String qName) throws SAXException {
@@ -106,8 +121,11 @@ public class LibkokiUtils {
 					
 					if (qName.equalsIgnoreCase("centrePixels")) {
 						centrePixels = false;
-						
-						returnList.add(new MarkerInfo(markerId, xVal, yVal));
+					}
+					
+					if(qName.equalsIgnoreCase("rotation")) {
+						rotation = false;
+						returnList.add(new MarkerInfo(markerId, xVal, yVal, zRot));
 					}
 
 				}
@@ -129,6 +147,14 @@ public class LibkokiUtils {
 						}
 						catch(NumberFormatException e){};
 					}
+					
+					if (rotation && z) {
+						try {
+							zRot = Double.parseDouble(new String(ch, start, length).trim());
+							z = false;
+						}
+						catch(NumberFormatException e){};
+					}
 
 				}
 
@@ -146,10 +172,12 @@ public class LibkokiUtils {
 	private static class MarkerInfo {
 		public final int id;
 		public final double[] centrePixels;
+		public final double rotation;
 		
-		public MarkerInfo(int id, double x, double y) {
+		public MarkerInfo(int id, double x, double y, double zRot) {
 			this.id = id;
 			this.centrePixels = new double[]{x, y};
+			this.rotation = zRot;
 		}
 	}
 	
