@@ -135,6 +135,7 @@ public class SVGOptionsMenu extends JFrame {
 		try {
 			OutputSVG.outputSVG(saveFile.toString(), decompImages, Integer.parseInt(this.widthText.getText()), Integer.parseInt(this.heightText.getText()));
 		} catch (IOException e) {
+			e.printStackTrace();
 			JOptionPane.showMessageDialog(SVGOptionsMenu.this, "Error saving file");
 		}
 	}

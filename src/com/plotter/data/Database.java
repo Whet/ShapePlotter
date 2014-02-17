@@ -8,28 +8,29 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.TetrisSolution.TetrisPiece;
+import com.plotter.data.OutputSVG.LayoutPolygon;
 
 public class Database implements Serializable {
 
 	private static final long serialVersionUID = -8232193117752056206L;
 	
-	public Map<Integer, MultiPoly> markerToShape;
+	public Map<Integer, DatabaseMultipoly> markerToShape;
 	
-	public Database(List<TetrisPiece> pieces) {
+	private int id;
+	
+	public Database() {
 		this.markerToShape = new HashMap<>();
 		
-		int id = 1;
-		
-		for (TetrisPiece tetrisPiece : pieces) {
-			Integer markerId = new Integer(id);
-			markerToShape.put(markerId, tetrisPiece.mPoly);
-			id++;
-		}
+		id = 1;
+	}
+	
+	public void addPiece(TetrisPiece tP, LayoutPolygon layoutPolygon) {
+		Integer markerId = new Integer(id);
+		markerToShape.put(markerId, new DatabaseMultipoly(tP.mPoly, layoutPolygon.getMarkerCentre(), layoutPolygon.getCentre()));
+		id++;
 	}
 	
 	public void saveDatabase(File file) {

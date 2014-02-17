@@ -1,5 +1,6 @@
 package com.plotter.algorithms;
 
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
@@ -99,7 +100,6 @@ public class TetrisSolution {
 				
 				index++;
 			}
-			
 			
 			// Removed pieces with no remaining population
 			iterator = possiblePieces.iterator();
@@ -548,21 +548,25 @@ public class TetrisSolution {
 		
 		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
-			this.mPoly = mPoly;
 			this.rotationComponent = rotationComponent;
 			this.pop = integer;
 			
 			Area area = new Area();
 			mergedPolygon = new Polygon();
 			
-			mPoly = mPoly.getRotatedMultipoly(rotationComponent);
+			try {
+				this.mPoly = (MultiPoly) mPoly.clone();
+				this.mPoly.rotate(new Point((int)(this.mPoly.getMergedPolygon().getBounds2D().getMinX()), (int)(this.mPoly.getMergedPolygon().getBounds2D().getMinY())), (Math.PI / 2) * rotationComponent);
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
 			
-			for(Polygon poly:mPoly.getPolygons()) {
+			for(Polygon poly:this.mPoly.getPolygons()) {
 				Polygon nPoly = new Polygon();
 				
 				for(int i = 0; i < poly.npoints; i++) {
-					nPoly.addPoint(Maths.round(poly.xpoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinX(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2),
-								   Maths.round(poly.ypoints[i] - mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2));
+					nPoly.addPoint(Maths.round(poly.xpoints[i] - this.mPoly.getMergedPolygon().getBounds2D().getMinX(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2),
+								   Maths.round(poly.ypoints[i] - this.mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2));
 					
 				}
 				
@@ -611,6 +615,7 @@ public class TetrisSolution {
 			t.width = this.width;
 			t.height = this.height;
 			t.rotationComponent = this.rotationComponent;
+			t.mPoly = this.mPoly;
 			
 			return t;
 		}

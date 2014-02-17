@@ -3,7 +3,6 @@ package com.plotter.algorithms;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,28 +16,30 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.plotter.data.Connection;
 import com.plotter.data.Database;
+import com.plotter.data.DatabaseMultipoly;
 
 public class LibkokiUtils {
 	
 	public static void showShapes(File selectedFile, Graphics2D graphics, Database database) {
 		
+		double scale = 1;
+		
 		List<MarkerInfo> markers = parseXML(selectedFile);
 		
 		for(MarkerInfo marker:markers) {
-			MultiPoly multiPoly = database.markerToShape.get(marker.id);
+			DatabaseMultipoly multiPoly = database.markerToShape.get(marker.id);
 			
-			graphics.setColor(Color.green);
-			graphics.setComposite(makeComposite(1.0f));
-			Polygon mergedPolygon = new Polygon(multiPoly.getMergedPolygon().xpoints, multiPoly.getMergedPolygon().ypoints, multiPoly.getMergedPolygon().npoints);
-			mergedPolygon.translate((int)(marker.centrePixels[0] - mergedPolygon.getBounds2D().getWidth() / 2),
-									(int)(marker.centrePixels[1] - mergedPolygon.getBounds2D().getHeight() / 2));
-			graphics.drawPolygon(mergedPolygon);
+			int centreX = (int) multiPoly.getMergedPolygon().getBounds2D().getCenterX();
+			int centreY = (int) multiPoly.getMergedPolygon().getBounds2D().getCenterY();
 			
 			graphics.setColor(Color.red);
 			graphics.setComposite(makeComposite(0.3f));
 			
 			for(Connection connection:multiPoly.getConnectionPoints()) {
-				graphics.fillOval(connection.getCentre().x - 5, connection.getCentre().y - 5, 10, 10);
+				int x = (int)(marker.centrePixels[0] + (connection.getCentre().x - centreX + multiPoly.getDisplacement()[0]) * scale);
+				int y = (int)(marker.centrePixels[1] + (connection.getCentre().y - centreY + multiPoly.getDisplacement()[1]) * scale);
+				
+				graphics.fillOval(x, y, 10, 10);
 			}
 		}
 		
@@ -56,9 +57,9 @@ public class LibkokiUtils {
 			graphics.setComposite(makeComposite(1f));
 			graphics.drawString(Integer.toString(marker.id), (int)marker.centrePixels[0], (int)marker.centrePixels[1]);
 			
-			graphics.setColor(Color.black);
-			graphics.drawLine((int)marker.centrePixels[0] - 20, (int)marker.centrePixels[1] - 20,
-							  (int) (marker.centrePixels[0] - 20 + (Math.cos(marker.rotation) * 40)), (int) (marker.centrePixels[1] - 20  + (Math.cos(marker.rotation) * 40)));
+			graphics.setColor(Color.red);
+			graphics.drawLine((int)marker.centrePixels[0], (int)marker.centrePixels[1],
+							  (int) (marker.centrePixels[0]+ (Math.cos(Math.toRadians(marker.rotation)) * 40)), (int) (marker.centrePixels[1] + (Math.sin(Math.toRadians(marker.rotation)) * 40)));
 		}
 
 	}

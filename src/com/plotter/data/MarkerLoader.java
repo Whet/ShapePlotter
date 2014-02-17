@@ -1,5 +1,7 @@
 package com.plotter.data;
 
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -20,46 +22,38 @@ public class MarkerLoader {
 	private static final int COLUMNS = 12;
 	private static final int ROWS = 18;
 	
-	public static List<BufferedImage> getMarkers(int numberOfMarkers) throws IOException {
+	public static List<BufferedImage> getMarkers(int numberOfMarkers, List<Integer> rotations) throws IOException {
 		
 		List<BufferedImage> markers = new ArrayList<>();
 		
 		BufferedImage spriteSheet = ImageIO.read(new File(MARKER_SHEET));
 		
-		// Debug
-//		Graphics graphics = spriteSheet.getGraphics();
-//		graphics.setColor(Color.red);
-		
 		int x = WIDTH_GAP;
 		int y = HEIGHT_GAP;
 		
 		for(int i = 0; i < numberOfMarkers; i++) {
-			markers.add(spriteSheet.getSubimage(x, y, MARKER_WIDTH, MARKER_WIDTH));
+			BufferedImage subimage = spriteSheet.getSubimage(x, y, MARKER_WIDTH, MARKER_WIDTH);
 			
-			// Debug
-//			graphics.drawRect(x, y, MARKER_WIDTH, MARKER_WIDTH);
+			BufferedImage rotatedImage = new BufferedImage(subimage.getWidth(), subimage.getHeight(), subimage.getType());
 			
-			x += MARKER_WIDTH + WIDTH_GAP * 2;
+			AffineTransform rotation = new AffineTransform();
+			rotation.rotate(Math.PI / 2 * rotations.get(i), subimage.getWidth() / 2, subimage.getHeight() / 2); 
 			
-			if(x + MARKER_WIDTH > spriteSheet.getWidth()) {
-				y += MARKER_HEIGHT + HEIGHT_GAP * 2;
-				x = WIDTH_GAP;
+			Graphics2D graphics = (Graphics2D) rotatedImage.getGraphics();
+			graphics.drawImage(subimage, rotation, null);
+			
+			markers.add(rotatedImage);
+			
+			y += MARKER_WIDTH + WIDTH_GAP * 2;
+			
+			if(y + MARKER_WIDTH > spriteSheet.getHeight()) {
+				x += MARKER_HEIGHT + HEIGHT_GAP * 2;
+				y = WIDTH_GAP;
 			}
 		}
-		
-		// Debug
-//		ImageIO.write(spriteSheet, "png", new File("spritesheets/test.png"));
-		
+
 		return markers;
 		
-	}
-	
-	public static void main(String[] args) {
-		try {
-			getMarkers(216);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 }

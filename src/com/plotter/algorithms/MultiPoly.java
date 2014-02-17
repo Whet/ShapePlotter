@@ -219,10 +219,8 @@ public class MultiPoly implements Serializable {
 		}
 
 		for (int i = 0; i < this.polygons.size(); i++) {
-			Polygon nPoly = new Polygon(this.polygons.get(i).xpoints,
-					this.polygons.get(i).ypoints, this.polygons.get(i).npoints);
-			nPoly = rotatePoly(nPoly, theta * (Math.PI / 2), new Point(deltaX,
-					deltaY));
+			Polygon nPoly = new Polygon(this.polygons.get(i).xpoints, this.polygons.get(i).ypoints, this.polygons.get(i).npoints);
+			nPoly = rotatePoly(nPoly, theta * (Math.PI / 2), new Point(deltaX, deltaY));
 			rotatedPolys.add(nPoly);
 		}
 
@@ -242,10 +240,25 @@ public class MultiPoly implements Serializable {
 			rotatedPolys.get(i).translate(-deltaX, -deltaY);
 		}
 
+		ArrayList<Connection> rotatedConnections = new ArrayList<>();
+		
+		for (Connection connection : this.connectedPoints) {
+			
+			Point rotatedConnection = rotatePoint( new Point(connection.getCentre().x, connection.getCentre().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
+			Point rotatedConnection1 = rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
+			Point rotatedConnection2 = rotatePoint(new Point(connection.getInside().x, connection.getInside().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
+			
+			rotatedConnections.add(new Connection(connection.getFlavour(),
+					rotatedConnection.x, rotatedConnection.y,
+					rotatedConnection1.x, rotatedConnection1.y,
+					rotatedConnection2.x, rotatedConnection2.y));
+		}
+		
 		MultiPoly mPoly = new MultiPoly(new ArrayList<Connection>(),
 				rotatedPolys.toArray(new Polygon[rotatedPolys.size()]));
 
 		mPoly.polygons = rotatedPolys;
+		mPoly.connectedPoints = rotatedConnections;
 
 		return mPoly;
 	}
@@ -412,8 +425,7 @@ public class MultiPoly implements Serializable {
 
 	}
 
-	private Polygon rotatePoly(Polygon polygon, double angle,
-			Point centreOfRotation) {
+	private Polygon rotatePoly(Polygon polygon, double angle, Point centreOfRotation) {
 		if (angle == 0)
 			return polygon;
 

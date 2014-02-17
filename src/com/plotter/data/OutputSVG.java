@@ -58,24 +58,29 @@ public class OutputSVG {
 		
 		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, decompImages);
 		
-		Database database = new Database(solution.getSolutionPieces());
-		database.saveDatabase(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Database"));
-		
 		LayoutPolygon.rotations = new HashMap<>();
 		
 		List<LayoutPolygon> layout = new ArrayList<>();
 		
+		Database database = new Database();
+		
 		for(TetrisSolution.TetrisPiece tP:solution.getSolutionPieces()) {
-			layout.add(new LayoutPolygon(tP));
+			LayoutPolygon layoutPolygon = new LayoutPolygon(tP);
+			layout.add(layoutPolygon);
+			database.addPiece(tP, layoutPolygon);
 		}
 		
 		System.out.println("Blocks placed " + layout.size());
 		
+		
+		database.saveDatabase(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Database"));
+		
 		List<Polygon> markerPlots = computeMarkerPlots(layout);
+		List<Integer> rotations = computeRotations(layout);
 		List<Line> hairLines = computeHairLines(layout);
 		System.out.println();
 		// Ask the test to render into the SVG Graphics2D implementation.
-		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, markerPlots);
+		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, markerPlots, rotations);
 
 		// Finally, stream out SVG to the standard output using
 		// UTF-8 encoding.
@@ -84,13 +89,24 @@ public class OutputSVG {
 		svgGenerator.stream(out, useCSS);
 		out.close();
 		
-		paintToPageFancy(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, markerPlots, solution, layout);
+		paintToPageFancy(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, markerPlots, solution, layout, rotations);
 
 		out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Fancy.svg")), "UTF-8");
 		svgGenerator.stream(out, useCSS);
 		out.close();
 	}
 
+	private static List<Integer> computeRotations(List<LayoutPolygon> shapes) {
+		
+		List<Integer> rotations = new ArrayList<Integer>();
+		
+		for(LayoutPolygon poly:shapes) {
+			rotations.add(poly.rotationComponent);
+		}
+		
+		return rotations;
+	}
+	
 	private static List<Polygon> computeMarkerPlots(List<LayoutPolygon> shapes) {
 		
 		List<Polygon> markerPlots = new ArrayList<Polygon>();
@@ -128,9 +144,9 @@ public class OutputSVG {
 		return lines;
 	}
 	
-	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots) throws IOException {
+	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots, List<Integer> rotations) throws IOException {
 		
-		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size());
+		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size(), rotations);
 		
 		// Setup graphics
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
@@ -154,9 +170,9 @@ public class OutputSVG {
 		}
 	}
 	
-	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, List<Polygon> markerPlots, TetrisSolution solution, List<LayoutPolygon> layout) throws IOException {
+	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, List<Polygon> markerPlots, TetrisSolution solution, List<LayoutPolygon> layout, List<Integer> rotations) throws IOException {
 		
-		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size());
+		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size(), rotations);
 		
 		// Setup graphics
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
@@ -200,10 +216,12 @@ public class OutputSVG {
 		public ReferenceInt identity;
 		private Point centre;
 		private Polygon fullPoly;
+		public final int rotationComponent;
 		
 		public LayoutPolygon(TetrisPiece tP) {
 			
 			this.identity = tP.pop;
+			this.rotationComponent = tP.rotationComponent;
 			lmp = new LineMergePolygon();
 			
 			Area area = new Area();
@@ -348,6 +366,10 @@ public class OutputSVG {
 		
 		public Point getCentre() {
 			return centre;
+		}
+		
+		public Point getMarkerCentre() {
+			return new Point((int)this.marker.getBounds2D().getCenterX(), (int)this.marker.getBounds2D().getCenterY());
 		}
 
 		public List<Line> getHairlines() {
