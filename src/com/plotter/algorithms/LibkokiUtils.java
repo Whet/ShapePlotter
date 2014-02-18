@@ -3,6 +3,7 @@ package com.plotter.algorithms;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.data.Connection;
 import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
@@ -29,18 +31,30 @@ public class LibkokiUtils {
 		for(MarkerInfo marker:markers) {
 			DatabaseMultipoly multiPoly = database.markerToShape.get(marker.id);
 			
-			int centreX = (int) multiPoly.getMergedPolygon().getBounds2D().getCenterX();
-			int centreY = (int) multiPoly.getMergedPolygon().getBounds2D().getCenterY();
+			Point polygonCentre = new Point((int) multiPoly.getMergedPolygon().getBounds2D().getCenterX(), (int) multiPoly.getMergedPolygon().getBounds2D().getCenterY());
 			
 			graphics.setColor(Color.red);
 			graphics.setComposite(makeComposite(0.3f));
 			
+			// Draw connections
 			for(Connection connection:multiPoly.getConnectionPoints()) {
-				int x = (int)(marker.centrePixels[0] + (connection.getCentre().x - centreX + multiPoly.getDisplacement()[0]) * scale);
-				int y = (int)(marker.centrePixels[1] + (connection.getCentre().y - centreY + multiPoly.getDisplacement()[1]) * scale);
+				int x = (int)(marker.centrePixels[0] + (connection.getCentre().x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale);
+				int y = (int)(marker.centrePixels[1] + (connection.getCentre().y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale);
 				
 				graphics.fillOval(x, y, 10, 10);
 			}
+			
+			// Draw shapes
+			List<Edge> hairlines = multiPoly.getMergedLines().getHairlines();
+			graphics.setColor(Color.green);
+			graphics.setComposite(makeComposite(0.6f));
+			for(Edge edge:hairlines) {
+				graphics.drawLine((int)(marker.centrePixels[0] + (edge.end1.x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale),
+								  (int)(marker.centrePixels[1] + (edge.end1.y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale),
+								  (int)(marker.centrePixels[0] + (edge.end2.x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale),
+								  (int)(marker.centrePixels[1] + (edge.end2.y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale));
+			}
+			
 		}
 		
 	}
