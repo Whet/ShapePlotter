@@ -30,14 +30,21 @@ public class LibkokiUtils {
 		
 		for(MarkerInfo marker:markers) {
 			DatabaseMultipoly multiPoly = database.markerToShape.get(marker.id);
+			MultiPoly polygonCopy = null;
+			try {
+				polygonCopy = (MultiPoly) multiPoly.clone();
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
 			
 			Point polygonCentre = new Point((int) multiPoly.getMergedPolygon().getBounds2D().getCenterX(), (int) multiPoly.getMergedPolygon().getBounds2D().getCenterY());
+			polygonCopy.rotate(polygonCentre, Math.toRadians(marker.rotation));
 			
 			graphics.setColor(Color.red);
 			graphics.setComposite(makeComposite(0.3f));
 			
 			// Draw connections
-			for(Connection connection:multiPoly.getConnectionPoints()) {
+			for(Connection connection:polygonCopy.getConnectionPoints()) {
 				int x = (int)(marker.centrePixels[0] + (connection.getCentre().x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale);
 				int y = (int)(marker.centrePixels[1] + (connection.getCentre().y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale);
 				
@@ -45,7 +52,7 @@ public class LibkokiUtils {
 			}
 			
 			// Draw shapes
-			List<Edge> hairlines = multiPoly.getMergedLines().getHairlines();
+			List<Edge> hairlines = polygonCopy.getMergedLines().getHairlines();
 			graphics.setColor(Color.green);
 			graphics.setComposite(makeComposite(0.6f));
 			for(Edge edge:hairlines) {
@@ -73,7 +80,7 @@ public class LibkokiUtils {
 			
 			graphics.setColor(Color.red);
 			graphics.drawLine((int)marker.centrePixels[0], (int)marker.centrePixels[1],
-							  (int) (marker.centrePixels[0]+ (Math.cos(Math.toRadians(marker.rotation)) * 40)), (int) (marker.centrePixels[1] + (Math.sin(Math.toRadians(marker.rotation)) * 40)));
+							  (int) (marker.centrePixels[0]+ (Math.cos(-Math.toRadians(marker.rotation)) * 40)), (int) (marker.centrePixels[1] + (Math.sin(-Math.toRadians(marker.rotation)) * 40)));
 		}
 
 	}
@@ -141,6 +148,18 @@ public class LibkokiUtils {
 					if(qName.equalsIgnoreCase("rotation")) {
 						rotation = false;
 						returnList.add(new MarkerInfo(markerId, xVal, yVal, zRot));
+					}
+					
+					if (qName.equalsIgnoreCase("x")) {
+						x = false;
+					}
+					
+					if (qName.equalsIgnoreCase("y")) {
+						y = false;
+					}
+					
+					if (qName.equalsIgnoreCase("z")) {
+						z = false;
 					}
 
 				}
