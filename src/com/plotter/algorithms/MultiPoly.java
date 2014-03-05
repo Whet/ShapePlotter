@@ -14,10 +14,10 @@ import com.plotter.gui.GridPanel;
 public class MultiPoly implements Serializable {
 
 	private static final long serialVersionUID = 4298800994064887898L;
-	private List<Connection> connectedPoints;
-	private List<Polygon> polygons;
-	private Polygon convexMergedPolygon;
-	private LineMergePolygon lineMergedPolygon;
+	protected List<Connection> connectedPoints;
+	protected List<Polygon> polygons;
+	protected Polygon convexMergedPolygon;
+	protected LineMergePolygon lineMergedPolygon;
 	private String parent;
 	private String code;
 
@@ -314,6 +314,56 @@ public class MultiPoly implements Serializable {
 		}
 		this.lineMergedPolygon.rotate(centreOfRotation, angle);
 	}
+	
+	public void rotateNoRounding(Point centreOfRotation, double angle) {
+		ArrayList<Polygon> rotatedPolygons = new ArrayList<>();
+		for (Polygon polygon : this.polygons) {
+			rotatedPolygons.add(rotatePolyNoRounding(polygon, angle, centreOfRotation));
+		}
+
+		this.polygons = rotatedPolygons;
+
+		Polygon rotatedMergedPolygon = new Polygon();
+
+		for (int i = 0; i < this.convexMergedPolygon.npoints; i++) {
+			Point rotatedPoint = rotatePoint(new Point(
+					this.convexMergedPolygon.xpoints[i],
+					this.convexMergedPolygon.ypoints[i]), centreOfRotation,
+					angle);
+
+			rotatedMergedPolygon.addPoint(rotatedPoint.x, rotatedPoint.y);
+		}
+
+		this.convexMergedPolygon = rotatedMergedPolygon;
+
+		ArrayList<Connection> rotatedConnections = new ArrayList<>();
+
+		for (Connection connection : this.connectedPoints) {
+			Point rotatedConnection = rotatePoint(
+					new Point(connection.getCentre().x,
+							connection.getCentre().y), centreOfRotation, angle);
+			Point rotatedConnection1 = rotatePoint(
+					new Point(connection.getOutside().x,
+							connection.getOutside().y), centreOfRotation, angle);
+			Point rotatedConnection2 = rotatePoint(
+					new Point(connection.getInside().x,
+							connection.getInside().y), centreOfRotation, angle);
+			rotatedConnections.add(new Connection(connection.getFlavour(),
+					rotatedConnection.x, rotatedConnection.y,
+					rotatedConnection1.x, rotatedConnection1.y,
+					rotatedConnection2.x, rotatedConnection2.y));
+		}
+
+		this.connectedPoints = rotatedConnections;
+
+		try {
+			this.lineMergedPolygon = (LineMergePolygon) this.lineMergedPolygon
+					.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		this.lineMergedPolygon.rotate(centreOfRotation, angle);
+	}
 
 	// http://stackoverflow.com/questions/10533403/how-to-rotate-a-polygon-around-a-point-with-java
 	public static Point rotatePoint(Point pt, Point center, double angle) {
@@ -437,6 +487,20 @@ public class MultiPoly implements Serializable {
 			rotatedPoly.addPoint(
 					Maths.round(rotatedPoint.x, GridPanel.GRID_SIZE),
 					Maths.round(rotatedPoint.y, GridPanel.GRID_SIZE));
+		}
+		return rotatedPoly;
+	}
+	
+	private Polygon rotatePolyNoRounding(Polygon polygon, double angle, Point centreOfRotation) {
+		if (angle == 0)
+			return polygon;
+
+		Polygon rotatedPoly = new Polygon();
+		for (int i = 0; i < polygon.npoints; i++) {
+			Point rotatedPoint = rotatePoint(new Point(polygon.xpoints[i],
+					polygon.ypoints[i]), centreOfRotation, angle);
+
+			rotatedPoly.addPoint(rotatedPoint.x, rotatedPoint.y);
 		}
 		return rotatedPoly;
 	}

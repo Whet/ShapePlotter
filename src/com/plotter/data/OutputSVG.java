@@ -8,7 +8,6 @@ import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -34,8 +34,9 @@ import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
 import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 
 public class OutputSVG {
-
-	private static final int POLY_SCALE = 100;
+	
+	// 60 for 10mil
+	private static final int POLY_SCALE = 300;
 	private static final float HAIRLINE = 0.3f;
 	private static final float DOTTED = 0.5f;
 	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink, Color.cyan.darker(), Color.magenta, Color.magenta.darker(), Color.yellow, Color.red.darker(), Color.green.darker(), Color.blue.darker()};
@@ -58,8 +59,6 @@ public class OutputSVG {
 		
 		TetrisSolution solution = TetrisSolution.getSolution(widthCubes, heightCubes, decompImages);
 		
-		LayoutPolygon.rotations = new HashMap<>();
-		
 		List<LayoutPolygon> layout = new ArrayList<>();
 		
 		Database database = new Database();
@@ -67,7 +66,8 @@ public class OutputSVG {
 		for(TetrisSolution.TetrisPiece tP:solution.getSolutionPieces()) {
 			LayoutPolygon layoutPolygon = new LayoutPolygon(tP);
 			layout.add(layoutPolygon);
-			database.addPiece(tP, layoutPolygon);
+			List<Integer> pieceMarkers = database.addPiece(tP, layoutPolygon);
+			layoutPolygon.setMarkerIds(pieceMarkers);
 		}
 		
 		System.out.println("Blocks placed " + layout.size());
@@ -75,12 +75,10 @@ public class OutputSVG {
 		
 		database.saveDatabase(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Database"));
 		
-		List<Polygon> markerPlots = computeMarkerPlots(layout);
-		List<Integer> rotations = computeRotations(layout);
 		List<Line> hairLines = computeHairLines(layout);
 		System.out.println();
 		// Ask the test to render into the SVG Graphics2D implementation.
-		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, markerPlots, rotations);
+		paintToPage(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, hairLines, layout);
 
 		// Finally, stream out SVG to the standard output using
 		// UTF-8 encoding.
@@ -89,37 +87,14 @@ public class OutputSVG {
 		svgGenerator.stream(out, useCSS);
 		out.close();
 		
-		paintToPageFancy(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, markerPlots, solution, layout, rotations);
+		paintToPageFancy(svgGenerator, pageWidth * POLY_SCALE, pageHeight * POLY_SCALE, solution, layout);
 
 		out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Fancy.svg")), "UTF-8");
 		svgGenerator.stream(out, useCSS);
 		out.close();
 	}
-
-	private static List<Integer> computeRotations(List<LayoutPolygon> shapes) {
-		
-		List<Integer> rotations = new ArrayList<Integer>();
-		
-		for(LayoutPolygon poly:shapes) {
-			rotations.add(poly.rotationComponent);
-		}
-		
-		return rotations;
-	}
-	
-	private static List<Polygon> computeMarkerPlots(List<LayoutPolygon> shapes) {
-		
-		List<Polygon> markerPlots = new ArrayList<Polygon>();
-		
-		for(LayoutPolygon poly:shapes) {
-			markerPlots.add(poly.marker);
-		}
-		
-		return markerPlots;
-	}
 	
 	private static List<Line> computeHairLines(List<LayoutPolygon> shapes) {
-		
 		
 		Map<ReferenceInt, Color> colours = new HashMap<>();
 		
@@ -144,9 +119,23 @@ public class OutputSVG {
 		return lines;
 	}
 	
-	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<Polygon> markerPlots, List<Integer> rotations) throws IOException {
+	private static void paintToPage(SVGGraphics2D page, int pageWidth, int pageHeight, List<Line> hairLines, List<LayoutPolygon> layout) throws IOException {
 		
-		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size(), rotations);
+		List<Entry<Point, Integer>> markerPoints = new ArrayList<>();
+		List<Integer> markerNumbers = new ArrayList<>();
+		List<Double> rotations = new ArrayList<>();
+		
+		for(int i = 0; i < layout.size(); i++) {
+			LayoutPolygon layoutPolygon = layout.get(i);
+			markerPoints.addAll(layoutPolygon.markerNumbers.entrySet());
+			rotations.addAll(layoutPolygon.markerRotations);
+		}
+		
+		for(Entry<Point, Integer> marker:markerPoints) {
+			markerNumbers.add(marker.getValue());
+		}
+		
+		List<BufferedImage> markers = MarkerLoader.getMarkers(markerNumbers, rotations);
 		
 		// Setup graphics
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
@@ -158,25 +147,37 @@ public class OutputSVG {
 			page.drawLine(hairline.end1.x, hairline.end1.y, hairline.end2.x, hairline.end2.y);
 		}
 		
-		int markerId = 0;
-		
 		// Draw markers
-		for(Polygon marker:markerPlots) {
-			Rectangle2D bounds = marker.getBounds2D();
+		for(int i = 0; i < markerPoints.size(); i++) {
+			Entry<Point, Integer> marker = markerPoints.get(i);
 			AffineTransform transformation = new AffineTransform();
-			transformation.translate(bounds.getCenterX() - MarkerLoader.MARKER_WIDTH / 2, bounds.getCenterY() -  MarkerLoader.MARKER_WIDTH / 2);
-			page.drawImage(markers.get(markerId), transformation, null);
-			markerId++;
+			transformation.translate(marker.getKey().x -  MarkerLoader.MARKER_WIDTH / 2, marker.getKey().y -  MarkerLoader.MARKER_WIDTH / 2);
+			page.drawImage(markers.get(i), transformation, null);
 		}
 	}
 	
-	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, List<Polygon> markerPlots, TetrisSolution solution, List<LayoutPolygon> layout, List<Integer> rotations) throws IOException {
+	private static void paintToPageFancy(SVGGraphics2D page, int pageWidth, int pageHeight, TetrisSolution solution, List<LayoutPolygon> layout) throws IOException {
 		
-		List<BufferedImage> markers = MarkerLoader.getMarkers(markerPlots.size(), rotations);
+		List<Entry<Point, Integer>> markerPoints = new ArrayList<>();
+		List<Integer> markerNumbers = new ArrayList<>();
+		List<Double> rotations = new ArrayList<>();
+		
+		for(int i = 0; i < layout.size(); i++) {
+			LayoutPolygon layoutPolygon = layout.get(i);
+			markerPoints.addAll(layoutPolygon.markerNumbers.entrySet());
+			rotations.addAll(layoutPolygon.markerRotations);
+		}
+		
+		for(Entry<Point, Integer> marker:markerPoints) {
+			markerNumbers.add(marker.getValue());
+		}
+		
+		List<BufferedImage> markers = MarkerLoader.getMarkers(markerNumbers, rotations);
 		
 		// Setup graphics
 		page.setSVGCanvasSize(new Dimension(pageWidth, pageHeight));
 		
+		// Draw lines
 		page.setStroke(new BasicStroke(HAIRLINE));
 		
 		for(LayoutPolygon poly:layout) {
@@ -186,15 +187,13 @@ public class OutputSVG {
 			page.draw(poly.fullPoly);
 		}
 		
-		int markerId = 0;
-		
 		// Draw markers
-		for(Polygon marker:markerPlots) {
-			Rectangle2D bounds = marker.getBounds2D();
+		for(int i = 0; i < markerPoints.size(); i++) {
+			Entry<Point, Integer> marker = markerPoints.get(i);
 			AffineTransform transformation = new AffineTransform();
-			transformation.translate(bounds.getCenterX() -  MarkerLoader.MARKER_WIDTH / 2, bounds.getCenterY() -  MarkerLoader.MARKER_WIDTH / 2);
-			page.drawImage(markers.get(markerId), transformation, null);
-			markerId++;
+			transformation.translate(marker.getKey().x -  MarkerLoader.MARKER_WIDTH / 2, marker.getKey().y -  MarkerLoader.MARKER_WIDTH / 2);
+			page.drawImage(markers.get(i), transformation, null);
+//			page.fillOval(marker.getKey().x - 3, marker.getKey().y - 3, 6, 6);
 		}
 		
 		TetrisGrid finalGrid = solution.finalGrid;
@@ -208,26 +207,25 @@ public class OutputSVG {
 	
 	public static class LayoutPolygon {
 
-		protected static Map<ReferenceInt, int[]> rotations;
-		
 		public Color fillColour;
-		private Polygon marker;
 		private LineMergePolygon lmp;
 		public ReferenceInt identity;
 		private Point centre;
 		private Polygon fullPoly;
 		public final int rotationComponent;
+		public final List<Point> markerLocations;
+		public final Map<Point, Integer> markerNumbers;
+		public List<Double> markerRotations;
 		
 		public LayoutPolygon(TetrisPiece tP) {
 			
 			this.identity = tP.pop;
 			this.rotationComponent = tP.rotationComponent;
+			this.markerRotations = tP.markerRotations;
 			lmp = new LineMergePolygon();
 			
 			Area area = new Area();
-			
 			Polygon scaledPoly = new Polygon();
-			
 			Polygon polygon = tP.mergedPolygon;
 			
 			for(int i = 0; i < polygon.npoints; i++) {
@@ -239,139 +237,32 @@ public class OutputSVG {
 			
 			this.fullPoly = scaledPoly;
 			
-			centre = new Point((int)area.getBounds2D().getCenterX(), (int)area.getBounds2D().getCenterY());
+			this.centre = new Point((int)area.getBounds2D().getCenterX(), (int)area.getBounds2D().getCenterY());
 			
-			marker = new Polygon();
+			this.markerLocations = new ArrayList<>();
 			
-			double centreX = tP.markerPolygonLocation[0] * POLY_SCALE;
-			double centreY = tP.markerPolygonLocation[1] * POLY_SCALE;
-			
-			int halfMarkerSize = MarkerLoader.MARKER_WIDTH / 2;
-			
-			// Put block in centre if possible
-			if(area.contains((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize) && 
-			   area.contains((int)centreX + halfMarkerSize, (int)centreY - halfMarkerSize) &&
-			   area.contains((int)centreX + halfMarkerSize, (int)centreY + halfMarkerSize) &&
-			   area.contains((int)centreX - halfMarkerSize, (int)centreY + halfMarkerSize)) {
-				
-				marker.addPoint((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize);
-				marker.addPoint((int)centreX + halfMarkerSize, (int)centreY - halfMarkerSize);
-				marker.addPoint((int)centreX + halfMarkerSize, (int)centreY + halfMarkerSize);
-				marker.addPoint((int)centreX - halfMarkerSize, (int)centreY + halfMarkerSize);
-				
+			for(int i = 0; i < tP.markerPolygonLocations.size(); i++) {
+				this.markerLocations.add(new Point(tP.markerPolygonLocations.get(i).x * POLY_SCALE + POLY_SCALE / 2,
+												   tP.markerPolygonLocations.get(i).y * POLY_SCALE + POLY_SCALE / 2));
 			}
-			// Keep moving marker towards corner until it fits
-			else {
-				
-				boolean blockPlaced = true;
-				
-				int[][] combos = new int[4][2];
-				
-				if(tP.rotationComponent == 0) {
-					combos[0][0] = 1;
-					combos[0][1] = 1;
-					combos[1][0] = 1;
-					combos[1][1] = -1;
-					combos[2][0] = -1;
-					combos[2][1] = -1;
-					combos[3][0] = -1;
-					combos[3][1] = 1;
-				}
-				else if(tP.rotationComponent == 1){
-					combos[1][0] = 1;
-					combos[1][1] = 1;
-					combos[2][0] = 1;
-					combos[2][1] = -1;
-					combos[3][0] = -1;
-					combos[3][1] = -1;
-					combos[0][0] = -1;
-					combos[0][1] = 1;
-				}
-				else if(tP.rotationComponent == 2){
-					combos[2][0] = 1;
-					combos[2][1] = 1;
-					combos[3][0] = 1;
-					combos[3][1] = -1;
-					combos[0][0] = -1;
-					combos[0][1] = -1;
-					combos[1][0] = -1;
-					combos[1][1] = 1;		
-				}
-				else if(tP.rotationComponent == 3){
-					combos[3][0] = 1;
-					combos[3][1] = 1;
-					combos[0][0] = 1;
-					combos[0][1] = -1;
-					combos[1][0] = -1;
-					combos[1][1] = -1;
-					combos[2][0] = -1;
-					combos[2][1] = 1;
-				}
-				
-				double startX = centreX;
-				double startY = centreY;
-				
-				if(rotations.containsKey(tP.pop)) {
-					
-					centreX = startX;
-					centreY = startY;
-					centreX += rotations.get(tP.pop)[1] * combos[rotations.get(tP.pop)[0]][0];
-					centreY += rotations.get(tP.pop)[1] * combos[rotations.get(tP.pop)[0]][1];
-					
-					marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
-					marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
-					marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
-					marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
-					return;
-				}
-				
-				for(int i = 0; i < 4; i++) {
-					
-					blockPlaced = true;
-					centreX = startX;
-					centreY = startY;
-					
-					int offset = 1;
-					
-					do {
-						
-						centreX += 1 * combos[i][0];
-						centreY += 1 * combos[i][1];
-						
-						if(!area.getBounds2D().contains(centreX,centreY)) {
-							blockPlaced = false;
-							break;
-						}
-						
-						offset++;
-						
-					}
-					while(!area.contains((int)centreX - halfMarkerSize, (int)centreY - halfMarkerSize) || 
-						  !area.contains((int)centreX + halfMarkerSize, (int)centreY - halfMarkerSize) ||
-						  !area.contains((int)centreX + halfMarkerSize, (int)centreY + halfMarkerSize) ||
-						  !area.contains((int)centreX - halfMarkerSize, (int)centreY + halfMarkerSize));
-				
-					if(blockPlaced) {
-						marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
-						marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY - halfMarkerSize));
-						marker.addPoint((int)Math.ceil(centreX + halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
-						marker.addPoint((int)Math.ceil(centreX - halfMarkerSize), (int)Math.ceil(centreY + halfMarkerSize));
-						
-						rotations.put(tP.pop, new int[]{i,offset});
-						break;
-					}
-				}
-			}
+			
+			this.markerNumbers = new HashMap<>();
+			
 		}
 		
+		public void setMarkerIds(List<Integer> pieceMarkers) {
+			this.markerNumbers.clear();
+			for(int i = 0; i < this.markerLocations.size(); i++) {
+				Point markerCentre = this.markerLocations.get(i);
+				this.markerNumbers.put(markerCentre, pieceMarkers.get(i));
+			}
+			
+		}
+
 		public Point getCentre() {
 			return centre;
 		}
 		
-		public Point getMarkerCentre() {
-			return new Point((int)this.marker.getBounds2D().getCenterX(), (int)this.marker.getBounds2D().getCenterY());
-		}
-
 		public List<Line> getHairlines() {
 			
 			List<Line> lines = new ArrayList<>();
@@ -394,14 +285,18 @@ public class OutputSVG {
 			return lines;
 		}
 
-		public Polygon getMarker() {
-			return marker;
-		}
-		
 		private void toPolygon(PathIterator p_path) {
 			double[] point = new double[2];
 			if(p_path.currentSegment(point) != PathIterator.SEG_CLOSE)
 				this.fullPoly.addPoint((int) point[0], (int) point[1]);
+		}
+
+		public List<Point> getMarkerCentres() {
+			return this.markerLocations;
+		}
+
+		public List<Double> getMarkerRotations() {
+			return this.markerRotations;
 		}
 		
 	}

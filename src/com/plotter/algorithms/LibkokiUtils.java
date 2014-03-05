@@ -1,12 +1,19 @@
 package com.plotter.algorithms;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -19,17 +26,108 @@ import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.data.Connection;
 import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
+import com.plotter.data.Maths;
 
 public class LibkokiUtils {
 	
 	public static void showShapes(File selectedFile, Graphics2D graphics, Database database) {
 		
-		double scale = 1;
+		double scale = 0.5;
 		
 		List<MarkerInfo> markers = parseXML(selectedFile);
+		Set<DatabaseMultipoly> allocatedShapes = new HashSet<>();
 		
-		for(MarkerInfo marker:markers) {
-			DatabaseMultipoly multiPoly = database.markerToShape.get(marker.id);
+		MarkerInfo[] markerInfo = markers.toArray(new MarkerInfo[markers.size()]);
+		
+		System.out.println("DATABASE NUMBERS");
+		System.out.println(database.markersToShape.keySet());
+		
+		NEXTMARKER:for(MarkerInfo marker:markers) {
+			
+			// Get possible shapes for this marker
+			Set<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes = database.getPossibleShapes(marker.id);
+			
+			// Search in the area of each possible shape to see if the required markers are found
+			Iterator<Entry<List<Integer>, DatabaseMultipoly>> iterator = possibleShapes.iterator();
+				
+			Map<DatabaseMultipoly, Set<MarkerInfo>> locatedMarkers = new HashMap<DatabaseMultipoly, Set<MarkerInfo>>();
+			
+			System.out.println("-------");
+			System.out.println(possibleShapes.size() + " possible shapes for marker " + marker.id);
+			
+			while(iterator.hasNext()) {
+				
+				Entry<List<Integer>, DatabaseMultipoly> entry = iterator.next();
+				
+				System.out.println("Need markers {" + entry.getKey() + "}");
+				
+				// Approximation of search radius
+				double radius = 0;
+				double width = entry.getValue().getMergedPolygon().getBounds2D().getWidth() * scale;
+				double height = entry.getValue().getMergedPolygon().getBounds2D().getHeight() * scale;
+				
+//				if(width > height)
+//					radius = width;
+//				else
+//					radius = height;
+				radius = width + height;
+				
+				Set<MarkerInfo> polygonMarkersLocated = new HashSet<>();
+				
+				for(int i = 0; i < entry.getKey().size(); i++) {
+					
+					Integer markerNeighbour = entry.getKey().get(i);
+					
+					System.out.println("Looking for marker " + markerNeighbour);
+					
+					// See if marker is in radius, if not then exclude that possible shape
+					for(int j = 0; j < markerInfo.length; j++) {
+
+						// If the marker being investigated is found or another marker in the area is found that is part of the shape in entry add it
+						if((markerInfo[j].equals(marker) &&
+						    markerNeighbour.equals(markerInfo[j].id)) ||
+						   ((markerNeighbour.equals(markerInfo[j].id) &&
+						   Maths.getDistance(marker.centrePixels, markerInfo[j].centrePixels) <= radius))) {
+							
+							System.out.println("Found marker " + markerInfo[j].id);
+							polygonMarkersLocated.add(markerInfo[j]);
+						}
+					}
+				}
+				
+				System.out.println("Found " + polygonMarkersLocated.size() + " need " + entry.getKey().size());
+				// No mat
+				if(polygonMarkersLocated.size() < entry.getKey().size()) {
+					iterator.remove();
+					continue NEXTMARKER;
+				}
+				// Found enough markers
+				else {
+					// Add all found markers for this shape to the located ones
+					locatedMarkers.put(entry.getValue(), polygonMarkersLocated);
+				}
+			}
+			
+			DatabaseMultipoly multiPoly;
+			
+			// Hopefully only one possible DatabaseMultipoly is left so that is the matching shape
+			if(possibleShapes.size() == 1) {
+				multiPoly = possibleShapes.iterator().next().getValue();
+				
+				// Don't repeat shapes
+				if(allocatedShapes.contains(multiPoly)) {
+					continue;
+				}
+				
+				allocatedShapes.add(multiPoly);
+			}
+			else {
+				//TODO
+				System.out.println("Couldn't make a choice!!!");
+				continue;
+			}
+			
+			
 			MultiPoly polygonCopy = null;
 			try {
 				polygonCopy = (MultiPoly) multiPoly.clone();
@@ -38,34 +136,102 @@ public class LibkokiUtils {
 			}
 			
 			Point polygonCentre = new Point((int) multiPoly.getMergedPolygon().getBounds2D().getCenterX(), (int) multiPoly.getMergedPolygon().getBounds2D().getCenterY());
-			polygonCopy.rotate(polygonCentre, Math.toRadians(marker.rotation));
+			double meanRotation = Math.toRadians(getMeanRotation(multiPoly, locatedMarkers.get(multiPoly)));
+			if(Math.abs(meanRotation) > 0.00001)
+				polygonCopy.rotateNoRounding(polygonCentre, meanRotation);
 			
 			graphics.setColor(Color.red);
 			graphics.setComposite(makeComposite(0.3f));
 			
 			// Draw connections
 			for(Connection connection:polygonCopy.getConnectionPoints()) {
-				int x = (int)(marker.centrePixels[0] + (connection.getCentre().x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale);
-				int y = (int)(marker.centrePixels[1] + (connection.getCentre().y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale);
+				int x = (int)(marker.centrePixels[0] + (connection.getCentre().x - polygonCentre.x + multiPoly.getDisplacement(marker.id)[0]) * scale);
+				int y = (int)(marker.centrePixels[1] + (connection.getCentre().y - polygonCentre.y + multiPoly.getDisplacement(marker.id)[1]) * scale);
 				
-				graphics.fillOval(x, y, 10, 10);
+				graphics.fillOval(x - 5, y - 5, 10, 10);
 			}
 			
 			// Draw shapes
 			List<Edge> hairlines = polygonCopy.getMergedLines().getHairlines();
-			graphics.setColor(Color.green);
-			graphics.setComposite(makeComposite(0.6f));
 			for(Edge edge:hairlines) {
-				graphics.drawLine((int)(marker.centrePixels[0] + (edge.end1.x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale),
-								  (int)(marker.centrePixels[1] + (edge.end1.y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale),
-								  (int)(marker.centrePixels[0] + (edge.end2.x - polygonCentre.x + multiPoly.getDisplacement()[0]) * scale),
-								  (int)(marker.centrePixels[1] + (edge.end2.y - polygonCentre.y + multiPoly.getDisplacement()[1]) * scale));
+				graphics.setColor(Color.orange);
+				graphics.setComposite(makeComposite(0.9f));
+				graphics.setStroke(new BasicStroke(3));
+				graphics.drawLine((int)(marker.centrePixels[0] + (edge.end1.x - polygonCentre.x + multiPoly.getDisplacement(marker.id)[0]) * scale),
+								  (int)(marker.centrePixels[1] + (edge.end1.y - polygonCentre.y + multiPoly.getDisplacement(marker.id)[1]) * scale),
+								  (int)(marker.centrePixels[0] + (edge.end2.x - polygonCentre.x + multiPoly.getDisplacement(marker.id)[0]) * scale),
+								  (int)(marker.centrePixels[1] + (edge.end2.y - polygonCentre.y + multiPoly.getDisplacement(marker.id)[1]) * scale));
+				graphics.setColor(Color.black);
+				graphics.setComposite(makeComposite(1f));
+				graphics.setStroke(new BasicStroke(1));
+				graphics.drawLine((int)(marker.centrePixels[0] + (edge.end1.x - polygonCentre.x + multiPoly.getDisplacement(marker.id)[0]) * scale),
+								  (int)(marker.centrePixels[1] + (edge.end1.y - polygonCentre.y + multiPoly.getDisplacement(marker.id)[1]) * scale),
+								  (int)(marker.centrePixels[0] + (edge.end2.x - polygonCentre.x + multiPoly.getDisplacement(marker.id)[0]) * scale),
+								  (int)(marker.centrePixels[1] + (edge.end2.y - polygonCentre.y + multiPoly.getDisplacement(marker.id)[1]) * scale));
 			}
+			
+			//DEBUG
+			// Write the rotation info
+			graphics.setColor(Color.white);
+			graphics.setComposite(makeComposite(1f));
+			graphics.drawString("MROT: " + (Math.round(Math.toDegrees(meanRotation) * 100) / 100.0), (int)marker.centrePixels[0], (int)marker.centrePixels[1]);
+			graphics.drawString(""+marker.id, (int)marker.centrePixels[0], (int)marker.centrePixels[1] + 20);
 			
 		}
 		
 	}
+	
+	private static double getMeanRotation(DatabaseMultipoly multiPoly, Set<MarkerInfo> locatedMarkers) {
+		
+		Map<Integer, Double> markerRotationOffsets = new HashMap<>();
+		Map<Integer, Double> rotations = new HashMap<>();
+		for(MarkerInfo info:locatedMarkers) {
+			markerRotationOffsets.put(info.id, multiPoly.getRotation(info.id));
+			rotations.put(info.id, info.rotation);
+		}
+		
+		if(rotations.size() < 3) {
+			double mean = 0.0;
+			
+			for(Entry<Integer, Double> entry:rotations.entrySet()) {
+				mean += entry.getValue() - Math.toDegrees(markerRotationOffsets.get(entry.getKey()));
+			}
+			return (mean / rotations.size());
+		}
+		else {
+			
+			List<Double> rotationsList = new ArrayList<>();
+			rotationsList.addAll(rotations.values());
+			
+			// Only add data that isn't outlier
+			// 1.5 * IQR range
+			double interQuartileRange = Quartiles.interQuartileRange(rotationsList);
+			// [0] = q1, [1] = median, [2] = q3
+			double[] quartiles = Quartiles.quartiles(rotationsList);
+			
+			//TODO prevent looping around angles issue
+			
+			double lowestAccepted = quartiles[0] - 1.5 * interQuartileRange;
+			double highestAccepted = quartiles[2] + 1.5 * interQuartileRange;
+			
+			int meanC = 0;
+			double mean = 0.0;
 
+			for(Entry<Integer, Double> entry:rotations.entrySet()) {
+				
+				Double rotation = entry.getValue();
+				
+				if(rotation >= lowestAccepted && rotation <= highestAccepted) {
+					mean += rotation - Math.toDegrees(markerRotationOffsets.get(entry.getKey()));
+					meanC++;
+				}
+			}
+			
+			return (mean / meanC);
+		}
+		
+	}
+	
 	public static void showMarkers(File selectedFile, Graphics2D graphics) {
 		List<MarkerInfo> markers = parseXML(selectedFile);
 		
@@ -81,6 +247,13 @@ public class LibkokiUtils {
 			graphics.setColor(Color.red);
 			graphics.drawLine((int)marker.centrePixels[0], (int)marker.centrePixels[1],
 							  (int) (marker.centrePixels[0]+ (Math.cos(-Math.toRadians(marker.rotation)) * 40)), (int) (marker.centrePixels[1] + (Math.sin(-Math.toRadians(marker.rotation)) * 40)));
+			
+			//DEBUG
+			// Write the rotation info
+			graphics.setColor(Color.white);
+			graphics.setComposite(makeComposite(1f));
+			graphics.drawString("R:" + (int)marker.rotation, (int)marker.centrePixels[0] - 20, (int)marker.centrePixels[1]);
+			graphics.drawString(""+marker.id, (int)marker.centrePixels[0], (int)marker.centrePixels[1] + 20);
 		}
 
 	}
