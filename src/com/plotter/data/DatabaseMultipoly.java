@@ -2,21 +2,33 @@ package com.plotter.data;
 
 import java.awt.Point;
 import java.awt.Polygon;
-import java.awt.geom.Area;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.MultiPoly;
 
-public class DatabaseMultipoly extends MultiPoly {
+public class DatabaseMultipoly implements Serializable {
 
 	private Map<Integer,int[]> markerDisplacements;
 	private Map<Integer,Double> markerRotations;
 	private double rotation;
+	private LineMergePolygon lmp;
+	private Polygon mergedPolygon;
+	private List<Connection> connections;
 	
-	public DatabaseMultipoly(int rotationComponent, MultiPoly multipoly, List<Integer> markerIds, List<Point> markerLocations, List<Double> markerRotations, Point polygonCentre) {
-		super(multipoly.getConnectionPoints(), multipoly.getPolygons().toArray(new Polygon[multipoly.getPolygons().size()]));
+	public DatabaseMultipoly(int rotationComponent, Polygon mergedPolygon, LineMergePolygon lmp, List<Connection> connections, List<Integer> markerIds, List<Point> markerLocations, List<Double> markerRotations, Point polygonCentre) {
+		
+		this.lmp = lmp;
+		this.mergedPolygon = new Polygon(mergedPolygon.xpoints, mergedPolygon.ypoints, mergedPolygon.npoints);
+		this.connections = new ArrayList<>();
+		
+		for(Connection connection:connections) {
+			this.connections.add(connection.clone());
+		}
 		
 		this.rotation = (Math.PI / 2) * rotationComponent;
 		this.markerDisplacements = new HashMap<>();
@@ -30,20 +42,16 @@ public class DatabaseMultipoly extends MultiPoly {
 			this.markerRotations.put(markerIds.get(i), markerRotations.get(i));
 		}
 		
-		moveToOrigin();
+//		int minX = (int)this.mergedPolygon.getBounds2D().getMinX();
+//		int minY = (int)this.mergedPolygon.getBounds2D().getMinY();
+//		
+//		lmp.translate(-minX, -minY);
+//		this.mergedPolygon.translate(-minX, -minY);
+//		
+//		for(Connection connection:this.connections) {
+//			connection.translate(-minX, -minY);
+//		}
 		
-	}
-
-	private void moveToOrigin() {
-		// Find top left corner
-		Area area = new Area();
-		for(Polygon polygon:this.polygons) {
-			area.add(new Area(polygon));
-		}
-		double minX = area.getBounds2D().getMinX();
-		double minY = area.getBounds2D().getMinY();
-		
-		this.translate(-(int)minX, -(int)minY);
 	}
 
 	public int[] getDisplacement(Integer markerId) {
@@ -63,6 +71,22 @@ public class DatabaseMultipoly extends MultiPoly {
 		
 		return averageLocation;
 	}
+	
+	public void rotateConnections(int deltaX, int deltaY, double rotation) {
+		ArrayList<Connection> rotatedConnections = new ArrayList<>();
+		
+		for (Connection connection : this.connections) {
+			
+			Point rotatedConnection = MultiPoly.rotatePoint(new Point(connection.getCentre().x, connection.getCentre().y), new Point(deltaX, deltaY), rotation);
+			Point rotatedConnection1 = MultiPoly.rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), new Point(deltaX, deltaY), rotation);
+			Point rotatedConnection2 = MultiPoly.rotatePoint(new Point(connection.getInside().x, connection.getInside().y), new Point(deltaX, deltaY), rotation);
+			
+			rotatedConnections.add(new Connection(connection.getFlavour(),
+					rotatedConnection.x, rotatedConnection.y,
+					rotatedConnection1.x, rotatedConnection1.y,
+					rotatedConnection2.x, rotatedConnection2.y));
+		}
+	}
 
 	public double getRotation(Integer markerId) {
 		return rotation;
@@ -70,5 +94,17 @@ public class DatabaseMultipoly extends MultiPoly {
 	
 	public double getRotation() {
 		return this.rotation;
+	}
+
+	public Polygon getMergedPolygon() {
+		return this.mergedPolygon;
+	}
+
+	public LineMergePolygon getLineMergePolygon() {
+		return this.lmp;
+	}
+
+	public List<Connection> getConnectionPoints() {
+		return this.connections;
 	}
 }

@@ -1,5 +1,6 @@
 package com.plotter.data;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,8 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import com.plotter.algorithms.TetrisSolution.TetrisPiece;
@@ -35,7 +36,7 @@ public class Database implements Serializable {
 		int number = 0;
 		
 		do {
-			number = new Random().nextInt(224) + 1;
+			number = new Random().nextInt(223) + 1;
 		}while(number == 23 || number == 110 || number == 127 || number == 131 || number == 134 || number == 137 || number == 151 || number == 217);
 		
 		return number;
@@ -71,7 +72,15 @@ LOOP:	for(List<Integer> markerSet:markersToShape.keySet()) {
 			}
 		}while(markerSetExists(markers));
 
-		markersToShape.put(markers, new DatabaseMultipoly(tP.rotationComponent, tP.mPoly, markers, layoutPolygon.getMarkerCentres(), layoutPolygon.getMarkerRotations(), layoutPolygon.getCentre()));
+		markersToShape.put(markers,
+						   new DatabaseMultipoly(tP.rotationComponent,
+								   				 layoutPolygon.getMergedPolygon(),
+								   				 layoutPolygon.getLineMergePolygon(),
+								   				 layoutPolygon.getConnections(),
+								   				 markers,
+								   				 layoutPolygon.markerLocations,
+								   				 tP.markerRotations,
+								   				 new Point((int)layoutPolygon.getMergedPolygon().getBounds2D().getCenterX(), (int)layoutPolygon.getMergedPolygon().getBounds2D().getCenterY())));
 		
 		return markers;
 	}

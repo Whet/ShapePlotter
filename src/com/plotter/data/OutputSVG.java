@@ -3,6 +3,7 @@ package com.plotter.data;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
@@ -20,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.imageio.ImageIO;
+
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.w3c.dom.DOMImplementation;
@@ -36,7 +39,7 @@ import com.plotter.gui.SVGOptionsMenu.ReferenceInt;
 public class OutputSVG {
 	
 	// 60 for 10mil
-	private static final int POLY_SCALE = 300;
+	public static final int POLY_SCALE = 300;
 	private static final float HAIRLINE = 0.3f;
 	private static final float DOTTED = 0.5f;
 	private static final Color[] COLOURS = {Color.red, Color.green, Color.blue, Color.orange, Color.yellow.darker(), Color.pink, Color.cyan.darker(), Color.magenta, Color.magenta.darker(), Color.yellow, Color.red.darker(), Color.green.darker(), Color.blue.darker()};
@@ -92,8 +95,50 @@ public class OutputSVG {
 		out = new OutputStreamWriter(new FileOutputStream(new File(fileLocation.substring(0, fileLocation.length() - 4) + "Fancy.svg")), "UTF-8");
 		svgGenerator.stream(out, useCSS);
 		out.close();
+		
+//		drawDatabase(database, svgNS);
 	}
 	
+	private static void drawDatabase(Database database, String fileLocation) throws IOException {
+		BufferedImage databaseDrawing = new BufferedImage(5000, 5000, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D graphics = (Graphics2D) databaseDrawing.getGraphics();
+		
+		graphics.setColor(Color.black);
+		graphics.fillRect(0, 0, 20000, 20000);
+		
+		int x = 50;
+		int y = 50;
+		
+		for(DatabaseMultipoly databaseMultipoly:database.markersToShape.values()) {
+
+			Polygon mergedPolygon = databaseMultipoly.getMergedPolygon();
+			graphics.setColor(Color.cyan);
+
+			if(y + mergedPolygon.getBounds2D().getHeight() > 5000) {
+				x += 300;
+				y = 50;
+			}
+			
+			AffineTransform translation = new AffineTransform();
+			
+			translation.translate(x, y);
+			graphics.setTransform(translation);
+			
+			graphics.drawPolygon(mergedPolygon);
+
+			for(Connection connection:databaseMultipoly.getConnectionPoints()) {
+				graphics.setColor(Color.red);
+				graphics.setColor(Color.orange);
+				graphics.fillOval(connection.getCentre().x - 6, connection.getCentre().y - 6, 12, 12);
+			}
+			
+			y += mergedPolygon.getBounds2D().getHeight() + 50;
+			
+		}
+		
+		ImageIO.write(databaseDrawing, "png", new File(fileLocation.substring(0, fileLocation.length() - 4) + "Database.png"));
+	}
+
 	private static List<Line> computeHairLines(List<LayoutPolygon> shapes) {
 		
 		Map<ReferenceInt, Color> colours = new HashMap<>();
@@ -151,7 +196,7 @@ public class OutputSVG {
 		for(int i = 0; i < markerPoints.size(); i++) {
 			Entry<Point, Integer> marker = markerPoints.get(i);
 			AffineTransform transformation = new AffineTransform();
-			transformation.translate(marker.getKey().x -  MarkerLoader.MARKER_WIDTH / 2, marker.getKey().y -  MarkerLoader.MARKER_WIDTH / 2);
+			transformation.translate(marker.getKey().x -  MarkerLoader.MARKER_DIMENSION / 2, marker.getKey().y -  MarkerLoader.MARKER_DIMENSION / 2);
 			page.drawImage(markers.get(i), transformation, null);
 		}
 	}
@@ -191,7 +236,7 @@ public class OutputSVG {
 		for(int i = 0; i < markerPoints.size(); i++) {
 			Entry<Point, Integer> marker = markerPoints.get(i);
 			AffineTransform transformation = new AffineTransform();
-			transformation.translate(marker.getKey().x -  MarkerLoader.MARKER_WIDTH / 2, marker.getKey().y -  MarkerLoader.MARKER_WIDTH / 2);
+			transformation.translate(marker.getKey().x -  MarkerLoader.MARKER_DIMENSION / 2, marker.getKey().y -  MarkerLoader.MARKER_DIMENSION / 2);
 			page.drawImage(markers.get(i), transformation, null);
 //			page.fillOval(marker.getKey().x - 3, marker.getKey().y - 3, 6, 6);
 		}
@@ -216,12 +261,14 @@ public class OutputSVG {
 		public final List<Point> markerLocations;
 		public final Map<Point, Integer> markerNumbers;
 		public List<Double> markerRotations;
+		public List<Connection> connections;
 		
 		public LayoutPolygon(TetrisPiece tP) {
 			
 			this.identity = tP.pop;
 			this.rotationComponent = tP.rotationComponent;
 			this.markerRotations = tP.markerRotations;
+			this.connections = new ArrayList<>();
 			lmp = new LineMergePolygon();
 			
 			Area area = new Area();
@@ -244,6 +291,28 @@ public class OutputSVG {
 			for(int i = 0; i < tP.markerPolygonLocations.size(); i++) {
 				this.markerLocations.add(new Point(tP.markerPolygonLocations.get(i).x * POLY_SCALE + POLY_SCALE / 2,
 												   tP.markerPolygonLocations.get(i).y * POLY_SCALE + POLY_SCALE / 2));
+			}
+			
+			double minX = area.getBounds2D().getMinX();
+			double minY = area.getBounds2D().getMinY();
+			
+			double maxX = area.getBounds2D().getMaxX();
+			double maxY = area.getBounds2D().getMaxY();
+			
+			double width = maxX - minX;
+			double height = maxY - minY;
+			
+			for(double[] connection:tP.connections) {
+				
+				int flavour = (int)connection[6];
+				
+				connections.add(new Connection(flavour,
+											   (int)(minX + width * connection[0]),
+											   (int)(minY + height * connection[1]),
+											   (int)(minX + width * connection[2]),
+											   (int)(minY + height * connection[3]),
+											   (int)(minX + width * connection[4]),
+											   (int)(minY + height * connection[5])));
 			}
 			
 			this.markerNumbers = new HashMap<>();
@@ -297,6 +366,18 @@ public class OutputSVG {
 
 		public List<Double> getMarkerRotations() {
 			return this.markerRotations;
+		}
+
+		public LineMergePolygon getLineMergePolygon() {
+			return this.lmp;
+		}
+
+		public Polygon getMergedPolygon() {
+			return this.fullPoly;
+		}
+
+		public List<Connection> getConnections() {
+			return this.connections;
 		}
 		
 	}

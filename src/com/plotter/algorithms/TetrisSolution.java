@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import com.plotter.data.Connection;
 import com.plotter.data.Maths;
 import com.plotter.gui.AssemblyHierarchyPanel.DecompositionImage;
 import com.plotter.gui.GridPanel;
@@ -543,6 +544,7 @@ public class TetrisSolution {
 		public Polygon mergedPolygon;
 		public List<Point> markerPolygonLocations;
 		public List<Double> markerRotations;
+		public List<double[]> connections;
 		public ReferenceInt pop;
 		private int width, height;
 		public int rotationComponent;
@@ -554,6 +556,7 @@ public class TetrisSolution {
 			this.rotationComponent = rotationComponent;
 			this.pop = integer;
 			
+			Area largeArea = new Area();
 			Area area = new Area();
 			mergedPolygon = new Polygon();
 			
@@ -576,7 +579,7 @@ public class TetrisSolution {
 				this.markerRotations.add((Math.PI / 2) * rotationComponent);
 				
 				area.add(new Area(nPoly));
-				
+				largeArea.add(new Area(poly));
 			}
 			
 			this.mergedPolygon = new Polygon();
@@ -592,6 +595,31 @@ public class TetrisSolution {
 			
 			if(height == 0 || width == 0)
 				System.err.println("WRONG SIZE");
+			
+			this.connections = new ArrayList<>();
+			
+			double minX = largeArea.getBounds2D().getMinX();
+			double minY = largeArea.getBounds2D().getMinY();
+			
+			double maxX = largeArea.getBounds2D().getMaxX();
+			double maxY = largeArea.getBounds2D().getMaxY();
+			
+			double width = maxX - minX;
+			double height = maxY - minY;
+			
+			// Store connections as a fraction of the shape width/height
+			for(Connection connection:this.mPoly.connectedPoints) {
+				double[] ds = new double[7];
+				this.connections.add(ds);
+				
+				ds[0] = (connection.getCentre().x - minX) / width;
+				ds[1] = (connection.getCentre().y - minY) / height;
+				ds[2] = (connection.getInside().x - minX) / width;
+				ds[3] = (connection.getInside().y - minY) / height;
+				ds[4] = (connection.getOutside().x - minX) / width;
+				ds[5] = (connection.getOutside().y - minY) / height;
+				ds[6] = connection.getFlavour();
+			}
 			
 		}
 		
@@ -625,6 +653,11 @@ public class TetrisSolution {
 			t.markerRotations = new ArrayList<>();
 			for(Double rot:this.markerRotations) {
 				t.markerRotations.add(new Double(rot));
+			}
+			
+			t.connections = new ArrayList<>();
+			for(double[] connection:this.connections) {
+				t.connections.add(new double[]{connection[0], connection[1], connection[2], connection[3], connection[4], connection[5], connection[6]});
 			}
 			
 			t.width = this.width;
