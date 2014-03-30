@@ -239,6 +239,56 @@ public class PlotterWindow extends JFrame {
 			
 		});
 		libkokiMenu.add(drawShapesOption);
+		
+		JMenuItem correctShapesOption = new JMenuItem("Polygon Correction");
+		correctShapesOption.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				JFileChooser choose = new JFileChooser();
+				FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
+				choose.setFileFilter(imageFilter);
+				
+				choose.setCurrentDirectory(new File(HOME_LOCATION));
+				int showOpenDialog = choose.showOpenDialog(PlotterWindow.this);
+				
+				if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+					
+					try {
+						BufferedImage image = ImageIO.read(new FileInputStream(choose.getSelectedFile()));
+						
+						JFileChooser xmlChoose = new JFileChooser();
+						FileNameExtensionFilter xmlfilter = new FileNameExtensionFilter("xml files (*.xml)", "xml");
+						xmlChoose.setFileFilter(xmlfilter);
+						
+						xmlChoose.setCurrentDirectory(new File(HOME_LOCATION));
+						showOpenDialog = xmlChoose.showOpenDialog(PlotterWindow.this);
+						
+						if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+							
+							JFileChooser databaseChoose = new JFileChooser();
+							databaseChoose.setCurrentDirectory(new File(HOME_LOCATION));
+							showOpenDialog = databaseChoose.showOpenDialog(PlotterWindow.this);
+							
+							if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+								Database database = Database.loadDatabase(databaseChoose.getSelectedFile());
+								XMLCorrection window = new XMLCorrection(xmlChoose.getSelectedFile(), image, database);
+								window.setVisible(true);
+							}
+						}
+						
+					} catch (FileNotFoundException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error loading image file");
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error loading image file");
+					}
+				}
+				
+			}
+			
+		});
+		libkokiMenu.add(correctShapesOption);
 	}
 
 	private void setDecorations() {

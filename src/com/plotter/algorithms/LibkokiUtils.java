@@ -37,6 +37,34 @@ public class LibkokiUtils {
 	private static final int ATTEMPTS = 10;
 	private static final double SCALE = 1;
 	
+	public static void getShapes(File selectedFile, Graphics2D graphics, Database database,
+			                     List<MarkerInfo> markers, Set<DatabaseMultipoly> allocatedShapes,
+			                     Set<MarkerInfo> allocatedMarkers, List<ShapeData> shapeData) {
+		
+		markers.addAll(parseXML(selectedFile));
+		
+		MarkerInfo[] markerInfo = markers.toArray(new MarkerInfo[markers.size()]);
+		
+		for(int i = 0; i < ATTEMPTS; i++) {
+			Iterator<MarkerInfo> markerIt = markers.iterator();
+			
+			while(markerIt.hasNext()) {
+				MarkerInfo marker = markerIt.next();
+				
+				if(allocatedMarkers.contains(marker)) {
+					markerIt.remove();
+					continue;
+				}
+				
+				boolean markerProcessed = processMarker(marker, graphics, database, markerInfo, allocatedShapes, allocatedMarkers, shapeData);
+				
+				if(markerProcessed)
+					markerIt.remove();
+			}
+		}
+		
+	}
+	
 	public static void showShapes(File selectedFile, Graphics2D graphics, Database database) {
 		
 		List<MarkerInfo> markers = parseXML(selectedFile);
