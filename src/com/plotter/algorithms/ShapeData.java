@@ -1,7 +1,6 @@
 package com.plotter.algorithms;
 
 import java.awt.Point;
-import java.util.List;
 import java.util.Set;
 
 public class ShapeData {

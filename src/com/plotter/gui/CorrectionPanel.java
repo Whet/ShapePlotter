@@ -16,6 +16,10 @@ import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
+import com.plotter.xmlcorrection.MarkerData;
+import com.plotter.xmlcorrection.MarkerGroup;
+import com.plotter.xmlcorrection.XMLCorrectionData;
+
 public class CorrectionPanel extends JPanel {
 
 	// Shape drawing variables
@@ -31,17 +35,17 @@ public class CorrectionPanel extends JPanel {
 	private int[] panAtClick;
 	
 	private boolean shiftDown;
-	private int currentFlavour;
 	private final BufferedImage image;
 	
-	public CorrectionPanel(BufferedImage image) {
+	private XMLCorrectionData data;
+	
+	public CorrectionPanel(XMLCorrectionData data, BufferedImage image) {
 		
+		this.data = data;
 		this.image = image;
 		
 		this.panX = 0;
 		this.panY = 0;
-		
-		this.currentFlavour = 0;
 		
 		this.setPreferredSize(new Dimension(800, 600));
 		
@@ -86,12 +90,18 @@ public class CorrectionPanel extends JPanel {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 
+				Point transPoint = new Point(e.getPoint());
+				transPoint.translate(-panX, -panY);
+				
 				// Left Mouse
 				if(e.getButton() == 1) {
+					data.mD(e.getPoint(), transPoint, shiftDown);
 				}
 				
 				// Right Mouse
 				else if(e.getButton() == 3) {
+					
+					data.rMD(e.getPoint(), transPoint, shiftDown);
 				}
 
 				// Middle Mouse
@@ -135,46 +145,6 @@ public class CorrectionPanel extends JPanel {
 					case 16:
 						shiftDown = true;
 					break;
-					// 0
-					case 48:
-						currentFlavour = 0;
-					break;
-					// 1
-					case 49:
-						currentFlavour = 1;
-					break;
-					// 2
-					case 50:
-						currentFlavour = 2;
-					break;
-					// 3
-					case 51:
-						currentFlavour = 3;
-					break;
-					// 4
-					case 52:
-						currentFlavour = 4;
-					break;
-					// 5
-					case 53:
-						currentFlavour = 5;
-					break;
-					// 6
-					case 54:
-						currentFlavour = 6;
-					break;
-					// 7
-					case 55:
-						currentFlavour = 7;
-					break;
-					// 8
-					case 56:
-						currentFlavour = 8;
-					break;
-					// 9
-					case 57:
-						currentFlavour = 9;
-					break;
 				}
 			}
 			
@@ -184,6 +154,14 @@ public class CorrectionPanel extends JPanel {
 					// SHIFT
 					case 16:
 						shiftDown = false;
+					break;
+					// 0
+					case 48:
+						data.setSelectionMode(0);
+					break;
+					// 1
+					case 49:
+						data.setSelectionMode(1);
 					break;
 				}
 			}
@@ -207,8 +185,47 @@ public class CorrectionPanel extends JPanel {
 		
 		g2.drawImage(image, panTransform, null);
 		
+		drawData(g2);
 		
+	}
+	
+	private void drawData(Graphics2D g) {
 		
+		AffineTransform panTransform = new AffineTransform();
+		panTransform.translate(panX, panY);
+		
+		g.setTransform(panTransform);
+		
+		for(MarkerData marker:data.getMarkers()) {
+			if(data.isSelected(marker))
+				g.setColor(Color.orange);
+			else
+				g.setColor(Color.green.darker());
+			
+			g.fillRect(marker.getLocation().x - 20, marker.getLocation().y - 20, 40, 40);
+			
+			g.setColor(Color.white);
+			g.drawString("ID " + marker.getMarkerNumber(), marker.getLocation().x - 20, marker.getLocation().y);
+		}
+		
+		// Showing groups of markers
+		if(data.getSelectionMode() == 1) {
+			// Draw shape and centre of markers
+			for(MarkerGroup group:data.getMarkerGroups()) {
+				
+				if(data.isSelected(group))
+					g.setColor(Color.orange);
+				else
+					g.setColor(Color.red.darker());
+				
+				for(MarkerData marker:group.getMarkers()) {
+					g.drawLine(marker.getLocation().x, marker.getLocation().y,
+							   group.getCentre().x, group.getCentre().y);
+				}
+				
+				g.drawOval(group.getCentre().x - 10, group.getCentre().y - 10, 20, 20);
+			}
+		}
 	}
 	
 }

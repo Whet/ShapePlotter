@@ -38,8 +38,15 @@ public class LibkokiUtils {
 	private static final double SCALE = 1;
 	
 	public static void getShapes(File selectedFile, Graphics2D graphics, Database database,
+            List<MarkerInfo> markers, Set<DatabaseMultipoly> allocatedShapes,
+            Set<MarkerInfo> allocatedMarkers, List<ShapeData> shapeData) {
+		getShapes(selectedFile, graphics, database, markers, allocatedShapes, allocatedMarkers, shapeData, new HashMap<ShapeData, DatabaseMultipoly>());
+	}
+	
+	public static void getShapes(File selectedFile, Graphics2D graphics, Database database,
 			                     List<MarkerInfo> markers, Set<DatabaseMultipoly> allocatedShapes,
-			                     Set<MarkerInfo> allocatedMarkers, List<ShapeData> shapeData) {
+			                     Set<MarkerInfo> allocatedMarkers, List<ShapeData> shapeData,
+			                     Map<ShapeData, DatabaseMultipoly> shapeDataMapping) {
 		
 		markers.addAll(parseXML(selectedFile));
 		
@@ -56,7 +63,7 @@ public class LibkokiUtils {
 					continue;
 				}
 				
-				boolean markerProcessed = processMarker(marker, graphics, database, markerInfo, allocatedShapes, allocatedMarkers, shapeData);
+				boolean markerProcessed = processMarker(marker, graphics, database, markerInfo, allocatedShapes, allocatedMarkers, shapeData, shapeDataMapping);
 				
 				if(markerProcessed)
 					markerIt.remove();
@@ -88,7 +95,7 @@ public class LibkokiUtils {
 					continue;
 				}
 				
-				boolean markerProcessed = processMarker(marker, graphics, database, markerInfo, allocatedShapes, allocatedMarkers, shapeData);
+				boolean markerProcessed = processMarker(marker, graphics, database, markerInfo, allocatedShapes, allocatedMarkers, shapeData, new HashMap<ShapeData, DatabaseMultipoly>());
 				
 				if(markerProcessed)
 					markerIt.remove();
@@ -105,7 +112,7 @@ public class LibkokiUtils {
 	
 	private static boolean processMarker(MarkerInfo marker, Graphics2D graphics, Database database,
 										 MarkerInfo[] markerInfo, Set<DatabaseMultipoly> allocatedShapes, Set<MarkerInfo> allocatedMarkers,
-										 List<ShapeData> shapeData) {
+										 List<ShapeData> shapeData, Map<ShapeData, DatabaseMultipoly> shapeDataMapping) {
 		
 		// Get possible shapes for this marker
 		Set<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes = database.getPossibleShapes(marker.id);
@@ -289,7 +296,9 @@ public class LibkokiUtils {
 											 (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end2.y - polygonCentre.y) * SCALE))));
 		}
 		
-		shapeData.add(new ShapeData(shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly)));
+		ShapeData shapeData2 = new ShapeData(shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));
+		shapeData.add(shapeData2);
+		shapeDataMapping.put(shapeData2, multiPoly);
 		
 		//DEBUG
 		// Write the rotation info
