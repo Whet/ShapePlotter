@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.plotter.algorithms.LineMergePolygon;
+import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.data.DatabaseMultipoly;
 
@@ -13,11 +15,15 @@ public class MarkerGroup {
 
 	private Set<MarkerData> markers;
 	private DatabaseMultipoly shape;
-	private List<Edge> scaledShape;
+	private LineMergePolygon originShape;
+	private List<Edge> transformedEdges;
+	
+	private Point centre;
+	private double rotation;
 	
 	public MarkerGroup() {
 		this.markers = new HashSet<>();
-		this.scaledShape = new ArrayList<>();
+		this.transformedEdges = new ArrayList<>();
 	}
 	
 	public void addMarker(MarkerData marker) {
@@ -43,13 +49,26 @@ public class MarkerGroup {
 		return avgPoint;
 	}
 	
+	private double getRotation() {
+		double averageRotation = 0;
+		
+		for(MarkerData marker:markers) {
+			averageRotation += marker.getRotation() - Math.toDegrees(this.shape.getRotation());
+		}
+		
+		return Math.toRadians(averageRotation / markers.size());
+	}
+	
 	public void translate(int x, int y) {
 		for(MarkerData marker:markers) {
 			marker.translate(x, y);
 		}
-		for(Edge edge:this.scaledShape) {
+		for(Edge edge:this.transformedEdges) {
 			edge.translate(x, y);
 		}
+		
+		this.centre = getCentre();
+		updateShape();
 	}
 	
 	public DatabaseMultipoly getShape() {
@@ -59,15 +78,67 @@ public class MarkerGroup {
 	public void setShape(DatabaseMultipoly shape) {
 		this.shape = shape;
 		
-		createScaledShape(shape, 1);
+		try {
+			this.originShape = (LineMergePolygon) shape.getLineMergePolygon().clone();
+			int minX = (int) shape.getMergedPolygon().getBounds2D().getMinX();
+			int minY = (int) shape.getMergedPolygon().getBounds2D().getMinY();
+			this.originShape.translate(-minX, -minY);
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		
+		this.centre = getCentre();
+		this.rotation = getRotation();
+		
+		updateShape();
 	}
 
-	private void createScaledShape(DatabaseMultipoly shape, int scale) {
-		List<Edge> hairlines = shape.getLineMergePolygon().getHairlines();
-		this.scaledShape.clear();
-		for(Edge edge:hairlines) {
-			scaledShape.add(new Edge(edge.end1.x * scale, edge.end1.y * scale, edge.end2.x * scale, edge.end2.y * scale));
+	private void updateShape() {
+		
+		this.transformedEdges.clear();
+		
+		List<Edge> edges = new ArrayList<>();
+		
+		// Rotate
+		
+		// Centre of origin shape used for rotation
+		final Point centre = new Point((int)(shape.getMergedPolygon().getBounds2D().getWidth() / 2), (int)(shape.getMergedPolygon().getBounds2D().getHeight() / 2));
+		
+		for(Edge edge:this.originShape.getHairlines()) {
+			edges.add(new Edge(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
 		}
+		
+		for(Edge edge:edges) {
+			Point end1 = new Point(MultiPoly.rotatePoint(edge.end1, centre, this.rotation));
+			System.out.println(edge.end1);
+			Point end2 = new Point(MultiPoly.rotatePoint(edge.end2, centre, this.rotation));
+			edge.end1 = end1;
+			edge.end2 = end2;
+		}
+		System.out.println();
+		
+		// Scale
+		final int scale = 1;
+		
+		for(Edge edge:edges) {
+			edge.end1.x *= scale;
+			edge.end1.y *= scale;
+			edge.end2.x *= scale;
+			edge.end2.y *= scale;
+		}
+		
+		// Translate to centre
+		int translationX, translationY;
+		
+		translationX = this.centre.x - centre.x;
+		translationY = this.centre.y - centre.y;
+		
+		for(Edge edge:edges) {
+			edge.end1.translate(translationX, translationY);
+			edge.end2.translate(translationX, translationY);
+			transformedEdges.add(edge);
+		}
+		
 	}
 
 	public Set<MarkerData> getMarkers() {
@@ -98,7 +169,7 @@ public class MarkerGroup {
 	}
 
 	public List<Edge> getScaledShape() {
-		return scaledShape;
+		return transformedEdges;
 	}
 	
 }
