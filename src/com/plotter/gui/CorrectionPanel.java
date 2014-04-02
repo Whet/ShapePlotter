@@ -16,17 +16,13 @@ import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
+import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.xmlcorrection.MarkerData;
 import com.plotter.xmlcorrection.MarkerGroup;
 import com.plotter.xmlcorrection.XMLCorrectionData;
 
 public class CorrectionPanel extends JPanel {
 
-	// Shape drawing variables
-	private static final Color POLYGON_COLOUR = new Color(244,123,34);
-	private static final Color VERTEX_COLOUR = new Color(255,154,81);
-	private static final Color BINDING_POINT_COLOUR = new Color(243,40,42);
-	
 	// Mouse variables
 	private int panX, panY;
 	private boolean mousePanning;
@@ -61,8 +57,6 @@ public class CorrectionPanel extends JPanel {
 
 	private void addMouseControl() {
 		this.addMouseListener(new MouseAdapter() {
-			
-			private int connectXDown, connectYDown;
 			
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -210,11 +204,14 @@ public class CorrectionPanel extends JPanel {
 		
 		// Showing groups of markers
 		if(data.getSelectionMode() == 1) {
+			
+			MarkerGroup selectedGroup = null;
+			
 			// Draw shape and centre of markers
 			for(MarkerGroup group:data.getMarkerGroups()) {
 				
 				if(data.isSelected(group))
-					g.setColor(Color.orange);
+					selectedGroup = group;
 				else
 					g.setColor(Color.red.darker());
 				
@@ -224,6 +221,30 @@ public class CorrectionPanel extends JPanel {
 				}
 				
 				g.drawOval(group.getCentre().x - 10, group.getCentre().y - 10, 20, 20);
+				
+				// Draw lines
+				for(Edge edge:group.getScaledShape()) {
+					g.drawLine(edge.end1.x, edge.end1.y, 
+							   edge.end2.x, edge.end2.y);
+				}
+			}
+			
+			// Draw selected group last so it appears on top
+			if(selectedGroup != null) {
+				g.setColor(Color.orange);
+				
+				for(MarkerData marker:selectedGroup.getMarkers()) {
+					g.drawLine(marker.getLocation().x, marker.getLocation().y,
+							selectedGroup.getCentre().x, selectedGroup.getCentre().y);
+				}
+				
+				g.drawOval(selectedGroup.getCentre().x - 10, selectedGroup.getCentre().y - 10, 20, 20);
+				
+				// Draw lines
+				for(Edge edge:selectedGroup.getScaledShape()) {
+					g.drawLine(edge.end1.x, edge.end1.y, 
+							   edge.end2.x, edge.end2.y);
+				}
 			}
 		}
 	}

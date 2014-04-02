@@ -37,7 +37,7 @@ public class XMLCorrectionData {
 				group.addMarker(markerData);
 			}
 			
-			group.assignShape(shapeDataMapping.get(sData));
+			group.setShape(shapeDataMapping.get(sData));
 			markerGroups.add(group);
 		}
 	}

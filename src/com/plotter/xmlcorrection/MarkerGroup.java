@@ -1,18 +1,23 @@
 package com.plotter.xmlcorrection;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.data.DatabaseMultipoly;
 
 public class MarkerGroup {
 
 	private Set<MarkerData> markers;
 	private DatabaseMultipoly shape;
+	private List<Edge> scaledShape;
 	
 	public MarkerGroup() {
 		this.markers = new HashSet<>();
+		this.scaledShape = new ArrayList<>();
 	}
 	
 	public void addMarker(MarkerData marker) {
@@ -42,10 +47,27 @@ public class MarkerGroup {
 		for(MarkerData marker:markers) {
 			marker.translate(x, y);
 		}
+		for(Edge edge:this.scaledShape) {
+			edge.translate(x, y);
+		}
 	}
 	
-	public void assignShape(DatabaseMultipoly shape) {
+	public DatabaseMultipoly getShape() {
+		return shape;
+	}
+
+	public void setShape(DatabaseMultipoly shape) {
 		this.shape = shape;
+		
+		createScaledShape(shape, 1);
+	}
+
+	private void createScaledShape(DatabaseMultipoly shape, int scale) {
+		List<Edge> hairlines = shape.getLineMergePolygon().getHairlines();
+		this.scaledShape.clear();
+		for(Edge edge:hairlines) {
+			scaledShape.add(new Edge(edge.end1.x * scale, edge.end1.y * scale, edge.end2.x * scale, edge.end2.y * scale));
+		}
 	}
 
 	public Set<MarkerData> getMarkers() {
@@ -73,6 +95,10 @@ public class MarkerGroup {
 	
 	public boolean isEmpty() {
 		return this.markers.isEmpty();
+	}
+
+	public List<Edge> getScaledShape() {
+		return scaledShape;
 	}
 	
 }
