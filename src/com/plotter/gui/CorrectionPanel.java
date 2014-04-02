@@ -215,12 +215,15 @@ public class CorrectionPanel extends JPanel {
 				else
 					g.setColor(Color.red.darker());
 				
+				g.drawOval(group.getCentre().x - 10, group.getCentre().y - 10, 20, 20);
+				
+				if(group.hasNoShape())
+					continue;
+				
 				for(MarkerData marker:group.getMarkers()) {
 					g.drawLine(marker.getLocation().x, marker.getLocation().y,
 							   group.getCentre().x, group.getCentre().y);
 				}
-				
-				g.drawOval(group.getCentre().x - 10, group.getCentre().y - 10, 20, 20);
 				
 				// Draw lines
 				for(Edge edge:group.getScaledShape()) {
@@ -231,14 +234,17 @@ public class CorrectionPanel extends JPanel {
 			
 			// Draw selected group last so it appears on top
 			if(selectedGroup != null) {
+				
 				g.setColor(Color.orange);
+				g.drawOval(selectedGroup.getCentre().x - 10, selectedGroup.getCentre().y - 10, 20, 20);
+				
+				if(selectedGroup.hasNoShape())
+					return;
 				
 				for(MarkerData marker:selectedGroup.getMarkers()) {
 					g.drawLine(marker.getLocation().x, marker.getLocation().y,
 							selectedGroup.getCentre().x, selectedGroup.getCentre().y);
 				}
-				
-				g.drawOval(selectedGroup.getCentre().x - 10, selectedGroup.getCentre().y - 10, 20, 20);
 				
 				// Draw lines
 				for(Edge edge:selectedGroup.getScaledShape()) {

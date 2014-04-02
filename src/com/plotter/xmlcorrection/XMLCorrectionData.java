@@ -127,6 +127,19 @@ public class XMLCorrectionData {
 		MarkerGroup group = new MarkerGroup();
 		group.addMarker(selectedMarker);
 		markerGroups.add(group);
+		
+		clearEmptyGroups();
+	}
+
+	private void clearEmptyGroups() {
+		Iterator<MarkerGroup> iterator = markerGroups.iterator();
+		
+		while(iterator.hasNext()) {
+			MarkerGroup next = iterator.next();
+			
+			if(next.isEmpty())
+				iterator.remove();
+		}
 	}
 
 	private void removeFromGroups(MarkerData selectedMarker, MarkerGroup group) {
@@ -137,14 +150,7 @@ public class XMLCorrectionData {
 				mGroup.removeMarker(selectedMarker);
 		}
 		
-		Iterator<MarkerGroup> iterator = markerGroups.iterator();
-		
-		while(iterator.hasNext()) {
-			MarkerGroup next = iterator.next();
-			
-			if(next.isEmpty())
-				iterator.remove();
-		}
+		clearEmptyGroups();
 	}
 
 	public boolean isSelected(Object object) {

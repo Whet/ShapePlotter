@@ -36,11 +36,21 @@ public class MarkerGroup {
 	
 	public Point getCentre() {
 		
+		if(this.markers.size() == 0)
+			return null;
+		
 		Point avgPoint = new Point();
 		
 		for(MarkerData marker:markers) {
-			avgPoint.x += marker.getLocation().x;
-			avgPoint.y += marker.getLocation().y;
+			
+			int[] offset;
+			if(this.shape != null)
+				offset = this.shape.getDisplacement(marker.getMarkerNumber());
+			else
+				offset = new int[]{0,0};
+			
+			avgPoint.x += marker.getLocation().x + offset[0];
+			avgPoint.y += marker.getLocation().y + offset[1];
 		}
 		
 		avgPoint.x /= markers.size();
@@ -170,6 +180,10 @@ public class MarkerGroup {
 
 	public List<Edge> getScaledShape() {
 		return transformedEdges;
+	}
+
+	public boolean hasNoShape() {
+		return this.shape == null;
 	}
 	
 }
