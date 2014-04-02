@@ -167,6 +167,26 @@ public class LibkokiUtils {
 			}
 			
 			System.out.println("Found " + polygonMarkersLocated.size() + " need " + entry.getKey().size());
+			
+			// If too many markers found then choose the marker which is closest
+			if(polygonMarkersLocated.size() > entry.getKey().size()) {
+				
+				 Iterator<MarkerInfo> iterator = polygonMarkersLocated.iterator();
+				 
+				 while(iterator.hasNext()) {
+					 
+					 MarkerInfo invMarker = iterator.next();
+					 
+					 // Check against other markers to find duplicate id
+					 for(MarkerInfo info:polygonMarkersLocated) {
+						 if(invMarker.id == info.id && invMarker != info && Maths.getDistance(info.centrePixels, marker.centrePixels) < Maths.getDistance(invMarker.centrePixels, marker.centrePixels)) {
+							 iterator.remove();
+							 break;
+						 }
+					 }
+				 }
+			}
+			
 			// No match
 			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0) && polygonMarkersLocated.size() < entry.getKey().size()) {
 				possibleShapesIt.remove();
