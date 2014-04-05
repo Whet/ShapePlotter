@@ -49,8 +49,17 @@ public class MarkerGroup {
 			else
 				offset = new int[]{0,0};
 			
-			avgPoint.x += marker.getLocation().x + offset[0];
-			avgPoint.y += marker.getLocation().y + offset[1];
+			// Adjust displacement for rotation of marker
+			double[] rotDisplacement = new double[2];
+			
+			double cT = Math.cos(this.rotation);
+			double sT = Math.sin(this.rotation);
+			
+			rotDisplacement[0] = offset[0] * cT - offset[1] * sT;
+			rotDisplacement[1] = offset[0] * sT + offset[1] * cT;
+			
+			avgPoint.x += marker.getLocation().x + rotDisplacement[0];
+			avgPoint.y += marker.getLocation().y + rotDisplacement[1];
 		}
 		
 		avgPoint.x /= markers.size();
@@ -97,8 +106,12 @@ public class MarkerGroup {
 			e.printStackTrace();
 		}
 		
-		this.centre = getCentre();
+		update();
+	}
+	
+	public void update() {
 		this.rotation = getRotation();
+		this.centre = getCentre();
 		
 		updateShape();
 	}
@@ -185,5 +198,5 @@ public class MarkerGroup {
 	public boolean hasNoShape() {
 		return this.shape == null;
 	}
-	
+
 }

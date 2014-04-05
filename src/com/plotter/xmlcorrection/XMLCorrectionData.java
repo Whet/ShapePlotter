@@ -129,6 +129,7 @@ public class XMLCorrectionData {
 		markerGroups.add(group);
 		
 		clearEmptyGroups();
+		updateShapes();
 	}
 
 	private void clearEmptyGroups() {
@@ -151,6 +152,13 @@ public class XMLCorrectionData {
 		}
 		
 		clearEmptyGroups();
+		updateShapes();
+	}
+
+	private void updateShapes() {
+		for(MarkerGroup group:this.markerGroups) {
+			group.update();
+		}
 	}
 
 	public boolean isSelected(Object object) {
