@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -138,7 +140,14 @@ public class PropertiesPanel extends JPanel {
 				
 				this.topLabel.setText("Markers:");
 				this.topBox.setEditable(false);
-				this.topBox.setText("");
+				
+				Set<Integer> markerIds = new HashSet<>();
+				
+				for(MarkerData marker:group.getMarkers()) {
+					markerIds.add(marker.getMarkerNumber());
+				}
+				
+				this.topBox.setText(markerIds.toString());
 				
 				this.bottomLabel.setText("-");
 				this.bottomBox.setEditable(false);
