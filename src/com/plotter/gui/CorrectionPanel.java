@@ -198,6 +198,14 @@ public class CorrectionPanel extends JPanel {
 			
 			g.fillRect(marker.getLocation().x - 20, marker.getLocation().y - 20, 40, 40);
 			
+			g.setColor(Color.cyan);
+			
+			double rotation = Math.toRadians(marker.getRotation());
+			g.drawLine(marker.getLocation().x,
+					   marker.getLocation().y,
+					   (int)(marker.getLocation().x + Math.cos(rotation) * 20),
+					   (int)(marker.getLocation().y + Math.sin(rotation) * 20));
+			
 			g.setColor(Color.white);
 			g.drawString("ID " + marker.getMarkerNumber(), marker.getLocation().x - 20, marker.getLocation().y);
 		}

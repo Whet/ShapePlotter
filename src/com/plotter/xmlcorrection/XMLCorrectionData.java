@@ -10,17 +10,23 @@ import com.plotter.algorithms.LibkokiUtils.MarkerInfo;
 import com.plotter.algorithms.ShapeData;
 import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
+import com.plotter.gui.PropertiesPanel;
 
 public class XMLCorrectionData {
 
 	private List<MarkerData> markers;
 	private List<MarkerGroup> markerGroups;
 	private Database database;
+	private PropertiesPanel properties;
 	
-	public XMLCorrectionData(List<ShapeData> shapeData, Map<ShapeData, DatabaseMultipoly> shapeDataMapping, Database database) {
+	private int selectionMode;
+	private Object selectedObject;
+	
+	public XMLCorrectionData(PropertiesPanel properties, List<ShapeData> shapeData, Map<ShapeData, DatabaseMultipoly> shapeDataMapping, Database database) {
 		this.markers = new ArrayList<>();
 		this.markerGroups = new ArrayList<>();
 		this.database = database;
+		this.properties = properties;
 		
 		findMarkers(shapeData, shapeDataMapping);
 		
@@ -50,9 +56,6 @@ public class XMLCorrectionData {
 		return markerGroups;
 	}
 	
-	private int selectionMode;
-	private Object selectedObject;
-	
 	public void mD(Point locationOnScreen, Point realLocation, boolean shiftDown) {
 		switch(selectionMode) {
 			case 0:
@@ -61,6 +64,7 @@ public class XMLCorrectionData {
 				for(MarkerData marker:markers) {
 					if(marker.getLocation().distance(realLocation) < 40) {
 						selectedObject = marker;
+						properties.setInfo(selectedObject);
 						break;
 					}
 				}
@@ -71,6 +75,7 @@ public class XMLCorrectionData {
 				for(MarkerGroup markerGroup:markerGroups) {
 					if(markerGroup.getCentre().distance(realLocation) < 40) {
 						selectedObject = markerGroup;
+						properties.setInfo(selectedObject);
 						break;
 					}
 				}
@@ -155,7 +160,7 @@ public class XMLCorrectionData {
 		updateShapes();
 	}
 
-	private void updateShapes() {
+	public void updateShapes() {
 		for(MarkerGroup group:this.markerGroups) {
 			group.update();
 		}
@@ -171,6 +176,7 @@ public class XMLCorrectionData {
 
 	public void setSelectionMode(int selectionMode) {
 		selectedObject = null;
+		properties.setInfo(null);
 		this.selectionMode = selectionMode;
 	}
 	

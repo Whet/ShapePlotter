@@ -37,5 +37,9 @@ public class MarkerData {
 	public int getMarkerNumber() {
 		return markerNumber;
 	}
+
+	public void setMarkerNumber(int number) {
+		this.markerNumber = number;
+	}
 	
 }

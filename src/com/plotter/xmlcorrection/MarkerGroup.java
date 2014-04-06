@@ -10,6 +10,7 @@ import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.data.DatabaseMultipoly;
+import com.plotter.gui.PropertiesPanel;
 
 public class MarkerGroup {
 
@@ -133,12 +134,12 @@ public class MarkerGroup {
 		
 		for(Edge edge:edges) {
 			Point end1 = new Point(MultiPoly.rotatePoint(edge.end1, centre, this.rotation));
-			System.out.println(edge.end1);
+//			System.out.println(edge.end1);
 			Point end2 = new Point(MultiPoly.rotatePoint(edge.end2, centre, this.rotation));
 			edge.end1 = end1;
 			edge.end2 = end2;
 		}
-		System.out.println();
+//		System.out.println();
 		
 		// Scale
 		final int scale = 1;
