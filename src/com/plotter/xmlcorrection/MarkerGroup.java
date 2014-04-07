@@ -111,6 +111,9 @@ public class MarkerGroup {
 	}
 	
 	public void update() {
+		if(this.markers.size() == 0)
+			return;
+		
 		this.rotation = getRotation();
 		this.centre = getCentre();
 		
