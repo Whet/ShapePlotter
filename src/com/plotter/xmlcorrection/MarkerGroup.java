@@ -4,16 +4,18 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.plotter.algorithms.LineMergePolygon;
-import com.plotter.algorithms.MultiPoly;
 import com.plotter.algorithms.LineMergePolygon.Edge;
+import com.plotter.algorithms.MultiPoly;
+import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
-import com.plotter.gui.PropertiesPanel;
 
 public class MarkerGroup {
 
+	private Database database;
 	private Set<MarkerData> markers;
 	private DatabaseMultipoly shape;
 	private LineMergePolygon originShape;
@@ -22,9 +24,10 @@ public class MarkerGroup {
 	private Point centre;
 	private double rotation;
 	
-	public MarkerGroup() {
+	public MarkerGroup(Database database) {
 		this.markers = new HashSet<>();
 		this.transformedEdges = new ArrayList<>();
+		this.database = database;
 	}
 	
 	public void addMarker(MarkerData marker) {
@@ -201,6 +204,33 @@ public class MarkerGroup {
 
 	public boolean hasNoShape() {
 		return this.shape == null;
+	}
+
+	public List<DatabaseMultipoly> getPossibleShapes() {
+
+		List<DatabaseMultipoly> possibleShapes = new ArrayList<>();
+		
+		NEXT_SHAPE:for(Entry<List<Integer>, DatabaseMultipoly> entry:database.markersToShape.entrySet()) {
+			
+			for(Integer markerId:entry.getKey()) {
+				boolean markerFound = false;
+				
+				for(MarkerData marker:this.markers) {
+					if(marker.getMarkerNumber() == markerId) {
+						markerFound = true;
+						break;
+					}
+				}
+				
+				if(!markerFound)
+					continue NEXT_SHAPE;
+			}
+			
+			possibleShapes.add(entry.getValue());
+			
+		}
+		
+		return possibleShapes;
 	}
 
 }

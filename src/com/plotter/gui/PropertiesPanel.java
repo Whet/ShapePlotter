@@ -16,7 +16,7 @@ import com.plotter.xmlcorrection.MarkerGroup;
 
 public class PropertiesPanel extends JPanel {
 
-	private JPanel scrollPanel;
+	private PossibleShapesPanel possibleShapes;
 	private TextBoxesPanel textPanel;
 	private boolean updated;
 	
@@ -26,7 +26,8 @@ public class PropertiesPanel extends JPanel {
 		title.setEditable(false);
 		this.add(title, BorderLayout.NORTH);
 		
-		textPanel = new TextBoxesPanel(this);
+		possibleShapes = new PossibleShapesPanel();
+		textPanel = new TextBoxesPanel(this, possibleShapes);
 		
 		JPanel sub = new JPanel();
 		sub.setLayout(new BorderLayout());
@@ -35,9 +36,7 @@ public class PropertiesPanel extends JPanel {
 		
 		sub.add(textPanel, BorderLayout.NORTH);
 		
-		scrollPanel = new JPanel();
-		
-		sub.add(scrollPanel, BorderLayout.CENTER);
+		sub.add(possibleShapes, BorderLayout.CENTER);
 		
 		this.updated = false;
 	}
@@ -62,8 +61,9 @@ public class PropertiesPanel extends JPanel {
 		private JTextField topBox, bottomBox;
 		private JLabel topLabel, bottomLabel;
 		private Object information;
+		private PossibleShapesPanel possibleShapes;
 		
-		public TextBoxesPanel(final PropertiesPanel panel) {
+		public TextBoxesPanel(final PropertiesPanel panel, final PossibleShapesPanel possibleShapesPanel) {
 			
 			this.setLayout(new GridLayout(2,2));
 			
@@ -81,6 +81,8 @@ public class PropertiesPanel extends JPanel {
 			
 			this.add(bottomLabel);
 			this.add(bottomBox);
+			
+			this.possibleShapes = possibleShapesPanel;
 			
 			this.topBox.addKeyListener(new KeyAdapter() {
 				
@@ -153,6 +155,7 @@ public class PropertiesPanel extends JPanel {
 				this.bottomBox.setEditable(false);
 				this.bottomBox.setText("-");
 				
+				this.possibleShapes.setPossibleShapes(group.getPossibleShapes());
 			}
 			else {
 				this.topLabel.setText("");

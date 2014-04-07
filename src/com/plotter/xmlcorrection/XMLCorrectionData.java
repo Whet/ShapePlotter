@@ -35,7 +35,7 @@ public class XMLCorrectionData {
 
 	private void findMarkers(List<ShapeData> shapeData, Map<ShapeData, DatabaseMultipoly> shapeDataMapping) {
 		for(ShapeData sData:shapeData) {
-			MarkerGroup group = new MarkerGroup();
+			MarkerGroup group = new MarkerGroup(database);
 			
 			for(MarkerInfo marker:sData.markers) {
 				MarkerData markerData = new MarkerData(new Point((int)marker.centrePixels[0], (int)marker.centrePixels[1]), marker.rotation, marker.id);
@@ -129,7 +129,7 @@ public class XMLCorrectionData {
 				return;
 		}
 		
-		MarkerGroup group = new MarkerGroup();
+		MarkerGroup group = new MarkerGroup(database);
 		group.addMarker(selectedMarker);
 		markerGroups.add(group);
 		
