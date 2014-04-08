@@ -40,7 +40,7 @@ public class SVGOptionsMenu extends JFrame {
 		this.decompImages = new HashMap<>();
 		
 		for(int i = 0; i < decompImages.size(); i++) {
-			this.decompImages.put(decompImages.get(i), new ReferenceInt());
+			this.decompImages.put(decompImages.get(i), new ReferenceInt(i));
 		}
 		
 		this.setTitle(selectedFile.toString());
@@ -160,9 +160,11 @@ public class SVGOptionsMenu extends JFrame {
 		
 		public int currentPopulation;
 		public int targetPopulation;
+		private int id;
 		
-		public ReferenceInt() {
+		public ReferenceInt(int id) {
 			this.currentPopulation = 0;
+			this.id = id;
 		}
 		
 		public void reset() {
@@ -171,6 +173,10 @@ public class SVGOptionsMenu extends JFrame {
 		
 		public void increment() {
 			this.currentPopulation++;
+		}
+
+		public int getId() {
+			return id;
 		}
 	}
 

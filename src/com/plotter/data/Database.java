@@ -80,7 +80,8 @@ LOOP:	for(List<Integer> markerSet:markersToShape.keySet()) {
 								   				 markers,
 								   				 layoutPolygon.markerLocations,
 								   				 tP.markerRotations,
-								   				 new Point((int)layoutPolygon.getMergedPolygon().getBounds2D().getCenterX(), (int)layoutPolygon.getMergedPolygon().getBounds2D().getCenterY())));
+								   				 new Point((int)layoutPolygon.getMergedPolygon().getBounds2D().getCenterX(), (int)layoutPolygon.getMergedPolygon().getBounds2D().getCenterY()),
+								   				 tP.getId()));
 		
 		return markers;
 	}

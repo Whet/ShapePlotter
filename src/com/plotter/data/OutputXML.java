@@ -15,8 +15,7 @@ import com.plotter.algorithms.ShapeData.Connection;
 public class OutputXML {
 
 	public static void outputXML(String fileLocation,
-								 List<MarkerInfo> markers, Set<MarkerInfo> allocatedMarkers,
-								 Set<DatabaseMultipoly> allocatedShapes, List<ShapeData> shapeData) throws IOException {
+								 List<MarkerInfo> markers, Set<MarkerInfo> allocatedMarkers, List<ShapeData> shapeData) throws IOException {
 		
 		StringBuffer sb = new StringBuffer();
 		
@@ -59,6 +58,7 @@ public class OutputXML {
 		
 		/*
 		 * <Shape>
+		 *  <Id>1</Id>
 		 * 	<Verticies>
 		 * 		<Vertex>
 		 * 			<X>100.0</X> 

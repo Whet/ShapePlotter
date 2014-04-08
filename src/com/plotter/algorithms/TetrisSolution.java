@@ -680,6 +680,10 @@ public class TetrisSolution {
 			if(p_path.currentSegment(point) != PathIterator.SEG_CLOSE)
 				this.mergedPolygon.addPoint((int) point[0], (int) point[1]);
 		}
+
+		public int getId() {
+			return this.pop.getId();
+		}
 		
 	}
 	

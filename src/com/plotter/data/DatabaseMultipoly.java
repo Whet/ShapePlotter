@@ -19,10 +19,12 @@ public class DatabaseMultipoly implements Serializable {
 	private LineMergePolygon lmp;
 	private Polygon mergedPolygon;
 	private List<Connection> connections;
+	private int shapeId;
 	
-	public DatabaseMultipoly(int rotationComponent, Polygon mergedPolygon, LineMergePolygon lmp, List<Connection> connections, List<Integer> markerIds, List<Point> markerLocations, List<Double> markerRotations, Point polygonCentre) {
+	public DatabaseMultipoly(int rotationComponent, Polygon mergedPolygon, LineMergePolygon lmp, List<Connection> connections, List<Integer> markerIds, List<Point> markerLocations, List<Double> markerRotations, Point polygonCentre, int shapeId) {
 		
 		this.lmp = lmp;
+		this.shapeId = shapeId;
 		this.mergedPolygon = new Polygon(mergedPolygon.xpoints, mergedPolygon.ypoints, mergedPolygon.npoints);
 		this.connections = new ArrayList<>();
 		
@@ -41,16 +43,6 @@ public class DatabaseMultipoly implements Serializable {
 		for(int i = 0; i < markerRotations.size(); i++) {
 			this.markerRotations.put(markerIds.get(i), markerRotations.get(i));
 		}
-		
-//		int minX = (int)this.mergedPolygon.getBounds2D().getMinX();
-//		int minY = (int)this.mergedPolygon.getBounds2D().getMinY();
-//		
-//		lmp.translate(-minX, -minY);
-//		this.mergedPolygon.translate(-minX, -minY);
-//		
-//		for(Connection connection:this.connections) {
-//			connection.translate(-minX, -minY);
-//		}
 		
 	}
 
@@ -106,5 +98,9 @@ public class DatabaseMultipoly implements Serializable {
 
 	public List<Connection> getConnectionPoints() {
 		return this.connections;
+	}
+
+	public int getShapeId() {
+		return this.shapeId;
 	}
 }

@@ -104,7 +104,7 @@ public class LibkokiUtils {
 		
 		// Output the located shapes data to XML
 		try {
-			OutputXML.outputXML(selectedFile.getAbsolutePath().substring(0, selectedFile.getAbsolutePath().length() - 4) + "Data.xml", markers, allocatedMarkers, allocatedShapes, shapeData);
+			OutputXML.outputXML(selectedFile.getAbsolutePath().substring(0, selectedFile.getAbsolutePath().length() - 4) + "Data.xml", markers, allocatedMarkers, shapeData);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -316,7 +316,7 @@ public class LibkokiUtils {
 											 (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end2.y - polygonCentre.y) * SCALE))));
 		}
 		
-		ShapeData shapeData2 = new ShapeData(shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));
+		ShapeData shapeData2 = new ShapeData(multiPoly.getShapeId(), shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));
 		shapeData.add(shapeData2);
 		shapeDataMapping.put(shapeData2, multiPoly);
 		
