@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ import javax.swing.JScrollPane;
 import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.data.DatabaseMultipoly;
+import com.plotter.xmlcorrection.MarkerGroup;
 
 public class PossibleShapesPanel extends JPanel {
 
@@ -23,6 +26,7 @@ public class PossibleShapesPanel extends JPanel {
 	private JScrollPane scrollPane;
 	
 	private List<DatabaseMultipoly> possibleShapes;
+	private MarkerGroup selectedGroup;
 	
 	public PossibleShapesPanel() {
 		
@@ -44,16 +48,33 @@ public class PossibleShapesPanel extends JPanel {
 		
 	}
 	
-	public void setPossibleShapes(List<DatabaseMultipoly> possibleShapes) {
-		this.possibleShapes = possibleShapes;
+	public void setPossibleShapes(MarkerGroup selectedGroup) {
+		this.possibleShapes = selectedGroup.getPossibleShapes();
+		this.selectedGroup = selectedGroup;
 		
 		this.imagesPanel.removeAll();
 		
 		for(DatabaseMultipoly possibleShape:possibleShapes) {
-			this.imagesPanel.add(new PossibleShape(possibleShape));
+			PossibleShape possibleShapeLabel = new PossibleShape(possibleShape);
+			this.imagesPanel.add(possibleShapeLabel);
+			
+			final DatabaseMultipoly shape = possibleShape;
+			
+			possibleShapeLabel.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mousePressed(MouseEvent e) {
+					getSelectedGroup().setShape(shape);
+				}
+				
+			});
 		}
 	}
 	
+	private MarkerGroup getSelectedGroup() {
+		return selectedGroup;
+	}
+
 	private static class PossibleShape extends JLabel {
 		
 		private DatabaseMultipoly polygon;
@@ -68,9 +89,6 @@ public class PossibleShapesPanel extends JPanel {
 			
 			graphics.setColor(Color.black);
 			graphics.fillRect(0, 0, 120, 120);
-			
-			graphics.setColor(Color.cyan);
-			graphics.drawRect(1, 1, 118, 118);
 			
 			graphics.setColor(Color.orange);
 			
@@ -89,9 +107,9 @@ public class PossibleShapesPanel extends JPanel {
 				double scale = 1.0;
 				
 				if(mergedHeight > mergedWidth)
-					scale = 120 / mergedHeight;
+					scale = 100 / mergedHeight;
 				else
-					scale = 120 / mergedWidth;
+					scale = 100 / mergedWidth;
 				
 				for(Edge edge:clone.getHairlines()) {
 					
@@ -111,9 +129,8 @@ public class PossibleShapesPanel extends JPanel {
 			
 			
 			this.setIcon(new ImageIcon(imageBuffered));
-			
 		}
 		
 	}
-	
+
 }

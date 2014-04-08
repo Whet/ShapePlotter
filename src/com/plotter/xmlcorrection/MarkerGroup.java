@@ -53,6 +53,10 @@ public class MarkerGroup {
 			else
 				offset = new int[]{0,0};
 			
+			// Group has marker that is not in shape so offset will be null!
+			if(offset == null)
+				offset = new int[]{0,0};
+			
 			// Adjust displacement for rotation of marker
 			double[] rotDisplacement = new double[2];
 			

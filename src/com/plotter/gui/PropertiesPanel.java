@@ -118,8 +118,8 @@ public class PropertiesPanel extends JPanel {
 					marker.setRotation(Double.parseDouble(bottomBox.getText()));
 				}
 				catch(NumberFormatException e){}
-				
 			}
+			
 		}
 
 		public void updateText() {
@@ -155,7 +155,7 @@ public class PropertiesPanel extends JPanel {
 				this.bottomBox.setEditable(false);
 				this.bottomBox.setText("-");
 				
-				this.possibleShapes.setPossibleShapes(group.getPossibleShapes());
+				this.possibleShapes.setPossibleShapes(group);
 			}
 			else {
 				this.topLabel.setText("");
