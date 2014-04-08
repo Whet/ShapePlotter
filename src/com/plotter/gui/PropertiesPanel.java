@@ -4,15 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.plotter.algorithms.LibkokiUtils;
+import com.plotter.data.OutputXML;
 import com.plotter.xmlcorrection.MarkerData;
 import com.plotter.xmlcorrection.MarkerGroup;
+import com.plotter.xmlcorrection.XMLCorrectionData;
 
 public class PropertiesPanel extends JPanel {
 
@@ -20,14 +30,14 @@ public class PropertiesPanel extends JPanel {
 	private TextBoxesPanel textPanel;
 	private boolean updated;
 	
-	public PropertiesPanel() {
+	public PropertiesPanel(XMLCorrectionData data) {
 		this.setLayout(new BorderLayout());
 		JTextField title = new JTextField("Properties:");
 		title.setEditable(false);
 		this.add(title, BorderLayout.NORTH);
 		
 		possibleShapes = new PossibleShapesPanel();
-		textPanel = new TextBoxesPanel(this, possibleShapes);
+		textPanel = new TextBoxesPanel(this, possibleShapes, data);
 		
 		JPanel sub = new JPanel();
 		sub.setLayout(new BorderLayout());
@@ -60,10 +70,11 @@ public class PropertiesPanel extends JPanel {
 		
 		private JTextField topBox, bottomBox;
 		private JLabel topLabel, bottomLabel;
+		private JButton outputXML;
 		private Object information;
 		private PossibleShapesPanel possibleShapes;
 		
-		public TextBoxesPanel(final PropertiesPanel panel, final PossibleShapesPanel possibleShapesPanel) {
+		public TextBoxesPanel(final PropertiesPanel panel, final PossibleShapesPanel possibleShapesPanel, final XMLCorrectionData data) {
 			
 			this.setLayout(new GridLayout(2,2));
 			
@@ -81,6 +92,31 @@ public class PropertiesPanel extends JPanel {
 			
 			this.add(bottomLabel);
 			this.add(bottomBox);
+			
+			outputXML = new JButton("Output XML");
+			outputXML.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mousePressed(MouseEvent event) {
+					
+					JFileChooser choose = new JFileChooser();
+					choose.setCurrentDirectory(new File(PlotterWindow.HOME_LOCATION));
+					int showSaveDialog = choose.showSaveDialog(TextBoxesPanel.this);
+					
+					if(showSaveDialog == JFileChooser.APPROVE_OPTION) {
+						
+						File selectedFile = choose.getSelectedFile();
+						
+						// Output the located shapes data to XML
+						try {
+							OutputXML.outputXML(selectedFile.getAbsolutePath(), new ArrayList<LibkokiUtils.MarkerInfo>(), data.getMarkerData(), data.getShapeData());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			});
+			this.add(outputXML);
 			
 			this.possibleShapes = possibleShapesPanel;
 			

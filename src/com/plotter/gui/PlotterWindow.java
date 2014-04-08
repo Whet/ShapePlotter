@@ -28,7 +28,7 @@ import com.plotter.data.OutputTikz;
 
 public class PlotterWindow extends JFrame {
 
-	private String HOME_LOCATION;
+	public static String HOME_LOCATION;
 	private ModulePolygon modulePolygon;
 	private AssemblyHierarchyPanel hierarchyPanel;
 
