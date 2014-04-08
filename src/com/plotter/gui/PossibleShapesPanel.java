@@ -46,6 +46,12 @@ public class PossibleShapesPanel extends JPanel {
 	
 	public void setPossibleShapes(List<DatabaseMultipoly> possibleShapes) {
 		this.possibleShapes = possibleShapes;
+		
+		this.imagesPanel.removeAll();
+		
+		for(DatabaseMultipoly possibleShape:possibleShapes) {
+			this.imagesPanel.add(new PossibleShape(possibleShape));
+		}
 	}
 	
 	private static class PossibleShape extends JLabel {
@@ -60,14 +66,20 @@ public class PossibleShapesPanel extends JPanel {
 			
 			Graphics2D graphics = (Graphics2D) imageBuffered.getGraphics();
 			
+			graphics.setColor(Color.black);
+			graphics.fillRect(0, 0, 120, 120);
+			
+			graphics.setColor(Color.cyan);
+			graphics.drawRect(1, 1, 118, 118);
+			
 			graphics.setColor(Color.orange);
 			
 			try {
 				LineMergePolygon clone = (LineMergePolygon) polygon.getLineMergePolygon().clone();
 				
 				// translate to origin
-				clone.translate(-(int)polygon.getMergedPolygon().getBounds2D().getWidth(),
-								-(int)polygon.getMergedPolygon().getBounds2D().getHeight());
+				clone.translate(-(int)polygon.getMergedPolygon().getBounds2D().getMinX(),
+								-(int)polygon.getMergedPolygon().getBounds2D().getMinY());
 				
 				// scale shape to fit on image
 				
@@ -82,10 +94,15 @@ public class PossibleShapesPanel extends JPanel {
 					scale = 120 / mergedWidth;
 				
 				for(Edge edge:clone.getHairlines()) {
-					graphics.drawLine((int)(edge.end1.x * scale),
-									  (int)(edge.end1.y * scale),
-									  (int)(edge.end2.x * scale),
-									  (int)(edge.end2.y * scale));
+					
+					int scaleX1, scaleY1, scaleX2, scaleY2;
+					
+					scaleX1 = (int)(edge.end1.x * scale);
+					scaleY1 = (int)(edge.end1.y * scale);
+					scaleX2 = (int)(edge.end2.x * scale);
+					scaleY2 = (int)(edge.end2.y * scale);
+					
+					graphics.drawLine(scaleX1, scaleY1, scaleX2, scaleY2);
 				}
 				
 			} catch (CloneNotSupportedException e) {
