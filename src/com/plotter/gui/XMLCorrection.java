@@ -30,6 +30,7 @@ public class XMLCorrection extends JFrame {
 	private final Database database;
 	private final CorrectionPanel panel;
 	private final PropertiesPanel properties;
+	
 	private XMLCorrectionData data;
 	private JSplitPane splitPane;
 	

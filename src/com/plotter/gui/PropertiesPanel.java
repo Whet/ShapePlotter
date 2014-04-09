@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -76,7 +77,7 @@ public class PropertiesPanel extends JPanel {
 		
 		public TextBoxesPanel(final PropertiesPanel panel, final PossibleShapesPanel possibleShapesPanel, final XMLCorrectionData data) {
 			
-			this.setLayout(new GridLayout(2,2));
+			this.setLayout(new GridLayout(3,2));
 			
 			this.topBox = new JTextField();
 			this.bottomBox = new JTextField();
@@ -92,6 +93,8 @@ public class PropertiesPanel extends JPanel {
 			
 			this.add(bottomLabel);
 			this.add(bottomBox);
+			
+			this.add(Box.createHorizontalGlue());
 			
 			outputXML = new JButton("Output XML");
 			outputXML.addMouseListener(new MouseAdapter() {
