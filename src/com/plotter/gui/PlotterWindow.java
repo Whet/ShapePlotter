@@ -22,6 +22,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.plotter.algorithms.LibkokiUtils;
+import com.plotter.algorithms.XMLVisualise;
 import com.plotter.data.Database;
 import com.plotter.data.ModulePolygon;
 import com.plotter.data.OutputTikz;
@@ -286,6 +287,32 @@ public class PlotterWindow extends JFrame {
 			
 		});
 		libkokiMenu.add(correctShapesOption);
+		
+		JMenuItem visualiseXML = new JMenuItem("Visualise XML");
+		visualiseXML.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				JFileChooser choose = new JFileChooser();
+				FileNameExtensionFilter xmlfilter = new FileNameExtensionFilter("xml files (*.xml)", "xml");
+				choose.setFileFilter(xmlfilter);
+				
+				choose.setCurrentDirectory(new File(HOME_LOCATION));
+				int showOpenDialog = choose.showOpenDialog(PlotterWindow.this);
+				
+				if(showOpenDialog == JFileChooser.APPROVE_OPTION) {
+					try {
+						XMLVisualise.showXMLShapes(choose.getSelectedFile());
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(PlotterWindow.this, "Error saving image file");
+					}
+				}
+				
+			}
+			
+		});
+		libkokiMenu.add(visualiseXML);
 	}
 
 	private void setDecorations() {
