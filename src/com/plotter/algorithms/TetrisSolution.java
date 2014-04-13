@@ -678,10 +678,6 @@ public class TetrisSolution {
 		
 		public void translate(int deltaX, int deltaY) {
 			this.mergedPolygon.translate(deltaX, deltaY);
-			for(double[] marker:this.markerPolygonLocations) {
-				marker[0] += deltaX;
-				marker[1] += deltaY;
-			}
 		}
 		
 		private void toPolygon(PathIterator p_path) {
