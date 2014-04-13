@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -140,6 +141,12 @@ public class AssemblyHierarchyPanel extends JPanel {
 			Connection connection = shape.getConnectionPoints().get(i);
 			gOn.fillOval(connection.getCentre().x - 5 - deltaX, connection.getCentre().y - 5 - deltaY, 10, 10);
 			gOn.drawString("F"+connection.getFlavour(), connection.getCentre().x - 5 - deltaX, connection.getCentre().y - 5 - deltaY);
+		}
+		
+		// draw markers
+		for(int i = 0; i < shape.getMarkerLocations().size(); i++) {
+			Point marker = shape.getMarkerLocations().get(i);
+			gOn.fillRect(marker.x - 5 - deltaX, marker.y - 5 - deltaY, 10, 10);
 		}
 		
 		ImageIcon onImage = new ImageIcon(onImageBuffered);

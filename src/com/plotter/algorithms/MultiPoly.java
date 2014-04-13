@@ -30,7 +30,6 @@ public class MultiPoly implements Serializable {
 		this.code = "0";
 
 		this.polygons = new ArrayList<Polygon>();
-		this.markerLocations = new ArrayList<Point>();
 
 		for (int i = 0; i < polygons.length; i++) {
 			this.polygons.add(new Polygon(polygons[i].xpoints,
@@ -91,6 +90,7 @@ public class MultiPoly implements Serializable {
 			this.polygons.add(new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints));
 		}
 		
+		this.markerLocations = new ArrayList<>();
 		for (int i = 0; i < markerLocations1.size(); i++) {
 			this.markerLocations.add(new Point(markerLocations1.get(i).x, markerLocations1.get(i).y));
 		}
@@ -115,14 +115,6 @@ public class MultiPoly implements Serializable {
 					outside.x, outside.y));
 		}
 		
-		this.markerLocations = new ArrayList<>();
-		for(int i = 0; i < markerLocations1.size(); i++) {
-			this.markerLocations.add(new Point(markerLocations1.get(i).x, markerLocations1.get(i).y));
-		}
-		for(int i = 0; i < markerLocations2.size(); i++) {
-			this.markerLocations.add(new Point(markerLocations2.get(i).x, markerLocations2.get(i).y));
-		}
-
 		this.lineMergedPolygon = new LineMergePolygon();
 		ArrayList<Point> points = new ArrayList<>();
 

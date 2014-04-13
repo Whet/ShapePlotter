@@ -75,58 +75,58 @@ public class MarkerLoader {
 		
 	}
 	
-	public static void main(String[] args) throws IOException {
-		BufferedImage spriteSheet = ImageIO.read(new File(MARKER_SHEET));
-		Graphics graphics = spriteSheet.getGraphics();
-		
-		Integer markerId = 1;
-		
-		for(int i = 0; i < 216; i++) {
-			
-			int x = 0;
-			int y = 0;
-			
-			for(int j = 0; j < markerId; j++) {
-			
-				if(j == 23 || j == 110 || j == 127 ||
-				   j == 131 || j == 134 || j == 137 ||
-				   j == 151 || j == 217) {
-					continue;
-				}
-				
-				if(j < markerId - 1) {
-					y += MARKER_DIMENSION;
-					
-					if(y + MARKER_DIMENSION > spriteSheet.getHeight()) {
-						x += MARKER_DIMENSION;
-						y = 0;
-					}
-				}
-			}
-			
-			if(markerId == 24 || markerId == 111 || markerId == 128 ||
-			   markerId == 132 || markerId == 135 || markerId == 138 ||
-			   markerId == 152 || markerId == 218) {
-				y -= MARKER_DIMENSION;
-			}
-			
-//			BufferedImage subimage = spriteSheet.getSubimage(x, y, MARKER_WIDTH, MARKER_WIDTH);
-			graphics.setColor(Color.red);
-			graphics.drawRect(x, y, MARKER_DIMENSION, MARKER_DIMENSION);
-			graphics.drawString("M" + markerId, x, y + MARKER_DIMENSION);
-			markerId++;
-			
-			// Debug code
-			while(markerId == 23 || markerId == 110 || markerId == 127 ||
-				  markerId == 131 || markerId == 134 || markerId == 137 ||
-				  markerId == 151 || markerId == 217) {
-				markerId++;
-			}
-			
-		}
-		
-		ImageIO.write(spriteSheet, "png", new File(MARKER_SHEET));
-	}
+//	public static void main(String[] args) throws IOException {
+//		BufferedImage spriteSheet = ImageIO.read(new File(MARKER_SHEET));
+//		Graphics graphics = spriteSheet.getGraphics();
+//		
+//		Integer markerId = 1;
+//		
+//		for(int i = 0; i < 216; i++) {
+//			
+//			int x = 0;
+//			int y = 0;
+//			
+//			for(int j = 0; j < markerId; j++) {
+//			
+//				if(j == 23 || j == 110 || j == 127 ||
+//				   j == 131 || j == 134 || j == 137 ||
+//				   j == 151 || j == 217) {
+//					continue;
+//				}
+//				
+//				if(j < markerId - 1) {
+//					y += MARKER_DIMENSION;
+//					
+//					if(y + MARKER_DIMENSION > spriteSheet.getHeight()) {
+//						x += MARKER_DIMENSION;
+//						y = 0;
+//					}
+//				}
+//			}
+//			
+//			if(markerId == 24 || markerId == 111 || markerId == 128 ||
+//			   markerId == 132 || markerId == 135 || markerId == 138 ||
+//			   markerId == 152 || markerId == 218) {
+//				y -= MARKER_DIMENSION;
+//			}
+//			
+////			BufferedImage subimage = spriteSheet.getSubimage(x, y, MARKER_WIDTH, MARKER_WIDTH);
+//			graphics.setColor(Color.red);
+//			graphics.drawRect(x, y, MARKER_DIMENSION, MARKER_DIMENSION);
+//			graphics.drawString("M" + markerId, x, y + MARKER_DIMENSION);
+//			markerId++;
+//			
+//			// Debug code
+//			while(markerId == 23 || markerId == 110 || markerId == 127 ||
+//				  markerId == 131 || markerId == 134 || markerId == 137 ||
+//				  markerId == 151 || markerId == 217) {
+//				markerId++;
+//			}
+//			
+//		}
+//		
+//		ImageIO.write(spriteSheet, "png", new File(MARKER_SHEET));
+//	}
 	
 	
 }

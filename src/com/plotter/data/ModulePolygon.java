@@ -60,7 +60,6 @@ public class ModulePolygon {
 	
 	public void addMarkerPoint(int x, int y) {
 		this.markerPoints.add(new Point(x,y));
-		this.makePolygon();
 	}
 	
 	public void removeMarkerPoint(int x, int y) {
@@ -75,8 +74,6 @@ public class ModulePolygon {
 				break;
 			}
 		}
-		
-		this.makePolygon();
 	}
 	
 	private void makePolygon() {

@@ -542,7 +542,7 @@ public class TetrisSolution {
 		// Copies polygons and make them unit polygons
 		public MultiPoly mPoly;
 		public Polygon mergedPolygon;
-		public List<Point> markerPolygonLocations;
+		public List<double[]> markerPolygonLocations;
 		public List<Double> markerRotations;
 		public List<double[]> connections;
 		public ReferenceInt pop;
@@ -551,7 +551,6 @@ public class TetrisSolution {
 		
 		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
-			this.markerPolygonLocations = mPoly.getMarkerLocations();
 			this.markerRotations = new ArrayList<>();
 			this.rotationComponent = rotationComponent;
 			this.pop = integer;
@@ -597,6 +596,7 @@ public class TetrisSolution {
 				System.err.println("WRONG SIZE");
 			
 			this.connections = new ArrayList<>();
+			this.markerPolygonLocations = new ArrayList<>();
 			
 			double minX = largeArea.getBounds2D().getMinX();
 			double minY = largeArea.getBounds2D().getMinY();
@@ -607,7 +607,7 @@ public class TetrisSolution {
 			double width = maxX - minX;
 			double height = maxY - minY;
 			
-			// Store connections as a fraction of the shape width/height
+			// Store connections and marker locations as a fraction of the shape width/height
 			for(Connection connection:this.mPoly.connectedPoints) {
 				double[] ds = new double[7];
 				this.connections.add(ds);
@@ -619,6 +619,14 @@ public class TetrisSolution {
 				ds[4] = (connection.getOutside().x - minX) / width;
 				ds[5] = (connection.getOutside().y - minY) / height;
 				ds[6] = connection.getFlavour();
+			}
+			
+			for(Point marker:this.mPoly.markerLocations) {
+				double[] ds = new double[2];
+				this.markerPolygonLocations.add(ds);
+				
+				ds[0] = (marker.x - minX) / width;
+				ds[1] = (marker.y - minY) / height;
 			}
 			
 		}
@@ -645,8 +653,8 @@ public class TetrisSolution {
 			t.pop = this.pop;
 			t.markerPolygonLocations = new ArrayList<>();
 			
-			for(Point markerLoc:this.markerPolygonLocations) {
-				t.markerPolygonLocations.add(new Point(markerLoc.x, markerLoc.y));
+			for(double[] markerLoc:this.markerPolygonLocations) {
+				t.markerPolygonLocations.add(new double[]{markerLoc[0], markerLoc[1]});
 			}
 			
 			
@@ -670,8 +678,9 @@ public class TetrisSolution {
 		
 		public void translate(int deltaX, int deltaY) {
 			this.mergedPolygon.translate(deltaX, deltaY);
-			for(Point markerLoc:this.markerPolygonLocations) {
-				markerLoc.translate(deltaX, deltaY);
+			for(double[] marker:this.markerPolygonLocations) {
+				marker[0] += deltaX;
+				marker[1] += deltaY;
 			}
 		}
 		

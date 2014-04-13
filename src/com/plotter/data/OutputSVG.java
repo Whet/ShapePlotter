@@ -294,13 +294,6 @@ public class OutputSVG {
 			
 			this.centre = new Point((int)area.getBounds2D().getCenterX(), (int)area.getBounds2D().getCenterY());
 			
-			this.markerLocations = new ArrayList<>();
-			
-			for(int i = 0; i < tP.markerPolygonLocations.size(); i++) {
-				this.markerLocations.add(new Point(tP.markerPolygonLocations.get(i).x * POLY_SCALE + POLY_SCALE / 2,
-												   tP.markerPolygonLocations.get(i).y * POLY_SCALE + POLY_SCALE / 2));
-			}
-			
 			double minX = area.getBounds2D().getMinX();
 			double minY = area.getBounds2D().getMinY();
 			
@@ -321,6 +314,15 @@ public class OutputSVG {
 											   (int)(minY + height * connection[3]),
 											   (int)(minX + width * connection[4]),
 											   (int)(minY + height * connection[5])));
+			}
+			
+			this.markerLocations = new ArrayList<>();
+			
+			for(int i = 0; i < tP.markerPolygonLocations.size(); i++) {
+				double[] ds = tP.markerPolygonLocations.get(i);
+				
+				this.markerLocations.add(new Point((int)(minX + width * ds[0]),
+												   (int)(minY + height * ds[1])));
 			}
 			
 			this.markerNumbers = new HashMap<>();

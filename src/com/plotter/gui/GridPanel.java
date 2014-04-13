@@ -384,7 +384,7 @@ public class GridPanel extends JPanel {
 		List<Point> markerLocations = modulePolygon.getMarkerLocations();
 		
 		for(int i = 0; i < markerLocations.size(); i++) {
-			point = markerLocations.get(i);
+			Point point = markerLocations.get(i);
 			g.fillRect(point.x - 5, point.y - 5, 10, 10);
 		}
 		
