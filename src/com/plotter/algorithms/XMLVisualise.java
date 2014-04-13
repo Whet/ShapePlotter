@@ -46,9 +46,10 @@ public class XMLVisualise {
 			for(Connection connection:shape.connections) {
 				graphics.fillOval(connection.centre.x - 5, 
 								  connection.centre.y - 5, 10, 10);
+				
 				graphics.drawLine(connection.centre.x, connection.centre.y,
-								  (int)(connection.centre.x + Math.cos(Math.toRadians(connection.angle)) * 10),
-								  (int)(connection.centre.y + Math.sin(Math.toRadians(connection.angle)) * 10));
+								  (int)(connection.centre.x + (Math.cos(Math.toRadians(connection.angle)) * 40)),
+								  (int)(connection.centre.y + (Math.sin(Math.toRadians(connection.angle)) * 40)));
 			}
 			
 			graphics.setColor(Color.orange);

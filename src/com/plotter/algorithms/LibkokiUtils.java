@@ -282,8 +282,14 @@ public class LibkokiUtils {
 			
 			graphics.fillOval(x - 5, y - 5, 10, 10);
 			
-			double angleOutside = Maths.getDegrees(x, y, rotatedConnection.getOutside().x, rotatedConnection.getOutside().y);
+			int x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getOutside().x - polygonCentre.x) * SCALE));
+			int y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getOutside().y - polygonCentre.y) * SCALE));
 			
+			graphics.fillOval(x1 - 5, y1 - 5, 10, 10);
+			
+			graphics.drawLine(x1, y1, x, y);
+			
+			double angleOutside = Maths.getDegrees(x, y, x1, y1);
 			com.plotter.algorithms.ShapeData.Connection imageConnection = new com.plotter.algorithms.ShapeData.Connection(connection.getFlavour(), new Point(x, y), angleOutside);
 			
 			shapeDataConnections.add(imageConnection );
