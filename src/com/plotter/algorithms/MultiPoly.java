@@ -218,6 +218,7 @@ public class MultiPoly implements Serializable {
 			translatedMarkers.add(tC);
 		}
 
+		this.connectedPoints = translatedConnections;
 		this.markerLocations = translatedMarkers;
 	}
 
