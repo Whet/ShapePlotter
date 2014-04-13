@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.io.File;
@@ -268,31 +269,7 @@ public class LibkokiUtils {
 		// Shape data Info=
 		Set<ShapeData.Connection> shapeDataConnections = new HashSet<>();
 		
-		// Draw connections
-		for(Connection connection:multiPoly.getConnectionPoints()) {
-			
-			Point centre = MultiPoly.rotatePoint(connection.getCentre(), polygonCentre, meanRotation);
-			Point inside = MultiPoly.rotatePoint(connection.getInside(), polygonCentre, meanRotation);
-			Point outside = MultiPoly.rotatePoint(connection.getOutside(), polygonCentre, meanRotation);
-			
-			Connection rotatedConnection = new Connection(connection.getFlavour(),centre.x, centre.y, inside.x, inside.y, outside.x, outside.y);
-			
-			int x = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getCentre().x - polygonCentre.x) * SCALE));
-			int y = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getCentre().y - polygonCentre.y) * SCALE));
-			
-			graphics.fillOval(x - 5, y - 5, 10, 10);
-			
-			int x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getOutside().x - polygonCentre.x) * SCALE));
-			int y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getOutside().y - polygonCentre.y) * SCALE));
-			
-			graphics.fillOval(x1 - 5, y1 - 5, 10, 10);
-			graphics.drawLine(x1, y1, x, y);
-			
-			double angleOutside = Maths.getDegrees(x, y, x1, y1);
-			com.plotter.algorithms.ShapeData.Connection imageConnection = new com.plotter.algorithms.ShapeData.Connection(connection.getFlavour(), new Point(x, y), angleOutside);
-			
-			shapeDataConnections.add(imageConnection );
-		}
+		ArrayList<Point> verticies = new ArrayList<>();
 		
 		// Shape data Info
 		Set<Point> shapeDataVerticies = new HashSet<>();
@@ -315,10 +292,64 @@ public class LibkokiUtils {
 							  (int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end2.x - polygonCentre.x) * SCALE)),
 							  (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end2.y - polygonCentre.y) * SCALE)));
 			
-			shapeDataVerticies.add(new Point((int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end1.x - polygonCentre.x) * SCALE)), 
-											 (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end1.y - polygonCentre.y) * SCALE))));
-			shapeDataVerticies.add(new Point((int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end2.x - polygonCentre.x) * SCALE)), 
-											 (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end2.y - polygonCentre.y) * SCALE))));
+			Point point = new Point((int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end1.x - polygonCentre.x) * SCALE)), 
+								    (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end1.y - polygonCentre.y) * SCALE)));
+			
+			Point point2 = new Point((int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end2.x - polygonCentre.x) * SCALE)), 
+									 (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end2.y - polygonCentre.y) * SCALE)));
+			
+			shapeDataVerticies.add(point);
+			shapeDataVerticies.add(point2);
+			
+			verticies.add(point);
+			verticies.add(point2);
+		}
+		
+		// Create hitbox of polygon to check that connections are the correct way round
+		Polygon rotMergedPolygon = new Polygon();
+		ArrayList<Point> convexPoints = FastConvexHull.execute(verticies );
+		for(Point point:convexPoints) {
+			rotMergedPolygon.addPoint(point.x, point.y);
+		}
+		Area hitbox = new Area(rotMergedPolygon);
+		
+		// Draw connections
+		for(Connection connection:multiPoly.getConnectionPoints()) {
+			
+			Point centre = MultiPoly.rotatePoint(connection.getCentre(), polygonCentre, meanRotation);
+			Point inside = MultiPoly.rotatePoint(connection.getInside(), polygonCentre, meanRotation);
+			Point outside = MultiPoly.rotatePoint(connection.getOutside(), polygonCentre, meanRotation);
+			
+			Connection rotatedConnection = new Connection(connection.getFlavour(),centre.x, centre.y, inside.x, inside.y, outside.x, outside.y);
+			
+			int x = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getCentre().x - polygonCentre.x) * SCALE));
+			int y = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getCentre().y - polygonCentre.y) * SCALE));
+			
+			graphics.fillOval(x - 5, y - 5, 10, 10);
+			
+			int x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getOutside().x - polygonCentre.x) * SCALE));
+			int y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getOutside().y - polygonCentre.y) * SCALE));
+			
+			if(hitbox.contains(x1, y1)) {
+				x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getInside().x - polygonCentre.x) * SCALE));
+				y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getInside().y - polygonCentre.y) * SCALE));
+			}
+			
+			// Hitbox contains both ends then discard the connection
+			if(hitbox.contains(x1, y1)) {
+				graphics.fillOval(x1 - 5, y1 - 5, 10, 10);
+				graphics.drawLine(x1, y1, x, y);
+				
+				graphics.setColor(Color.cyan);
+				graphics.drawPolygon(rotMergedPolygon);
+				graphics.setColor(Color.red);
+				
+				double angleOutside = Maths.getDegrees(x, y, x1, y1);
+				com.plotter.algorithms.ShapeData.Connection imageConnection = new com.plotter.algorithms.ShapeData.Connection(connection.getFlavour(), new Point(x, y), angleOutside);
+				
+				
+				shapeDataConnections.add(imageConnection );
+			}
 		}
 		
 		ShapeData shapeData2 = new ShapeData(multiPoly.getShapeId(), shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));
