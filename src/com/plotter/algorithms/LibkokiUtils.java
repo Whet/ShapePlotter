@@ -306,12 +306,14 @@ public class LibkokiUtils {
 		}
 		
 		// Create hitbox of polygon to check that connections are the correct way round
-		Polygon rotMergedPolygon = new Polygon();
-		ArrayList<Point> convexPoints = FastConvexHull.execute(verticies );
-		for(Point point:convexPoints) {
-			rotMergedPolygon.addPoint(point.x, point.y);
-		}
-		Area hitbox = new Area(rotMergedPolygon);
+//		Polygon rotMergedPolygon = new Polygon();
+//		ArrayList<Point> convexPoints = FastConvexHull.execute(verticies );
+//		for(Point point:convexPoints) {
+//			rotMergedPolygon.addPoint(point.x, point.y);
+//		}
+//		Area hitbox = new Area(rotMergedPolygon);
+		
+		graphics.setColor(Color.red);
 		
 		// Draw connections
 		for(Connection connection:multiPoly.getConnectionPoints()) {
@@ -330,26 +332,22 @@ public class LibkokiUtils {
 			int x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getOutside().x - polygonCentre.x) * SCALE));
 			int y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getOutside().y - polygonCentre.y) * SCALE));
 			
-			if(hitbox.contains(x1, y1)) {
-				x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getInside().x - polygonCentre.x) * SCALE));
-				y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getInside().y - polygonCentre.y) * SCALE));
-			}
+//			if(hitbox.contains(x1, y1)) {
+//				x1 = (int)(marker.centrePixels[0] + rotDisplacement[0] + ((rotatedConnection.getInside().x - polygonCentre.x) * SCALE));
+//				y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getInside().y - polygonCentre.y) * SCALE));
+//			}
 			
 			// Hitbox contains both ends then discard the connection
-			if(hitbox.contains(x1, y1)) {
+//			if(hitbox.contains(x1, y1)) {
 				graphics.fillOval(x1 - 5, y1 - 5, 10, 10);
 				graphics.drawLine(x1, y1, x, y);
-				
-				graphics.setColor(Color.cyan);
-				graphics.drawPolygon(rotMergedPolygon);
-				graphics.setColor(Color.red);
 				
 				double angleOutside = Maths.getDegrees(x, y, x1, y1);
 				com.plotter.algorithms.ShapeData.Connection imageConnection = new com.plotter.algorithms.ShapeData.Connection(connection.getFlavour(), new Point(x, y), angleOutside);
 				
 				
 				shapeDataConnections.add(imageConnection );
-			}
+//			}
 		}
 		
 		ShapeData shapeData2 = new ShapeData(multiPoly.getShapeId(), shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));

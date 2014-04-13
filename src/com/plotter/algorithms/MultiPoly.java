@@ -73,36 +73,27 @@ public class MultiPoly implements Serializable {
 		this.polygons = new ArrayList<Polygon>();
 
 		for (int i = 0; i < polygons1.size(); i++) {
-			this.polygons.add(new Polygon(polygons1.get(i).xpoints, polygons1
-					.get(i).ypoints, polygons1.get(i).npoints));
+			this.polygons.add(new Polygon(polygons1.get(i).xpoints, polygons1.get(i).ypoints, polygons1.get(i).npoints));
 		}
 		for (int i = 0; i < polygons2.size(); i++) {
-			this.polygons.add(new Polygon(polygons2.get(i).xpoints, polygons2
-					.get(i).ypoints, polygons2.get(i).npoints));
+			this.polygons.add(new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints));
 		}
 
 		this.connectedPoints = new ArrayList<>();
 
 		for (int i = 0; i < connectedPoints.size(); i++) {
-			// if both out and in ends are inside of a polygon then don't add
-			// the connect point as it is in use
 			Point outside = new Point(connectedPoints.get(i).getOutside().x, connectedPoints.get(i).getOutside().y);
 			Point inside = new Point(connectedPoints.get(i).getInside().x, connectedPoints.get(i).getInside().y);
 
 			this.connectedPoints.add(new Connection(connectedPoints.get(i).getFlavour(), connectedPoints.get(i).getCentre().x, connectedPoints.get(i).getCentre().y, inside.x, inside.y, outside.x, outside.y));
 		}
 		for (int i = 0; i < connectedPoints1.size(); i++) {
-			// if both out and in ends are inside of a polygon then don't add
-			// the connect point as it is in use
-			Point end1 = new Point(connectedPoints1.get(i).getOutside().x,
-					connectedPoints1.get(i).getOutside().y);
-			Point end2 = new Point(connectedPoints1.get(i).getInside().x,
-					connectedPoints1.get(i).getInside().y);
+			Point outside = new Point(connectedPoints1.get(i).getOutside().x, connectedPoints1.get(i).getOutside().y);
+			Point inside = new Point(connectedPoints1.get(i).getInside().x, connectedPoints1.get(i).getInside().y);
 
-			this.connectedPoints.add(new Connection(connectedPoints1.get(i)
-					.getFlavour(), connectedPoints1.get(i).getCentre().x,
-					connectedPoints1.get(i).getCentre().y, end1.x, end1.y,
-					end2.x, end2.y));
+			this.connectedPoints.add(new Connection(connectedPoints1.get(i).getFlavour(), connectedPoints1.get(i).getCentre().x,
+					connectedPoints1.get(i).getCentre().y, inside.x, inside.y,
+					outside.x, outside.y));
 		}
 
 		this.lineMergedPolygon = new LineMergePolygon();

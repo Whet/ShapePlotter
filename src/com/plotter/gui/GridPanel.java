@@ -116,7 +116,7 @@ public class GridPanel extends JPanel {
 						Point opposite = oppositePoint(connectXDown, connectYDown, gridPoint.x, gridPoint.y);
 						Point oppositeGrid = gridPoint(opposite);
 						
-						modulePolygon.addConnectPoint(currentFlavour, connectXDown, connectYDown, gridPoint.x, gridPoint.y, oppositeGrid.x, oppositeGrid.y);
+						modulePolygon.addConnectPoint(currentFlavour, connectXDown, connectYDown, oppositeGrid.x, oppositeGrid.y, gridPoint.x, gridPoint.y);
 					}
 					else
 						modulePolygon.addPoint(gridPoint.x, gridPoint.y);
