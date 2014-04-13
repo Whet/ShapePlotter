@@ -56,6 +56,18 @@ LOOP:	for(List<Integer> markerSet:markersToShape.keySet()) {
 			
 			return true;
 		}
+	
+		// Check other way round as well!
+		
+LOOP:	for(List<Integer> markerSet:markersToShape.keySet()) {
+			
+			for(Integer marker:markers) {
+				if(!markerSet.contains(marker))
+					break LOOP;
+			}
+			
+			return true;
+		}
 		
 		return false;
 	}
