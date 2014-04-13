@@ -551,7 +551,7 @@ public class TetrisSolution {
 		
 		public TetrisPiece(int rotationComponent, MultiPoly mPoly, ReferenceInt integer) {
 			
-			this.markerPolygonLocations = new ArrayList<>();
+			this.markerPolygonLocations = mPoly.getMarkerLocations();
 			this.markerRotations = new ArrayList<>();
 			this.rotationComponent = rotationComponent;
 			this.pop = integer;
@@ -575,7 +575,7 @@ public class TetrisSolution {
 								   Maths.round(poly.ypoints[i] - this.mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2));
 				}
 				
-				this.markerPolygonLocations.add(new Point((int)nPoly.getBounds2D().getCenterX(), (int)nPoly.getBounds2D().getCenterY()));
+//				this.markerPolygonLocations.add(new Point((int)nPoly.getBounds2D().getCenterX(), (int)nPoly.getBounds2D().getCenterY()));
 				this.markerRotations.add((Math.PI / 2) * rotationComponent);
 				
 				area.add(new Area(nPoly));

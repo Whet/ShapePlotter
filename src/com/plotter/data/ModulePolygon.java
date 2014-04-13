@@ -1,5 +1,6 @@
 package com.plotter.data;
 
+import java.awt.Point;
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,11 +10,13 @@ public class ModulePolygon {
 
 	private List<int[]> points;
 	private List<Connection> connectPoints;
+	private List<Point> markerPoints;
 	private Polygon polygon;
 	
 	public ModulePolygon() {
 		this.points = new ArrayList<>();
 		this.connectPoints = new ArrayList<>();
+		this.markerPoints = new ArrayList<>();
 		this.polygon = new Polygon();
 	}
 	
@@ -55,6 +58,27 @@ public class ModulePolygon {
 		}
 	}
 	
+	public void addMarkerPoint(int x, int y) {
+		this.markerPoints.add(new Point(x,y));
+		this.makePolygon();
+	}
+	
+	public void removeMarkerPoint(int x, int y) {
+		
+		Iterator<Point> iterator = this.markerPoints.iterator();
+		
+		while(iterator.hasNext()) {
+			Point next = iterator.next();
+			
+			if(next.x == x && next.y == y) {
+				iterator.remove();
+				break;
+			}
+		}
+		
+		this.makePolygon();
+	}
+	
 	private void makePolygon() {
 		this.polygon.reset();
 		
@@ -85,6 +109,10 @@ public class ModulePolygon {
 	
 	public List<Connection> getConnectionPoints() {
 		return this.connectPoints;
+	}
+
+	public List<Point> getMarkerLocations() {
+		return this.markerPoints;
 	}
 	
 }

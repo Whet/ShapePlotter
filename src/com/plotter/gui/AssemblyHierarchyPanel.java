@@ -315,7 +315,7 @@ public class AssemblyHierarchyPanel extends JPanel {
 		List<MultiPoly> currentGeneration = new ArrayList<>();
 		
 		if(this.decompStages.size() == 0) {
-			this.addStageImage(new MultiPoly(modulePolygon.getConnectionPoints(), modulePolygon.getPolygon()), this.generation);
+			this.addStageImage(new MultiPoly(modulePolygon.getConnectionPoints(), modulePolygon.getMarkerLocations(), modulePolygon.getPolygon()), this.generation);
 			showStages();
 			return;
 		}

@@ -16,17 +16,21 @@ public class MultiPoly implements Serializable {
 	private static final long serialVersionUID = 4298800994064887898L;
 	protected List<Connection> connectedPoints;
 	protected List<Polygon> polygons;
+	protected List<Point> markerLocations;
+	
 	protected Polygon convexMergedPolygon;
 	protected LineMergePolygon lineMergedPolygon;
 	private String parent;
 	private String code;
+	
 
-	public MultiPoly(List<Connection> connectedPoints, Polygon... polygons) {
+	public MultiPoly(List<Connection> connectedPoints, List<Point> markerLocations, Polygon... polygons) {
 
 		this.parent = "";
 		this.code = "0";
 
 		this.polygons = new ArrayList<Polygon>();
+		this.markerLocations = new ArrayList<Point>();
 
 		for (int i = 0; i < polygons.length; i++) {
 			this.polygons.add(new Polygon(polygons[i].xpoints,
@@ -41,6 +45,11 @@ public class MultiPoly implements Serializable {
 					connection.getCentre().x, connection.getCentre().y,					
 					connection.getInside().x, connection.getInside().y,
 					connection.getOutside().x, connection.getOutside().y));
+		}
+		
+		this.markerLocations = new ArrayList<>();
+		for(int i = 0; i < markerLocations.size(); i++) {
+			this.markerLocations.add(new Point(markerLocations.get(i).x, markerLocations.get(i).y));
 		}
 
 		this.lineMergedPolygon = new LineMergePolygon();
@@ -64,8 +73,11 @@ public class MultiPoly implements Serializable {
 
 	public MultiPoly(String parent, String code,
 			List<Connection> connectedPoints,
-			List<Connection> connectedPoints1, List<Polygon> polygons1,
-			List<Polygon> polygons2) {
+			List<Connection> connectedPoints1,
+			List<Polygon> polygons1,
+			List<Polygon> polygons2,
+			List<Point> markerLocations1,
+			List<Point> markerLocations2) {
 
 		this.parent = parent;
 		this.code = code;
@@ -77,6 +89,13 @@ public class MultiPoly implements Serializable {
 		}
 		for (int i = 0; i < polygons2.size(); i++) {
 			this.polygons.add(new Polygon(polygons2.get(i).xpoints, polygons2.get(i).ypoints, polygons2.get(i).npoints));
+		}
+		
+		for (int i = 0; i < markerLocations1.size(); i++) {
+			this.markerLocations.add(new Point(markerLocations1.get(i).x, markerLocations1.get(i).y));
+		}
+		for (int i = 0; i < markerLocations2.size(); i++) {
+			this.markerLocations.add(new Point(markerLocations2.get(i).x, markerLocations2.get(i).y));
 		}
 
 		this.connectedPoints = new ArrayList<>();
@@ -94,6 +113,14 @@ public class MultiPoly implements Serializable {
 			this.connectedPoints.add(new Connection(connectedPoints1.get(i).getFlavour(), connectedPoints1.get(i).getCentre().x,
 					connectedPoints1.get(i).getCentre().y, inside.x, inside.y,
 					outside.x, outside.y));
+		}
+		
+		this.markerLocations = new ArrayList<>();
+		for(int i = 0; i < markerLocations1.size(); i++) {
+			this.markerLocations.add(new Point(markerLocations1.get(i).x, markerLocations1.get(i).y));
+		}
+		for(int i = 0; i < markerLocations2.size(); i++) {
+			this.markerLocations.add(new Point(markerLocations2.get(i).x, markerLocations2.get(i).y));
 		}
 
 		this.lineMergedPolygon = new LineMergePolygon();
@@ -134,8 +161,14 @@ public class MultiPoly implements Serializable {
 					connection.getInside().x, connection.getInside().y,
 					connection.getOutside().x, connection.getOutside().y));
 		}
+		
+		ArrayList<Point> markerLocations = new ArrayList<>();
+		
+		for(int i = 0; i < this.markerLocations.size(); i++) {
+			markerLocations.add(new Point(this.markerLocations.get(i).x, this.markerLocations.get(i).y));
+		}
 
-		MultiPoly multiPoly = new MultiPoly(connectedPoints, polygons);
+		MultiPoly multiPoly = new MultiPoly(connectedPoints, markerLocations, polygons);
 
 		multiPoly.code = code;
 		multiPoly.parent = parent;
@@ -184,8 +217,16 @@ public class MultiPoly implements Serializable {
 			tC.translate(deltaX, deltaY);
 			translatedConnections.add(tC);
 		}
+		
+		ArrayList<Point> translatedMarkers = new ArrayList<>();
+		
+		for (Point marker:this.markerLocations) {
+			Point tC = new Point(marker.x, marker.y);
+			tC.translate(deltaX, deltaY);
+			translatedMarkers.add(tC);
+		}
 
-		this.connectedPoints = translatedConnections;
+		this.markerLocations = translatedMarkers;
 	}
 
 	public MultiPoly getRotatedMultipoly(int theta) {
@@ -240,11 +281,17 @@ public class MultiPoly implements Serializable {
 													rotatedConnection2.x, rotatedConnection2.y));
 		}
 		
-		MultiPoly mPoly = new MultiPoly(new ArrayList<Connection>(),
-				rotatedPolys.toArray(new Polygon[rotatedPolys.size()]));
+		ArrayList<Point> rotatedMarkers = new ArrayList<>();
+		
+		for(Point marker:this.markerLocations) {
+			rotatedMarkers.add( rotatePoint(marker, new Point(deltaX, deltaY), theta * (Math.PI / 2)));
+		}
+		
+		MultiPoly mPoly = new MultiPoly(new ArrayList<Connection>(), new ArrayList<Point>(), rotatedPolys.toArray(new Polygon[rotatedPolys.size()]));
 
 		mPoly.polygons = rotatedPolys;
 		mPoly.connectedPoints = rotatedConnections;
+		mPoly.markerLocations = rotatedMarkers;
 
 		return mPoly;
 	}
@@ -287,6 +334,14 @@ public class MultiPoly implements Serializable {
 		}
 
 		this.connectedPoints = rotatedConnections;
+		
+		ArrayList<Point> rotatedMarkers = new ArrayList<>();
+		
+		for(Point marker:this.markerLocations) {
+			rotatedMarkers.add( rotatePoint(marker, centreOfRotation, angle));
+		}
+		
+		this.markerLocations = rotatedMarkers;
 
 		try {
 			this.lineMergedPolygon = (LineMergePolygon) this.lineMergedPolygon
@@ -337,6 +392,14 @@ public class MultiPoly implements Serializable {
 		}
 
 		this.connectedPoints = rotatedConnections;
+		
+		ArrayList<Point> rotatedMarkers = new ArrayList<>();
+		
+		for(Point marker:this.markerLocations) {
+			rotatedMarkers.add( rotatePoint(marker, centreOfRotation, angle));
+		}
+		
+		this.markerLocations = rotatedMarkers;
 
 		try {
 			this.lineMergedPolygon = (LineMergePolygon) this.lineMergedPolygon
@@ -497,6 +560,10 @@ public class MultiPoly implements Serializable {
 
 	public List<Connection> getConnectionPoints() {
 		return this.connectedPoints;
+	}
+
+	public List<Point> getMarkerLocations() {
+		return this.markerLocations;
 	}
 
 }
