@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,6 +37,7 @@ public class GridPanel extends JPanel {
 	private static final Color POLYGON_COLOUR = new Color(244,123,34);
 	private static final Color VERTEX_COLOUR = new Color(255,154,81);
 	private static final Color BINDING_POINT_COLOUR = new Color(243,40,42);
+	private static final Color MARKER_COLOUR = new Color(20,40,190);
 	
 	// Mouse variables
 	private int panX, panY;
@@ -44,11 +46,12 @@ public class GridPanel extends JPanel {
 	private Point newPoint;
 	private int[] panAtClick;
 	
-	private boolean shiftDown;
+	private boolean shiftDown, altDown;
 	private int currentFlavour;
 	
 	// The shape which is being drawn
 	private ModulePolygon modulePolygon;
+	private Point point;
 	
 	public GridPanel(ModulePolygon modulePolygon) {
 		
@@ -60,6 +63,9 @@ public class GridPanel extends JPanel {
 		this.currentFlavour = 0;
 		
 		this.setPreferredSize(new Dimension(800, 600));
+		
+		shiftDown = false;
+		altDown = false;
 		
 	}
 	
@@ -118,6 +124,9 @@ public class GridPanel extends JPanel {
 						
 						modulePolygon.addConnectPoint(currentFlavour, connectXDown, connectYDown, oppositeGrid.x, oppositeGrid.y, gridPoint.x, gridPoint.y);
 					}
+					else if(altDown) {
+						modulePolygon.addMarkerPoint(gridPoint.x, gridPoint.y);
+					}
 					else
 						modulePolygon.addPoint(gridPoint.x, gridPoint.y);
 				}
@@ -128,6 +137,9 @@ public class GridPanel extends JPanel {
 					
 					if(shiftDown)
 						modulePolygon.removeConnectPoint(gridPoint.x, gridPoint.y);
+					else if(altDown) {
+						modulePolygon.removeMarkerPoint(gridPoint.x, gridPoint.y);
+					}
 					else
 						modulePolygon.removePoint(gridPoint.x, gridPoint.y);
 				}
@@ -177,11 +189,14 @@ public class GridPanel extends JPanel {
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
-				
 				switch(e.getKeyCode()) {
 					// SHIFT
 					case 16:
 						shiftDown = true;
+					break;
+					// ALT
+					case 18:
+						altDown = true;
 					break;
 					// 0
 					case 48:
@@ -232,6 +247,10 @@ public class GridPanel extends JPanel {
 					// SHIFT
 					case 16:
 						shiftDown = false;
+					break;
+					// ALT
+					case 18:
+						altDown = false;
 					break;
 				}
 			}
@@ -361,6 +380,13 @@ public class GridPanel extends JPanel {
 			g.drawString("F" + this.modulePolygon.getConnectionPoints().get(i).getFlavour(), points[i][0] - 3 + panX, points[i][1] - 3 + panY);
 		}
 		
+		g.setColor(MARKER_COLOUR);
+		List<Point> markerLocations = modulePolygon.getMarkerLocations();
+		
+		for(int i = 0; i < markerLocations.size(); i++) {
+			point = markerLocations.get(i);
+			g.fillRect(point.x - 5, point.y - 5, 10, 10);
+		}
 		
 	}
 	
