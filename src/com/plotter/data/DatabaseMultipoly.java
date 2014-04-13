@@ -70,8 +70,8 @@ public class DatabaseMultipoly implements Serializable {
 		for (Connection connection : this.connections) {
 			
 			Point rotatedConnection = MultiPoly.rotatePoint(new Point(connection.getCentre().x, connection.getCentre().y), new Point(deltaX, deltaY), rotation);
-			Point rotatedConnection1 = MultiPoly.rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), new Point(deltaX, deltaY), rotation);
-			Point rotatedConnection2 = MultiPoly.rotatePoint(new Point(connection.getInside().x, connection.getInside().y), new Point(deltaX, deltaY), rotation);
+			Point rotatedConnection1 = MultiPoly.rotatePoint(new Point(connection.getInside().x, connection.getInside().y), new Point(deltaX, deltaY), rotation);
+			Point rotatedConnection2 = MultiPoly.rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), new Point(deltaX, deltaY), rotation);
 			
 			rotatedConnections.add(new Connection(connection.getFlavour(),
 					rotatedConnection.x, rotatedConnection.y,

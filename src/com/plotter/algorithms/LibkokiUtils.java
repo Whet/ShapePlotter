@@ -265,7 +265,7 @@ public class LibkokiUtils {
 		rotDisplacement[0] = markerDisplacement[0] * cT - markerDisplacement[1] * sT;
 		rotDisplacement[1] = markerDisplacement[0] * sT + markerDisplacement[1] * cT;
 		
-		// Shape data Info
+		// Shape data Info=
 		Set<ShapeData.Connection> shapeDataConnections = new HashSet<>();
 		
 		// Draw connections
@@ -286,7 +286,6 @@ public class LibkokiUtils {
 			int y1 = (int)(marker.centrePixels[1] + rotDisplacement[1] + ((rotatedConnection.getOutside().y - polygonCentre.y) * SCALE));
 			
 			graphics.fillOval(x1 - 5, y1 - 5, 10, 10);
-			
 			graphics.drawLine(x1, y1, x, y);
 			
 			double angleOutside = Maths.getDegrees(x, y, x1, y1);

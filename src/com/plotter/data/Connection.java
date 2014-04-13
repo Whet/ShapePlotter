@@ -8,11 +8,11 @@ public class Connection implements Serializable{
 	private int flavour;
 	private Point centre, inside, outside;
 	
-	public Connection(int flavour, int x, int y, int x1, int y1, int x2, int y2) {
+	public Connection(int flavour, int x, int y, int inX, int inY, int outX, int outY) {
 		this.flavour = flavour;
 		this.centre = new Point(x,y);
-		this.inside = new Point(x1,y1);
-		this.outside = new Point(x2,y2);
+		this.inside = new Point(inX,inY);
+		this.outside = new Point(outX,outY);
 	}
 
 	public Point getCentre() {

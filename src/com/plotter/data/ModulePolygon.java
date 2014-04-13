@@ -38,8 +38,8 @@ public class ModulePolygon {
 		this.makePolygon();
 	}
 	
-	public void addConnectPoint(int flavour, int x, int y, int x1, int y1, int x2, int y2) {
-		this.connectPoints.add(new Connection(flavour, x, y, x1, y1, x2, y2));
+	public void addConnectPoint(int flavour, int x, int y, int inX, int inY, int outX, int outY) {
+		this.connectPoints.add(new Connection(flavour, x, y, inX, inY, outX, outY));
 	}
 	
 	public void removeConnectPoint(int x, int y) {

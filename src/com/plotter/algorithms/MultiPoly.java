@@ -38,9 +38,9 @@ public class MultiPoly implements Serializable {
 		for (int i = 0; i < connectedPoints.size(); i++) {
 			Connection connection = connectedPoints.get(i);
 			this.connectedPoints.add(new Connection(connection.getFlavour(),
-					connection.getCentre().x, connection.getCentre().y,
-					connection.getOutside().x, connection.getOutside().y,
-					connection.getInside().x, connection.getInside().y));
+					connection.getCentre().x, connection.getCentre().y,					
+					connection.getInside().x, connection.getInside().y,
+					connection.getOutside().x, connection.getOutside().y));
 		}
 
 		this.lineMergedPolygon = new LineMergePolygon();
@@ -86,15 +86,10 @@ public class MultiPoly implements Serializable {
 		for (int i = 0; i < connectedPoints.size(); i++) {
 			// if both out and in ends are inside of a polygon then don't add
 			// the connect point as it is in use
-			Point end1 = new Point(connectedPoints.get(i).getOutside().x,
-					connectedPoints.get(i).getOutside().y);
-			Point end2 = new Point(connectedPoints.get(i).getInside().x,
-					connectedPoints.get(i).getInside().y);
+			Point outside = new Point(connectedPoints.get(i).getOutside().x, connectedPoints.get(i).getOutside().y);
+			Point inside = new Point(connectedPoints.get(i).getInside().x, connectedPoints.get(i).getInside().y);
 
-			this.connectedPoints.add(new Connection(connectedPoints.get(i)
-					.getFlavour(), connectedPoints.get(i).getCentre().x,
-					connectedPoints.get(i).getCentre().y, end1.x, end1.y,
-					end2.x, end2.y));
+			this.connectedPoints.add(new Connection(connectedPoints.get(i).getFlavour(), connectedPoints.get(i).getCentre().x, connectedPoints.get(i).getCentre().y, inside.x, inside.y, outside.x, outside.y));
 		}
 		for (int i = 0; i < connectedPoints1.size(); i++) {
 			// if both out and in ends are inside of a polygon then don't add
@@ -145,8 +140,8 @@ public class MultiPoly implements Serializable {
 			Connection connection = this.connectedPoints.get(i);
 			connectedPoints.add(new Connection(connection.getFlavour(),
 					connection.getCentre().x, connection.getCentre().y,
-					connection.getOutside().x, connection.getOutside().y,
-					connection.getInside().x, connection.getInside().y));
+					connection.getInside().x, connection.getInside().y,
+					connection.getOutside().x, connection.getOutside().y));
 		}
 
 		MultiPoly multiPoly = new MultiPoly(connectedPoints, polygons);
@@ -245,13 +240,13 @@ public class MultiPoly implements Serializable {
 		for (Connection connection : this.connectedPoints) {
 			
 			Point rotatedConnection = rotatePoint( new Point(connection.getCentre().x, connection.getCentre().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
-			Point rotatedConnection1 = rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
-			Point rotatedConnection2 = rotatePoint(new Point(connection.getInside().x, connection.getInside().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
+			Point rotatedConnection1 = rotatePoint(new Point(connection.getInside().x, connection.getInside().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
+			Point rotatedConnection2 = rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), new Point(deltaX, deltaY), theta * (Math.PI / 2));
 			
 			rotatedConnections.add(new Connection(connection.getFlavour(),
-					rotatedConnection.x, rotatedConnection.y,
-					rotatedConnection1.x, rotatedConnection1.y,
-					rotatedConnection2.x, rotatedConnection2.y));
+													rotatedConnection.x, rotatedConnection.y,
+													rotatedConnection1.x, rotatedConnection1.y,
+													rotatedConnection2.x, rotatedConnection2.y));
 		}
 		
 		MultiPoly mPoly = new MultiPoly(new ArrayList<Connection>(),
@@ -289,19 +284,15 @@ public class MultiPoly implements Serializable {
 		ArrayList<Connection> rotatedConnections = new ArrayList<>();
 
 		for (Connection connection : this.connectedPoints) {
-			Point rotatedConnection = rotatePoint(
-					new Point(connection.getCentre().x,
-							connection.getCentre().y), centreOfRotation, angle);
-			Point rotatedConnection1 = rotatePoint(
-					new Point(connection.getOutside().x,
-							connection.getOutside().y), centreOfRotation, angle);
-			Point rotatedConnection2 = rotatePoint(
-					new Point(connection.getInside().x,
-							connection.getInside().y), centreOfRotation, angle);
+			
+			Point rotatedConnection = rotatePoint(new Point(connection.getCentre().x, connection.getCentre().y), centreOfRotation, angle);
+			Point rotatedConnection1 = rotatePoint(new Point(connection.getInside().x, connection.getInside().y), centreOfRotation, angle);
+			Point rotatedConnection2 = rotatePoint(new Point(connection.getOutside().x, connection.getOutside().y), centreOfRotation, angle);
+			
 			rotatedConnections.add(new Connection(connection.getFlavour(),
-					rotatedConnection.x, rotatedConnection.y,
-					rotatedConnection1.x, rotatedConnection1.y,
-					rotatedConnection2.x, rotatedConnection2.y));
+													rotatedConnection.x, rotatedConnection.y,
+													rotatedConnection1.x, rotatedConnection1.y,
+													rotatedConnection2.x, rotatedConnection2.y));
 		}
 
 		this.connectedPoints = rotatedConnections;
@@ -343,11 +334,11 @@ public class MultiPoly implements Serializable {
 					new Point(connection.getCentre().x,
 							connection.getCentre().y), centreOfRotation, angle);
 			Point rotatedConnection1 = rotatePoint(
-					new Point(connection.getOutside().x,
-							connection.getOutside().y), centreOfRotation, angle);
-			Point rotatedConnection2 = rotatePoint(
 					new Point(connection.getInside().x,
 							connection.getInside().y), centreOfRotation, angle);
+			Point rotatedConnection2 = rotatePoint(
+					new Point(connection.getOutside().x,
+							connection.getOutside().y), centreOfRotation, angle);
 			rotatedConnections.add(new Connection(connection.getFlavour(),
 					rotatedConnection.x, rotatedConnection.y,
 					rotatedConnection1.x, rotatedConnection1.y,
