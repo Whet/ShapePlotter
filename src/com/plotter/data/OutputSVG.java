@@ -147,7 +147,15 @@ public class OutputSVG {
 		
 		for(LayoutPolygon poly:shapes) {
 			if(!colours.containsKey(poly.identity)) {
-				colours.put(poly.identity, COLOURS[colours.size()]);
+				
+				int colourIndex = colours.size();
+				
+				// Recycle colours with lots of shapes
+				while(colourIndex >= COLOURS.length) {
+					colourIndex -= COLOURS.length;
+				}
+				
+				colours.put(poly.identity, COLOURS[colourIndex]);
 			}
 			
 			poly.fillColour = colours.get(poly.identity);
