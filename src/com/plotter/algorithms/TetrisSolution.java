@@ -574,9 +574,6 @@ public class TetrisSolution {
 								   Maths.round(poly.ypoints[i] - this.mPoly.getMergedPolygon().getBounds2D().getMinY(), GridPanel.GRID_SIZE) / (GridPanel.GRID_SIZE * 2));
 				}
 				
-//				this.markerPolygonLocations.add(new Point((int)nPoly.getBounds2D().getCenterX(), (int)nPoly.getBounds2D().getCenterY()));
-				this.markerRotations.add((Math.PI / 2) * rotationComponent);
-				
 				area.add(new Area(nPoly));
 				largeArea.add(new Area(poly));
 			}
@@ -627,6 +624,10 @@ public class TetrisSolution {
 				
 				ds[0] = (marker.x - minX) / width;
 				ds[1] = (marker.y - minY) / height;
+			}
+			
+			for(int i = 0; i < this.markerPolygonLocations.size(); i++) {
+				this.markerRotations.add((Math.PI / 2) * rotationComponent);
 			}
 			
 		}
