@@ -1,6 +1,7 @@
 package com.plotter.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.plotter.algorithms.LibkokiUtils;
@@ -322,7 +326,19 @@ public class PlotterWindow extends JFrame {
 		
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+		
+		UIManager.put("nimbusBase", new Color(20,20,20));
+		UIManager.put("nimbusBlueGrey", new Color(50, 50, 50));
+		UIManager.put("control", new Color(90, 90, 90));
+		
+		for (LookAndFeelInfo laf:UIManager.getInstalledLookAndFeels()) {
+			if ("Nimbus".equals(laf.getName())) {
+				UIManager.setLookAndFeel(laf.getClassName());
+				break;
+			}
+		}
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
