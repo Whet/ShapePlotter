@@ -12,6 +12,7 @@ import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.algorithms.MultiPoly;
 import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
+import com.plotter.gui.PropertiesPanel;
 
 public class MarkerGroup {
 
@@ -66,8 +67,8 @@ public class MarkerGroup {
 			rotDisplacement[0] = offset[0] * cT - offset[1] * sT;
 			rotDisplacement[1] = offset[0] * sT + offset[1] * cT;
 			
-			avgPoint.x += marker.getLocation().x + rotDisplacement[0];
-			avgPoint.y += marker.getLocation().y + rotDisplacement[1];
+			avgPoint.x += marker.getLocation().x + rotDisplacement[0] * PropertiesPanel.SCALE;
+			avgPoint.y += marker.getLocation().y + rotDisplacement[1] * PropertiesPanel.SCALE;
 		}
 		
 		avgPoint.x /= markers.size();
@@ -152,7 +153,7 @@ public class MarkerGroup {
 //		System.out.println();
 		
 		// Scale
-		final int scale = 1;
+		final double scale = PropertiesPanel.SCALE;
 		
 		for(Edge edge:edges) {
 			edge.end1.x *= scale;
@@ -164,8 +165,8 @@ public class MarkerGroup {
 		// Translate to centre
 		int translationX, translationY;
 		
-		translationX = this.centre.x - centre.x;
-		translationY = this.centre.y - centre.y;
+		translationX = (int)(this.centre.x - centre.x * scale);
+		translationY = (int)(this.centre.y - centre.y * scale);
 		
 		for(Edge edge:edges) {
 			edge.end1.translate(translationX, translationY);

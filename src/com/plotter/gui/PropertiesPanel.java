@@ -27,6 +27,7 @@ import com.plotter.xmlcorrection.XMLCorrectionData;
 
 public class PropertiesPanel extends JPanel {
 
+	public static double SCALE = 1;
 	private PossibleShapesPanel possibleShapes;
 	private TextBoxesPanel textPanel;
 	private boolean updated;
@@ -50,6 +51,8 @@ public class PropertiesPanel extends JPanel {
 		sub.add(possibleShapes, BorderLayout.CENTER);
 		
 		this.updated = false;
+		
+		SCALE = 1;
 	}
 	
 	public boolean update() {
@@ -158,6 +161,13 @@ public class PropertiesPanel extends JPanel {
 				}
 				catch(NumberFormatException e){}
 			}
+			else if(information == null) {
+				
+				try {
+					SCALE = Double.parseDouble(topBox.getText());
+				}
+				catch(NumberFormatException e){}
+			}
 			
 		}
 
@@ -197,9 +207,9 @@ public class PropertiesPanel extends JPanel {
 				this.possibleShapes.setPossibleShapes(group);
 			}
 			else {
-				this.topLabel.setText("");
-				this.topBox.setEditable(false);
-				this.topBox.setText("");
+				this.topLabel.setText("Scale");
+				this.topBox.setEditable(true);
+				this.topBox.setText(""+PropertiesPanel.SCALE);
 				
 				this.bottomLabel.setText("");
 				this.bottomBox.setEditable(false);
