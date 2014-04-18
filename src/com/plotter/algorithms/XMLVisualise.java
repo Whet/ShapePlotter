@@ -33,7 +33,10 @@ public class XMLVisualise {
 		
 		findDimensions(minPoint, maxPoint, shapes);
 		
-		BufferedImage image = new BufferedImage(maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, BufferedImage.TYPE_INT_ARGB);
+		int width = maxPoint.x - minPoint.x;
+		int height = maxPoint.y - minPoint.y;
+		
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		
 		Graphics2D graphics = (Graphics2D) image.getGraphics();
 		

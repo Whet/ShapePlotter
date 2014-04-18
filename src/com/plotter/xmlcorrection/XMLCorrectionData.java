@@ -209,12 +209,12 @@ public class XMLCorrectionData {
 			Set<Connection> connections = new HashSet<>();
 			Set<MarkerInfo> markerInfo =  new HashSet<>();
 			
-			for(Edge edge:group.getShape().getLineMergePolygon().getHairlines()) {
+			for(Edge edge:group.getTransformedEdges()) {
 				shapeDataVerticies.add(new Point(edge.end1.x, edge.end1.y));
 				shapeDataVerticies.add(new Point(edge.end2.x, edge.end2.y));
 			}
 			
-			for(com.plotter.data.Connection connection:group.getShape().getConnectionPoints()) {
+			for(com.plotter.data.Connection connection:group.getTransformedConnections()) {
 				double angleOutside = Maths.getDegrees(connection.getCentre().x, connection.getCentre().y, connection.getOutside().x, connection.getOutside().y);
 				connections.add(new Connection(connection.getFlavour(), connection.getCentre(), angleOutside));
 			}

@@ -10,6 +10,7 @@ import java.util.Set;
 import com.plotter.algorithms.LineMergePolygon;
 import com.plotter.algorithms.LineMergePolygon.Edge;
 import com.plotter.algorithms.MultiPoly;
+import com.plotter.data.Connection;
 import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
 import com.plotter.gui.PropertiesPanel;
@@ -24,10 +25,12 @@ public class MarkerGroup {
 	
 	private Point centre;
 	private double rotation;
+	private List<com.plotter.data.Connection> transformedConnections;
 	
 	public MarkerGroup(Database database) {
 		this.markers = new HashSet<>();
 		this.transformedEdges = new ArrayList<>();
+		this.transformedConnections = new ArrayList<>();
 		this.database = database;
 	}
 	
@@ -131,8 +134,11 @@ public class MarkerGroup {
 	private void updateShape() {
 		
 		this.transformedEdges.clear();
+		this.transformedConnections.clear();
 		
 		List<Edge> edges = new ArrayList<>();
+		List<com.plotter.data.Connection> connections = new ArrayList<>();
+		List<com.plotter.data.Connection> connectionsBuffer = new ArrayList<>();
 		
 		// Rotate
 		
@@ -143,14 +149,28 @@ public class MarkerGroup {
 			edges.add(new Edge(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
 		}
 		
+		for(com.plotter.data.Connection connection:this.getShape().getConnectionPoints()) {
+			connections.add(new com.plotter.data.Connection(connection.getFlavour(), connection.getCentre().x, connection.getCentre().y, connection.getInside().x, connection.getInside().y, connection.getOutside().x, connection.getOutside().y));
+		}
+		
 		for(Edge edge:edges) {
 			Point end1 = new Point(MultiPoly.rotatePoint(edge.end1, centre, this.rotation));
-//			System.out.println(edge.end1);
 			Point end2 = new Point(MultiPoly.rotatePoint(edge.end2, centre, this.rotation));
 			edge.end1 = end1;
 			edge.end2 = end2;
 		}
-//		System.out.println();
+		
+		for(com.plotter.data.Connection connection:connections) {
+			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation));
+			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation));
+			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation));
+			
+			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
+		}
+		
+		connections.clear();
+		connections.addAll(connectionsBuffer);
+		connectionsBuffer.clear();
 		
 		// Scale
 		final double scale = PropertiesPanel.SCALE;
@@ -162,6 +182,18 @@ public class MarkerGroup {
 			edge.end2.y *= scale;
 		}
 		
+		for(com.plotter.data.Connection connection:connections) {
+			Point centre1 = new Point(connection.getCentre().x *= scale, connection.getCentre().y *= scale);
+			Point inside = new Point(connection.getInside().x *= scale, connection.getInside().y *= scale);
+			Point outside = new Point(connection.getOutside().x *= scale, connection.getOutside().y *= scale);
+			
+			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
+		}
+		
+		connections.clear();
+		connections.addAll(connectionsBuffer);
+		connectionsBuffer.clear();
+		
 		// Translate to centre
 		int translationX, translationY;
 		
@@ -172,6 +204,11 @@ public class MarkerGroup {
 			edge.end1.translate(translationX, translationY);
 			edge.end2.translate(translationX, translationY);
 			transformedEdges.add(edge);
+		}
+		
+		for(com.plotter.data.Connection connection:connections) {
+			connection.translate(translationX, translationY);
+			this.transformedConnections.add(connection);
 		}
 		
 	}
@@ -236,6 +273,14 @@ public class MarkerGroup {
 		}
 		
 		return possibleShapes;
+	}
+
+	public List<Edge> getTransformedEdges() {
+		return this.transformedEdges;
+	}
+	
+	public List<com.plotter.data.Connection> getTransformedConnections() {
+		return this.transformedConnections;
 	}
 
 }
