@@ -25,6 +25,7 @@ public class MarkerGroup {
 	
 	private Point centre;
 	private double rotation;
+	private double originalRotation;
 	private List<com.plotter.data.Connection> transformedConnections;
 	
 	public MarkerGroup(Database database) {
@@ -32,6 +33,7 @@ public class MarkerGroup {
 		this.transformedEdges = new ArrayList<>();
 		this.transformedConnections = new ArrayList<>();
 		this.database = database;
+		this.originalRotation = 0;
 	}
 	
 	public void addMarker(MarkerData marker) {
@@ -118,6 +120,8 @@ public class MarkerGroup {
 			e.printStackTrace();
 		}
 		
+		this.originalRotation = getRotation();
+		
 		update();
 	}
 	
@@ -149,8 +153,15 @@ public class MarkerGroup {
 			edges.add(new Edge(edge.end1.x, edge.end1.y, edge.end2.x, edge.end2.y));
 		}
 		
+		// Add connections shifted for the translation made to put the shape at origin
+		int minX = (int) shape.getMergedPolygon().getBounds2D().getMinX();
+		int minY = (int) shape.getMergedPolygon().getBounds2D().getMinY();
+		
 		for(com.plotter.data.Connection connection:this.getShape().getConnectionPoints()) {
-			connections.add(new com.plotter.data.Connection(connection.getFlavour(), connection.getCentre().x, connection.getCentre().y, connection.getInside().x, connection.getInside().y, connection.getOutside().x, connection.getOutside().y));
+			connections.add(new com.plotter.data.Connection(connection.getFlavour(),
+															connection.getCentre().x - minX, connection.getCentre().y - minY,
+															connection.getInside().x - minX, connection.getInside().y - minY,
+															connection.getOutside().x - minX, connection.getOutside().y - minY));
 		}
 		
 		for(Edge edge:edges) {
@@ -161,9 +172,9 @@ public class MarkerGroup {
 		}
 		
 		for(com.plotter.data.Connection connection:connections) {
-			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation));
-			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation));
-			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation));
+			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation - originalRotation));
+			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation - originalRotation));
+			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation - originalRotation));
 			
 			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
 		}

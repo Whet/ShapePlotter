@@ -17,6 +17,7 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 import com.plotter.algorithms.LineMergePolygon.Edge;
+import com.plotter.data.Connection;
 import com.plotter.xmlcorrection.MarkerData;
 import com.plotter.xmlcorrection.MarkerGroup;
 import com.plotter.xmlcorrection.XMLCorrectionData;
@@ -258,6 +259,11 @@ public class CorrectionPanel extends JPanel {
 				for(Edge edge:selectedGroup.getScaledShape()) {
 					g.drawLine(edge.end1.x, edge.end1.y, 
 							   edge.end2.x, edge.end2.y);
+				}
+				
+				// Draw Connections
+				for(Connection connection:selectedGroup.getTransformedConnections()) {
+					g.fillOval(connection.getCentre().x - 5, connection.getCentre().y - 5, 10, 10);
 				}
 			}
 		}
