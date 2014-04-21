@@ -150,13 +150,13 @@ public class CorrectionPanel extends JPanel {
 					case 16:
 						shiftDown = false;
 					break;
-					// 0
-					case 48:
-						data.setSelectionMode(0);
-					break;
 					// 1
 					case 49:
 						data.setSelectionMode(1);
+					break;
+					// 2
+					case 50:
+						data.setSelectionMode(2);
 					break;
 				}
 			}
@@ -212,7 +212,7 @@ public class CorrectionPanel extends JPanel {
 		}
 		
 		// Showing groups of markers
-		if(data.getSelectionMode() == 1) {
+		if(data.getSelectionMode() == 2) {
 			
 			MarkerGroup selectedGroup = null;
 			

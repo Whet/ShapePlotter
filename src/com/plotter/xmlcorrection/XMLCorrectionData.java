@@ -34,7 +34,7 @@ public class XMLCorrectionData {
 		
 		findMarkers(shapeData, shapeDataMapping);
 		
-		selectionMode = 0;
+		selectionMode = 1;
 	}
 	
 	public void loadVariables(PropertiesPanel properties) {
@@ -66,18 +66,28 @@ public class XMLCorrectionData {
 	
 	public void mD(Point locationOnScreen, Point realLocation, boolean shiftDown) {
 		switch(selectionMode) {
-			case 0:
+			case 1:
 				selectedObject = null;
 				
 				for(MarkerData marker:markers) {
 					if(marker.getLocation().distance(realLocation) < 40) {
 						selectedObject = marker;
 						properties.setInfo(selectedObject);
-						break;
+						return;
 					}
 				}
+				
+				if(shiftDown) {
+					// Nothing was clicked, create a marker
+					MarkerData markerData = new MarkerData(realLocation, 0, 1);
+					markers.add(markerData);
+					MarkerGroup group = new MarkerGroup(database);
+					markerGroups.add(group);
+					
+					group.addMarker(markerData);
+				}
 			break;
-			case 1:
+			case 2:
 				selectedObject = null;
 				
 				for(MarkerGroup markerGroup:markerGroups) {
@@ -93,12 +103,24 @@ public class XMLCorrectionData {
 
 	public void rMD(Point locationOnScreen, Point realLocation, boolean shiftDown) {
 		switch(selectionMode) {
-			case 0:
+			case 1:
 				if(selectedObject != null) {
 					((MarkerData)selectedObject).setLocation(realLocation);
 				}
+				else {
+					// Delete marker
+					MarkerData deleteMarker = null;
+					for(MarkerData marker:markers) {
+						if(marker.getLocation().distance(realLocation) < 40) {
+							deleteMarker = marker;
+							break;
+						}
+					}
+					
+					removeFromGroups(deleteMarker, null);
+				}
 			break;
-			case 1:
+			case 2:
 				if(selectedObject != null) {
 					if(shiftDown) {
 						// Add/Remove marker from group
