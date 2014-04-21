@@ -10,11 +10,14 @@ import java.awt.geom.Area;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -115,7 +118,26 @@ public class LibkokiUtils {
 										 List<ShapeData> shapeData, Map<ShapeData, DatabaseMultipoly> shapeDataMapping) {
 		
 		// Get possible shapes for this marker
-		Set<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes = database.getPossibleShapes(marker.id);
+		Set<Entry<List<Integer>, DatabaseMultipoly>> possibleShapesSet = database.getPossibleShapes(marker.id);
+		
+		// Convert possible shapes to a list starting with shapes with the most markers
+		PriorityQueue<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes = new PriorityQueue<Entry<List<Integer>, DatabaseMultipoly>>(10, new Comparator<Entry<List<Integer>, DatabaseMultipoly>>() {
+			
+			public int compare(Entry<List<Integer>, DatabaseMultipoly> o1, Entry<List<Integer>, DatabaseMultipoly> o2) {
+				
+				if(o1.getKey().size() > o2.getKey().size())
+					return -1;
+				else if(o1.getKey().size() < o2.getKey().size())
+					return 1;
+				
+				return 0;
+				
+			};
+			
+		});
+		
+		possibleShapes.addAll(possibleShapesSet);
+		
 		
 		// Search in the area of each possible shape to see if the required markers are found
 		Iterator<Entry<List<Integer>, DatabaseMultipoly>> possibleShapesIt = possibleShapes.iterator();
@@ -193,12 +215,12 @@ public class LibkokiUtils {
 			
 			System.out.println("Possible shapes: " + possibleShapes.size());
 			
-			// No match
 			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0) && polygonMarkersLocated.size() < Math.floor(entry.getKey().size() * 0.8)) {
+				// No match
 				possibleShapesIt.remove();
 				return false;
 			}
-			// Found enough markers
+			// Found enough markers within a tolerance
 			else {
 				// Add all found markers for this shape to the located ones
 				locatedMarkers.put(entry.getValue(), polygonMarkersLocated);
@@ -357,7 +379,7 @@ public class LibkokiUtils {
 		return true;
 	}
 
-	private static DatabaseMultipoly selectShape(Set<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes, Map<DatabaseMultipoly, Set<MarkerInfo>> locatedMarkers) {
+	private static DatabaseMultipoly selectShape(PriorityQueue<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes, Map<DatabaseMultipoly, Set<MarkerInfo>> locatedMarkers) {
 		
 		DatabaseMultipoly matchingShape = null;
 		

@@ -26,6 +26,45 @@ public class Database implements Serializable {
 	
 	public Map<List<Integer>, DatabaseMultipoly> markersToShape;
 	
+	public static void main(String[] args) {
+		Database db = new Database();
+		
+		
+//		List<Integer> markers1 = new ArrayList<>();
+//		markers1.add(53);
+//		
+//		List<Integer> markers2 = new ArrayList<>();
+//		markers1.add(53);
+//		markers1.add(51);
+//		markers1.add(180);
+//		
+//		db.markersToShape.put(markers2, null);
+//		
+//		System.out.println(db.markerSetExists(markers1));
+		
+		List<Integer> markers;
+		
+		for (int j = 0; j < 5; j++) {
+			
+			markers = new ArrayList<>();
+			final int requiredMarkers = j + 1;
+			
+			do {
+				markers.clear();
+				for(int i = 0; i < requiredMarkers; i++) {
+					markers.add(db.getRandomMarkerNumber());
+				}
+				
+				System.out.println(markers);				
+				
+			}while(db.markerSetExists(markers));
+			
+			System.out.println("No Repeats");
+		
+			db.markersToShape.put(markers, null);
+		}
+		
+	}
 	
 	public Database() {
 		this.markersToShape = new HashMap<>();
@@ -47,26 +86,20 @@ public class Database implements Serializable {
 		if(markersToShape.size() == 0)
 			return false;
 		
-LOOP:	for(List<Integer> markerSet:markersToShape.keySet()) {
+		for(List<Integer> markerSet:markersToShape.keySet()) {
+			if(markerSet.containsAll(markers))
+				return true;
 			
-			for(Integer marker:markerSet) {
-				if(!markers.contains(marker))
-					break LOOP;
-			}
-			
-			return true;
+//			System.out.println(markerSet + "doesn't have all " + markers);
 		}
 	
 		// Check other way round as well!
 		
-LOOP:	for(List<Integer> markerSet:markersToShape.keySet()) {
+		for(List<Integer> markerSet:markersToShape.keySet()) {
+			if(markers.containsAll(markerSet))
+				return true;
 			
-			for(Integer marker:markers) {
-				if(!markerSet.contains(marker))
-					break LOOP;
-			}
-			
-			return true;
+//			System.out.println(markers + "doesn't have all " + markerSet);
 		}
 		
 		return false;
