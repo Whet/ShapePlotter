@@ -20,11 +20,13 @@ public class DatabaseMultipoly implements Serializable {
 	private Polygon mergedPolygon;
 	private List<Connection> connections;
 	private int shapeId;
+	private int databaseId;
 	
-	public DatabaseMultipoly(int rotationComponent, Polygon mergedPolygon, LineMergePolygon lmp, List<Connection> connections, List<Integer> markerIds, List<Point> markerLocations, List<Double> markerRotations, Point polygonCentre, int shapeId) {
+	public DatabaseMultipoly(int rotationComponent, Polygon mergedPolygon, LineMergePolygon lmp, List<Connection> connections, List<Integer> markerIds, List<Point> markerLocations, List<Double> markerRotations, Point polygonCentre, int shapeId, int databaseId) {
 		
 		this.lmp = lmp;
 		this.shapeId = shapeId;
+		this.databaseId = databaseId;
 		this.mergedPolygon = new Polygon(mergedPolygon.xpoints, mergedPolygon.ypoints, mergedPolygon.npoints);
 		this.connections = new ArrayList<>();
 		
@@ -103,4 +105,9 @@ public class DatabaseMultipoly implements Serializable {
 	public int getShapeId() {
 		return this.shapeId;
 	}
+
+	public int getDatabaseId() {
+		return databaseId;
+	}
+	
 }
