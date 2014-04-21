@@ -32,6 +32,7 @@ import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
 import com.plotter.data.Maths;
 import com.plotter.data.OutputXML;
+import com.plotter.xmlcorrection.MarkerData;
 
 public class LibkokiUtils {
 	
@@ -485,45 +486,55 @@ NEXT_MARKER:for(Entry<List<Integer>, DatabaseMultipoly> possibleShape:possibleSh
 			rotations.put(info.id, info.rotation);
 		}
 		
-		if(rotations.size() < 3) {
-			double mean = 0.0;
-			
+		
+		// used to calculate average of marker rotations
+		double averageSin = 0;
+		double averageCos = 0;
+		
+//		if(rotations.size() < 3) {
 			for(Entry<Integer, Double> entry:rotations.entrySet()) {
-				mean += entry.getValue() - Math.toDegrees(markerRotationOffsets.get(entry.getKey()));
-			}
-			return (mean / rotations.size());
-		}
-		else {
-			
-			List<Double> rotationsList = new ArrayList<>();
-			rotationsList.addAll(rotations.values());
-			
-			// Only add data that isn't outlier
-			// 1.5 * IQR range
-			double interQuartileRange = Quartiles.interQuartileRange(rotationsList);
-			// [0] = q1, [1] = median, [2] = q3
-			double[] quartiles = Quartiles.quartiles(rotationsList);
-			
-			//TODO prevent looping around angles issue
-			
-			double lowestAccepted = quartiles[0] - 1.5 * interQuartileRange;
-			double highestAccepted = quartiles[2] + 1.5 * interQuartileRange;
-			
-			int meanC = 0;
-			double mean = 0.0;
-
-			for(Entry<Integer, Double> entry:rotations.entrySet()) {
+				double d = Math.toRadians(entry.getValue() - Math.toDegrees(markerRotationOffsets.get(entry.getKey())));
 				
-				Double rotation = entry.getValue();
-				
-				if(rotation >= lowestAccepted && rotation <= highestAccepted) {
-					mean += rotation - Math.toDegrees(markerRotationOffsets.get(entry.getKey()));
-					meanC++;
-				}
+				averageSin += Math.sin(d);
+				averageCos += Math.cos(d);
 			}
 			
-			return (mean / meanC);
-		}
+			averageSin /= rotations.size();
+			averageCos /= rotations.size();
+			
+			return Math.atan2(averageSin, averageCos);
+//		}
+//		else {
+//			
+//			List<Double> rotationsList = new ArrayList<>();
+//			rotationsList.addAll(rotations.values());
+//			
+//			// Only add data that isn't outlier
+//			// 1.5 * IQR range
+//			//double interQuartileRange = Quartiles.interQuartileRange(rotationsList);
+//			// [0] = q1, [1] = median, [2] = q3
+//			//double[] quartiles = Quartiles.quartiles(rotationsList);
+//			
+//			//TODO prevent looping around angles issue
+//			
+//			//double lowestAccepted = quartiles[0] - 1.5 * interQuartileRange;
+//			//double highestAccepted = quartiles[2] + 1.5 * interQuartileRange;
+//			
+//			int meanC = 0;
+//			double mean = 0.0;
+//
+//			for(Entry<Integer, Double> entry:rotations.entrySet()) {
+//				
+//				Double rotation = entry.getValue();
+//				
+//				//if(rotation >= lowestAccepted && rotation <= highestAccepted) {
+//					mean += rotation - Math.toDegrees(markerRotationOffsets.get(entry.getKey()));
+//					meanC++;
+//				//}
+//			}
+//			
+//			return (mean / meanC);
+//		}
 		
 	}
 	

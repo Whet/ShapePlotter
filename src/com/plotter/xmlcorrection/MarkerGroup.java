@@ -135,7 +135,7 @@ public class MarkerGroup {
 	}
 	
 	public void update() {
-		if(this.markers.size() == 0)
+		if(this.markers.size() == 0 || this.shape == null)
 			return;
 		
 		this.rotation = getRotation();
@@ -180,17 +180,17 @@ public class MarkerGroup {
 			edge.end2 = end2;
 		}
 		
-//		for(com.plotter.data.Connection connection:connections) {
-//			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation));
-//			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation));
-//			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation));
-//			
-//			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
-//		}
-//		
-//		connections.clear();
-//		connections.addAll(connectionsBuffer);
-//		connectionsBuffer.clear();
+		for(com.plotter.data.Connection connection:connections) {
+			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation));
+			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation));
+			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation));
+			
+			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
+		}
+		
+		connections.clear();
+		connections.addAll(connectionsBuffer);
+		connectionsBuffer.clear();
 		
 		// Scale
 		final double scale = PropertiesPanel.SCALE;
