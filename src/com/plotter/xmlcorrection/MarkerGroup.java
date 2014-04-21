@@ -265,8 +265,9 @@ public class MarkerGroup {
 		
 		NEXT_SHAPE:for(Entry<List<Integer>, DatabaseMultipoly> entry:database.markersToShape.entrySet()) {
 			
+			boolean markerFound = false;
+			
 			for(Integer markerId:entry.getKey()) {
-				boolean markerFound = false;
 				
 				for(MarkerData marker:this.markers) {
 					if(marker.getMarkerNumber() == markerId) {
@@ -275,9 +276,10 @@ public class MarkerGroup {
 					}
 				}
 				
-				if(!markerFound)
-					continue NEXT_SHAPE;
 			}
+			
+			if(!markerFound)
+				continue NEXT_SHAPE;
 			
 			possibleShapes.add(entry.getValue());
 			
