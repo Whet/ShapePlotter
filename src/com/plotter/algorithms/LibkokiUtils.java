@@ -5,7 +5,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.io.File;
@@ -32,12 +31,11 @@ import com.plotter.data.Database;
 import com.plotter.data.DatabaseMultipoly;
 import com.plotter.data.Maths;
 import com.plotter.data.OutputXML;
-import com.plotter.xmlcorrection.MarkerData;
 
 public class LibkokiUtils {
 	
 	private static final int ATTEMPTS = 10;
-	private static final double SCALE = 0.4;
+	private static final double SCALE = 0.3;
 	
 	public static void getShapes(File selectedFile, Graphics2D graphics, Database database,
             List<MarkerInfo> markers, Set<DatabaseMultipoly> allocatedShapes,
@@ -193,8 +191,10 @@ public class LibkokiUtils {
 				 }
 			}
 			
+			System.out.println("Possible shapes: " + possibleShapes.size());
+			
 			// No match
-			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0) && polygonMarkersLocated.size() < entry.getKey().size()) {
+			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0) && polygonMarkersLocated.size() < Math.floor(entry.getKey().size() * 0.8)) {
 				possibleShapesIt.remove();
 				return false;
 			}

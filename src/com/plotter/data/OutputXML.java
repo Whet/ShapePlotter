@@ -90,6 +90,8 @@ public class OutputXML {
 			
 			sb.append(TABS(tabs) + "<Shape>\n");
 			
+			sb.append(TABS(tabs) + "<Id>" + data.shapeId + "</Id>\n");
+			
 			sb.append(TABS(tabs + 1) + "<Verticies>\n");
 				for(Point vertex:data.shapeVerticies) {
 					sb.append(new VertexXML(vertex).toXML(tabs + 1));
