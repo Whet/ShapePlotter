@@ -25,7 +25,6 @@ public class MarkerGroup {
 	
 	private Point centre;
 	private double rotation;
-	private double originalRotation;
 	private List<com.plotter.data.Connection> transformedConnections;
 	
 	public MarkerGroup(Database database) {
@@ -33,7 +32,6 @@ public class MarkerGroup {
 		this.transformedEdges = new ArrayList<>();
 		this.transformedConnections = new ArrayList<>();
 		this.database = database;
-		this.originalRotation = 0;
 	}
 	
 	public void addMarker(MarkerData marker) {
@@ -83,13 +81,26 @@ public class MarkerGroup {
 	}
 	
 	private double getRotation() {
-		double averageRotation = 0;
+		
+		if(this.shape == null)
+			return 0;
+		
+		// used to calculate average of marker rotations
+		double averageSin = 0;
+		double averageCos = 0;
 		
 		for(MarkerData marker:markers) {
-			averageRotation += marker.getRotation() - Math.toDegrees(this.shape.getRotation());
+			double d = Math.toRadians(marker.getRotation() - Math.toDegrees(this.shape.getRotation()));
+			
+			averageSin += Math.sin(d);
+			averageCos += Math.cos(d);
 		}
+
+		averageSin /= this.markers.size();
+		averageCos /= this.markers.size();
 		
-		return Math.toRadians(averageRotation / markers.size());
+		return Math.atan2(averageSin, averageCos);
+		
 	}
 	
 	public void translate(int x, int y) {
@@ -119,8 +130,6 @@ public class MarkerGroup {
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}
-		
-		this.originalRotation = getRotation();
 		
 		update();
 	}
@@ -171,17 +180,17 @@ public class MarkerGroup {
 			edge.end2 = end2;
 		}
 		
-		for(com.plotter.data.Connection connection:connections) {
-			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation - originalRotation));
-			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation - originalRotation));
-			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation - originalRotation));
-			
-			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
-		}
-		
-		connections.clear();
-		connections.addAll(connectionsBuffer);
-		connectionsBuffer.clear();
+//		for(com.plotter.data.Connection connection:connections) {
+//			Point centre1 = new Point(MultiPoly.rotatePoint(connection.getCentre(), centre, this.rotation));
+//			Point inside = new Point(MultiPoly.rotatePoint(connection.getInside(), centre, this.rotation));
+//			Point outside = new Point(MultiPoly.rotatePoint(connection.getOutside(), centre, this.rotation));
+//			
+//			connectionsBuffer.add(new Connection(connection.getFlavour(), centre1.x, centre1.y, inside.x, inside.y, outside.x, outside.y));
+//		}
+//		
+//		connections.clear();
+//		connections.addAll(connectionsBuffer);
+//		connectionsBuffer.clear();
 		
 		// Scale
 		final double scale = PropertiesPanel.SCALE;

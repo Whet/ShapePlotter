@@ -36,7 +36,7 @@ import com.plotter.data.OutputXML;
 public class LibkokiUtils {
 	
 	private static final int ATTEMPTS = 10;
-	private static final double SCALE = 1;
+	private static final double SCALE = 0.4;
 	
 	public static void getShapes(File selectedFile, Graphics2D graphics, Database database,
             List<MarkerInfo> markers, Set<DatabaseMultipoly> allocatedShapes,
@@ -142,7 +142,10 @@ public class LibkokiUtils {
 			double width = entry.getValue().getMergedPolygon().getBounds2D().getWidth() * SCALE;
 			double height = entry.getValue().getMergedPolygon().getBounds2D().getHeight() * SCALE;
 			
-			radius = width + height;
+			if(width > height)
+				radius = width;
+			else
+				radius = height;
 			
 			Set<MarkerInfo> polygonMarkersLocated = new HashSet<>();
 			
@@ -156,10 +159,11 @@ public class LibkokiUtils {
 				for(int j = 0; j < markerInfo.length; j++) {
 
 					// If the marker being investigated is found or another marker in the area is found that is part of the shape in entry add it
-					if((markerInfo[j].equals(marker) &&
+					if(!allocatedMarkers.contains(markerInfo[j]) && (
+					   (markerInfo[j].equals(marker) &&
 					    markerNeighbour.equals(markerInfo[j].id)) ||
 					   ((markerNeighbour.equals(markerInfo[j].id) &&
-					   Maths.getDistance(marker.centrePixels, markerInfo[j].centrePixels) <= radius))) {
+					   Maths.getDistance(marker.centrePixels, markerInfo[j].centrePixels) <= radius)))) {
 						
 						System.out.println("Found marker " + markerInfo[j].id);
 						polygonMarkersLocated.add(markerInfo[j]);
