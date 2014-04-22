@@ -31,6 +31,37 @@ public class Database implements Serializable {
 		
 	}
 	
+//	public static void main(String[] args) {
+//		
+//		Database db = new Database();
+//		
+//		for(int j = 0; j < 5; j++) {
+//			List<Integer> markers = new ArrayList<>();
+//			final int requiredMarkers = j + 1;
+//			
+//			do {
+//				markers.clear();
+//				for(int i = 0; i < requiredMarkers; i++) {
+//					
+//					int marker = 0;
+//					
+//					// Avoid repeated markers in sets
+//					do {
+//						marker = db.getRandomMarkerNumber();
+//					}while(markers.contains(marker));
+//					
+//					
+//					markers.add(marker);
+//				}
+//				
+//				System.out.println(markers);
+//			}while(db.markerSetExists(markers));
+//			System.out.println("Doesn't exist");
+//			db.markersToShape.put(markers, null);
+//		}
+//		
+//	}
+	
 	private int getRandomMarkerNumber() {
 		int number = 0;
 		
@@ -49,8 +80,6 @@ public class Database implements Serializable {
 		for(List<Integer> markerSet:markersToShape.keySet()) {
 			if(markerSet.containsAll(markers))
 				return true;
-			
-//			System.out.println(markerSet + "doesn't have all " + markers);
 		}
 	
 		// Check other way round as well!
@@ -58,8 +87,6 @@ public class Database implements Serializable {
 		for(List<Integer> markerSet:markersToShape.keySet()) {
 			if(markers.containsAll(markerSet))
 				return true;
-			
-//			System.out.println(markers + "doesn't have all " + markerSet);
 		}
 		
 		return false;
@@ -73,10 +100,22 @@ public class Database implements Serializable {
 		do {
 			markers.clear();
 			for(int i = 0; i < requiredMarkers; i++) {
-				markers.add(getRandomMarkerNumber());
+				
+				int marker = 0;
+				
+				// Avoid repeated markers in sets
+				do {
+					marker = getRandomMarkerNumber();
+				}while(markers.contains(marker));
+				
+				
+				markers.add(marker);
 			}
+			
 		}while(markerSetExists(markers));
-
+		
+		System.out.println("Markers " + markers);
+		
 		markersToShape.put(markers,
 						   new DatabaseMultipoly(tP.rotationComponent,
 								   				 layoutPolygon.getMergedPolygon(),

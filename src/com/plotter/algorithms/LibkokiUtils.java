@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.io.File;
@@ -14,11 +15,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.Set;
 
 import javax.xml.parsers.SAXParser;
@@ -38,7 +38,7 @@ import com.plotter.data.OutputXML;
 public class LibkokiUtils {
 	
 	private static final int ATTEMPTS = 10;
-	private static final double SCALE = 0.3;
+	private static final double SCALE = 1;
 	
 	public static void getShapes(File selectedFile, Graphics2D graphics, Database database,
             List<MarkerInfo> markers, Set<DatabaseMultipoly> allocatedShapes,
@@ -215,12 +215,11 @@ public class LibkokiUtils {
 			
 			System.out.println("Possible shapes: " + possibleShapes.size());
 			
-			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0)) {
+			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0) && polygonMarkersLocated.size() < entry.getKey().size() ) {
 				// No match
 				possibleShapesIt.remove();
 				return false;
 			}
-			// Found enough markers within a tolerance
 			else {
 				// Add all found markers for this shape to the located ones
 				locatedMarkers.put(entry.getValue(), polygonMarkersLocated);
@@ -303,6 +302,9 @@ public class LibkokiUtils {
 		
 		// Draw shapes
 		List<Edge> hairlines = polygonCopy.getHairlines();
+		
+		Polygon areaPolygon = new Polygon();
+		
 		for(Edge edge:hairlines) {
 			graphics.setColor(Color.orange);
 			graphics.setComposite(makeComposite(0.9f));
@@ -330,7 +332,13 @@ public class LibkokiUtils {
 			
 			verticies.add(point);
 			verticies.add(point2);
+			
+			areaPolygon.addPoint(point.x, point.y);
+			areaPolygon.addPoint(point2.x, point2.y);
+			
 		}
+		
+//		graphics.fillPolygon(areaPolygon);
 		
 		graphics.setColor(Color.red);
 		
@@ -375,6 +383,13 @@ public class LibkokiUtils {
 		graphics.drawLine((int)marker.centrePixels[0], (int)marker.centrePixels[1],
 						  (int)(marker.centrePixels[0] + rotDisplacement[0]),
 						  (int)(marker.centrePixels[1] + rotDisplacement[1]));
+		
+		
+		// Make all markers contained in the area of the shape allocated so they aren't used elsewhere
+		for(int i = 0; i < markerInfo.length; i++) {
+			if(areaPolygon.contains(markerInfo[i].centrePixels[0], markerInfo[i].centrePixels[1]))
+				allocatedMarkers.add(markerInfo[i]);
+		}
 		
 		return true;
 	}
