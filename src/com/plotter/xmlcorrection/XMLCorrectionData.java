@@ -246,7 +246,7 @@ public class XMLCorrectionData {
 			}
 			
 			
-			ShapeData sData = new ShapeData(group.getShape().getShapeId(), shapeDataVerticies, connections, markerInfo);
+			ShapeData sData = new ShapeData(group.getShape().getShapeId(), group.getShape().getDatabaseId(), shapeDataVerticies, connections, markerInfo);
 			shapeData.add(sData);
 		}
 		

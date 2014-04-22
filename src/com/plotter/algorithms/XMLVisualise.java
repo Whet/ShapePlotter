@@ -126,7 +126,7 @@ public class XMLVisualise {
 					System.out.println("End Element :" + qName);
 					
 					if (qName.equalsIgnoreCase("Shape")) {
-						ShapeData shape = new ShapeData(0, shapeVerticies, connections, null);
+						ShapeData shape = new ShapeData(0, 0, shapeVerticies, connections, null);
 						shapes.add(shape);
 					}
 					else if (qName.equalsIgnoreCase("X")) {

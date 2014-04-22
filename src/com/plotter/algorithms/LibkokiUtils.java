@@ -368,7 +368,7 @@ public class LibkokiUtils {
 			shapeDataConnections.add(imageConnection );
 		}
 		
-		ShapeData shapeData2 = new ShapeData(multiPoly.getShapeId(), shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));
+		ShapeData shapeData2 = new ShapeData(multiPoly.getShapeId(), multiPoly.getDatabaseId(), shapeDataVerticies, shapeDataConnections, locatedMarkers.get(multiPoly));
 		shapeData.add(shapeData2);
 		shapeDataMapping.put(shapeData2, multiPoly);
 		

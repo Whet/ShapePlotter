@@ -58,7 +58,8 @@ public class OutputXML {
 		
 		/*
 		 * <Shape>
-		 *  <Id>1</Id>
+		 *  <ShapeId>1</ShapeId>
+		 *  <ComponentId>1</ComponentId>
 		 * 	<Verticies>
 		 * 		<Vertex>
 		 * 			<X>100.0</X> 
@@ -91,6 +92,8 @@ public class OutputXML {
 			sb.append(TABS(tabs) + "<Shape>\n");
 			
 			sb.append(TABS(tabs) + "<Id>" + data.shapeId + "</Id>\n");
+			
+			sb.append(TABS(tabs) + "<ComponentId>" + data. + "</ComponentId>\n");
 			
 			sb.append(TABS(tabs + 1) + "<Verticies>\n");
 				for(Point vertex:data.shapeVerticies) {

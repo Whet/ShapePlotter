@@ -9,12 +9,14 @@ public class ShapeData {
 	public final Set<Connection> connections;
 	public final Set<Point> shapeVerticies;
 	public final int shapeId;
+	public final int componentId;
 	
-	public ShapeData(int shapeId, Set<Point> shapeDataVerticies, Set<Connection> connections, Set<LibkokiUtils.MarkerInfo> markers) {
+	public ShapeData(int shapeId, int componentId, Set<Point> shapeDataVerticies, Set<Connection> connections, Set<LibkokiUtils.MarkerInfo> markers) {
 		this.connections = connections;
 		this.shapeVerticies = shapeDataVerticies;
 		this.markers = markers;
 		this.shapeId = shapeId;
+		this.componentId = componentId;
 	}
 	
 	public static class Connection {
