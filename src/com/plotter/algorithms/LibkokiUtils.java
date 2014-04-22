@@ -245,19 +245,19 @@ public class LibkokiUtils {
 		else {
 			System.out.println("Couldn't make a choice!!!");
 			
-			multiPoly = selectShape(possibleShapes, locatedMarkers);
+//			multiPoly = selectShape(possibleShapes, locatedMarkers);
 			
-			if(multiPoly == null)
+//			if(multiPoly == null)
 				return false;
 			
-			System.out.println("RECOVERED!!!");
-			
-			// Don't repeat shapes
-			if(allocatedShapes.contains(multiPoly)) {
-				return true;
-			}
-			
-			allocatedShapes.add(multiPoly);
+//			System.out.println("RECOVERED!!!");
+//			
+//			// Don't repeat shapes
+//			if(allocatedShapes.contains(multiPoly)) {
+//				return true;
+//			}
+//			
+//			allocatedShapes.add(multiPoly);
 			
 		}
 		
@@ -394,108 +394,79 @@ public class LibkokiUtils {
 		return true;
 	}
 
-	private static DatabaseMultipoly selectShape(PriorityQueue<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes, Map<DatabaseMultipoly, Set<MarkerInfo>> locatedMarkers) {
-		
-		DatabaseMultipoly matchingShape = null;
-		
-NEXT_MARKER:for(Entry<List<Integer>, DatabaseMultipoly> possibleShape:possibleShapes) {
-			
-			Area polyArea = new Area();
-			
-			DatabaseMultipoly multipoly = possibleShape.getValue();
-
-			double theta = getMeanRotation(multipoly, locatedMarkers.get(multipoly));
-
-			polyArea.add(new Area(multipoly.getMergedPolygon()));
-			
-			double centerX = polyArea.getBounds2D().getCenterX();
-			double centerY = polyArea.getBounds2D().getCenterY();
-			
-			double width = polyArea.getBounds2D().getWidth();
-			double height = polyArea.getBounds2D().getHeight();
-			
-			// Scale shape
-			AffineTransform scaleTransform = new AffineTransform();
-			scaleTransform.setToScale(SCALE, SCALE);
-			polyArea.transform(scaleTransform);
-			
-			centerX = polyArea.getBounds2D().getCenterX();
-			centerY = polyArea.getBounds2D().getCenterY();
-			
-			width = polyArea.getBounds2D().getWidth();
-			height = polyArea.getBounds2D().getHeight();
-			
-			// Move area to origin
-			AffineTransform translation = new AffineTransform();
-			double minX = polyArea.getBounds2D().getMinX();
-			double minY = polyArea.getBounds2D().getMinY();
-			translation.setToTranslation(-minX, -minY);
-			polyArea.transform(translation);
-			
-			centerX = polyArea.getBounds2D().getCenterX();
-			centerY = polyArea.getBounds2D().getCenterY();
-			
-			// Rotate shape
-			AffineTransform rotation = new AffineTransform();
-			rotation.setToRotation(theta);
-			polyArea.transform(rotation);
-			
-			centerX = polyArea.getBounds2D().getCenterX();
-			centerY = polyArea.getBounds2D().getCenterY();
-			
-			// Move area to origin
-			translation = new AffineTransform();
-			translation.setToTranslation(-minX, -minY);
-			polyArea.transform(translation);
-			
-			centerX = polyArea.getBounds2D().getCenterX();
-			centerY = polyArea.getBounds2D().getCenterY();
-			
-			
-			// Move area to fit over a marker
-			MarkerInfo markerInfo = locatedMarkers.get(multipoly).iterator().next();
-			int[] markerDisplacement = multipoly.getDisplacement(markerInfo.id);
-			markerDisplacement[0] *= SCALE;
-			markerDisplacement[1] *= SCALE;
-			
-			double[] rotDisplacement = new double[2];
-			
-			double cT = Math.cos(theta);
-			double sT = Math.sin(theta);
-			
-			rotDisplacement[0] = markerDisplacement[0] * cT - markerDisplacement[1] * sT;
-			rotDisplacement[1] = markerDisplacement[0] * sT + markerDisplacement[1] * cT;
-			
-			centerX = polyArea.getBounds2D().getCenterX();
-			centerY = polyArea.getBounds2D().getCenterY();
-			
-			translation = new AffineTransform();
-			
-			// Move scaled centre to marker then minus marker displacement
-			translation.setToTranslation((markerInfo.centrePixels[0] - centerX) - rotDisplacement[0],
-										 (markerInfo.centrePixels[1] - centerY) - rotDisplacement[1]);
-			polyArea.transform(translation);
-			
-			centerX = polyArea.getBounds2D().getCenterX();
-			centerY = polyArea.getBounds2D().getCenterY();
-			
-			// Check all markers in the set are contained in the area
-			Set<MarkerInfo> markers = locatedMarkers.get(multipoly);
-			for(MarkerInfo marker:markers) {
-				if(!polyArea.contains(marker.centrePixels[0], marker.centrePixels[1]))
-					continue NEXT_MARKER;
-			}
-			
-			// If a match has already been found, cannot conclude what shape it is
-			if(matchingShape != null)
-				return null;
-			
-			// Else make this shape the match
-			matchingShape = multipoly;
-		}
-		
-		return matchingShape;
-	}
+//	private static DatabaseMultipoly selectShape(PriorityQueue<Entry<List<Integer>, DatabaseMultipoly>> possibleShapes, Map<DatabaseMultipoly, Set<MarkerInfo>> locatedMarkers) {
+//		
+//		DatabaseMultipoly matchingShape = null;
+//		
+//NEXT_MARKER:for(Entry<List<Integer>, DatabaseMultipoly> possibleShape:possibleShapes) {
+//			
+//			DatabaseMultipoly multiPoly = possibleShape.getValue();
+//	
+//			LineMergePolygon polygonCopy = null;
+//			try {
+//				polygonCopy = (LineMergePolygon) possibleShape.getValue().getLineMergePolygon().clone();
+//			} catch (CloneNotSupportedException e) {
+//				e.printStackTrace();
+//			}
+//			
+//			Point polygonCentre = new Point((int) multiPoly.getMergedPolygon().getBounds2D().getCenterX(), (int) multiPoly.getMergedPolygon().getBounds2D().getCenterY());
+//			double meanRotation = getMeanRotation(multiPoly, locatedMarkers.get(multiPoly));
+//			if(Math.abs(meanRotation) > 0.00001)
+//				polygonCopy.rotate(polygonCentre, meanRotation);
+//			
+//			int[] markerDisplacement = multiPoly.getDisplacement(marker.id);
+//			markerDisplacement[0] *= SCALE;
+//			markerDisplacement[1] *= SCALE;
+//			
+//			double[] rotDisplacement = new double[2];
+//			double theta = meanRotation;
+//			
+//			double cT = Math.cos(theta);
+//			double sT = Math.sin(theta);
+//			
+//			rotDisplacement[0] = markerDisplacement[0] * cT - markerDisplacement[1] * sT;
+//			rotDisplacement[1] = markerDisplacement[0] * sT + markerDisplacement[1] * cT;
+//			
+//			// Shape data Info=
+//			Set<ShapeData.Connection> shapeDataConnections = new HashSet<>();
+//			
+//			ArrayList<Point> verticies = new ArrayList<>();
+//			
+//			// Shape data Info
+//			Set<Point> shapeDataVerticies = new HashSet<>();
+//			
+//			// Draw shapes
+//			List<Edge> hairlines = polygonCopy.getHairlines();
+//			
+//			Polygon areaPolygon = new Polygon();
+//			
+//			for(Edge edge:hairlines) {
+//				Point point = new Point((int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end1.x - polygonCentre.x) * SCALE)), 
+//									    (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end1.y - polygonCentre.y) * SCALE)));
+//				
+//				Point point2 = new Point((int)(marker.centrePixels[0] + rotDisplacement[0] + ((edge.end2.x - polygonCentre.x) * SCALE)), 
+//										 (int)(marker.centrePixels[1] + rotDisplacement[1] + ((edge.end2.y - polygonCentre.y) * SCALE)));
+//				
+//				shapeDataVerticies.add(point);
+//				shapeDataVerticies.add(point2);
+//				
+//				verticies.add(point);
+//				verticies.add(point2);
+//				
+//				areaPolygon.addPoint(point.x, point.y);
+//				areaPolygon.addPoint(point2.x, point2.y);
+//				
+//			}
+//			
+//			// Make all markers contained in the area of the shape allocated so they aren't used elsewhere
+//			for(int i = 0; i < markerInfo.length; i++) {
+//				if(areaPolygon.contains(markerInfo[i].centrePixels[0], markerInfo[i].centrePixels[1]))
+//					allocatedMarkers.add(markerInfo[i]);
+//			}
+//		}
+//		
+//		return matchingShape;
+//	}
 
 	private static double getMeanRotation(DatabaseMultipoly multiPoly, Set<MarkerInfo> locatedMarkers) {
 		
