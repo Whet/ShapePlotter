@@ -215,7 +215,7 @@ public class LibkokiUtils {
 			
 			System.out.println("Possible shapes: " + possibleShapes.size());
 			
-			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0) && polygonMarkersLocated.size() < Math.floor(entry.getKey().size() * 0.8)) {
+			if(!(possibleShapes.size() == 1 && polygonMarkersLocated.size() > 0)) {
 				// No match
 				possibleShapesIt.remove();
 				return false;
